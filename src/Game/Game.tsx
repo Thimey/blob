@@ -30,7 +30,7 @@ export const Game = () => {
       new Bloblet(ctx, '2', canvas.width / 4, canvas.height / 2),
     ];
 
-    const onMouseDown = (e: MouseEvent) => {
+    const onMouseUp = (e: MouseEvent) => {
       const mouseX = e.x - left;
       const mouseY = e.y - top;
 
@@ -47,12 +47,12 @@ export const Game = () => {
       }
     }
 
-    window.addEventListener('mouseup', onMouseDown)
+    window.addEventListener('mouseup', onMouseUp)
 
     gameLoop(ctx, blobs)
 
     return () => {
-      window.removeEventListener('mouseup', onMouseDown)
+      window.removeEventListener('mouseup', onMouseUp)
     }
   }, [])
 
