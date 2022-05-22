@@ -1,0 +1,1 @@
+export { Shrub } from './Shrub';

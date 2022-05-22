@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
-import { Bloblet, BlobQueen, SpawnedBlob } from './Blobs'
+import { Bloblet, BlobQueen, SpawnedBlob } from './Blobs';
+import { Shrub } from './Resources';
 
 const CANVAS_HEIGHT = 500;
 const CANVAS_WIDTH = 800;
@@ -9,6 +10,7 @@ let selectedBlob: Bloblet | null = null;
 interface Blobs {
   blobQueen: BlobQueen;
   bloblets: Bloblet[];
+  shrubs: Shrub[];
 }
 
 function gameLoop(ctx: CanvasRenderingContext2D, blobs: Blobs) {
@@ -19,6 +21,10 @@ function gameLoop(ctx: CanvasRenderingContext2D, blobs: Blobs) {
   blobs.bloblets.forEach(blob => {
     blob.draw(selectedBlob?.id === blob.id);
     blob.update();
+  })
+
+  blobs.shrubs.forEach(s => {
+    s.draw()
   })
 
   window.requestAnimationFrame(() => gameLoop(ctx, blobs))
@@ -39,6 +45,9 @@ export const Game = () => {
       bloblets: [
         new Bloblet(ctx, '1', canvas.width * 0.75, canvas.height / 2),
         new Bloblet(ctx, '2', canvas.width * 0.25, canvas.height / 2),
+      ],
+      shrubs: [
+        new Shrub(ctx, '1', canvas.width * 0.90, canvas.height * 0.1, 1)
       ]
     };
 
