@@ -3,6 +3,7 @@ import ReactModal from 'react-modal';
 import blobletImg from '../bloblet.png'
 
 import { Bloblet, BlobQueen } from './Blobs'
+import { Shrub } from './Resources';
 
 const CANVAS_HEIGHT = 500;
 const CANVAS_WIDTH = 800;
@@ -12,10 +13,21 @@ interface Blobs {
   bloblets: Bloblet[];
 }
 
+interface Resources {
+  shrubs: Shrub[];
+}
+
 const blobs: Blobs = {
   blobQueen: new BlobQueen(CANVAS_WIDTH * 0.5, CANVAS_HEIGHT * 0.5, 20),
-  bloblets: []
+  bloblets: [],
 };
+const resources: Resources = {
+  shrubs: [
+    new Shrub('1', CANVAS_WIDTH * 0.9, CANVAS_HEIGHT * 0.1, 1),
+    new Shrub('2', CANVAS_WIDTH * 0.1, CANVAS_HEIGHT * 0.1, 1),
+    new Shrub('3', CANVAS_WIDTH * 0.5, CANVAS_HEIGHT * 0.9, 1)
+  ]
+}
 
 let selectedBlob: Bloblet | null = null;
 
@@ -27,6 +39,10 @@ function gameLoop(ctx: CanvasRenderingContext2D, blobs: Blobs) {
   blobs.bloblets.forEach(blob => {
     blob.draw(ctx, selectedBlob?.id === blob.id);
     blob.update();
+  })
+
+  resources.shrubs.forEach(s => {
+    s.draw(ctx)
   })
 
   window.requestAnimationFrame(() => gameLoop(ctx, blobs))
