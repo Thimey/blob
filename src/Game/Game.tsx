@@ -51,8 +51,10 @@ export const Game = () => {
 
       const clickedBloblet = blobs.bloblets.find(blob => blob.didClick(mouseX, mouseY))
       if (clickedBloblet) {
-        selectedBlob = selectedBlob?.id ? null : clickedBloblet
-        return
+        selectedBlob = clickedBloblet.id === selectedBlob?.id
+          ? null
+          : clickedBloblet
+        return;
       }
 
       if (blobs.blobQueen.didClick(mouseX, mouseY)) {
