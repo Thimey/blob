@@ -80,7 +80,7 @@ export const Game = () => {
   }, [])
 
   const handleSpawnBloblet = () => {
-    blobs.bloblets.push(new Bloblet(String(Date.now()), CANVAS_WIDTH * Math.random(), CANVAS_HEIGHT * Math.random()),)
+    blobs.bloblets.push(new Bloblet(String(Date.now()), CANVAS_WIDTH * Math.random(), CANVAS_HEIGHT * Math.random()))
   }
 
   return (
