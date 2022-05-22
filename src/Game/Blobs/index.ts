@@ -1,4 +1,3 @@
-import { Bloblet } from './Bloblet'
-
-export { Bloblet }
-export type Blob = Bloblet;
+export { Bloblet } from './Bloblet';
+export { BlobQueen } from './BlobQueen';
+export { SpawnedBlob } from './SpawnedBlob';

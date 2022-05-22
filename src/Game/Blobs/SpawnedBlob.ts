@@ -1,6 +1,6 @@
 import { getDistance } from '../utils'
 
-export class BlobSpawn {
+export class SpawnedBlob {
   public x: number;
   public y: number;
   public radius: number;

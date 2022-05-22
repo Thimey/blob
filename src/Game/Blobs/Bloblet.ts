@@ -1,7 +1,7 @@
 import { drawCircle } from '../utils'
-import { BlobSpawn } from './BlobSpawn'
+import { SpawnedBlob } from './SpawnedBlob'
 
-export class Bloblet extends BlobSpawn {
+export class Bloblet extends SpawnedBlob {
   public id: string
   private ctx: CanvasRenderingContext2D;
 

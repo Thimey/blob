@@ -1,14 +1,22 @@
 import { useRef, useEffect } from 'react';
-import { Bloblet, Blob } from './Blobs'
+import { Bloblet, BlobQueen, SpawnedBlob } from './Blobs'
 
 const CANVAS_HEIGHT = 500;
 const CANVAS_WIDTH = 800;
 
-let selectedBlob: Blob | null = null;
+let selectedBlob: Bloblet | null = null;
 
-function gameLoop(ctx: CanvasRenderingContext2D, blobs: Blob[]) {
+interface Blobs {
+  blobQueen: BlobQueen;
+  bloblets: Bloblet[];
+}
+
+function gameLoop(ctx: CanvasRenderingContext2D, blobs: Blobs) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  blobs.forEach(blob => {
+
+  blobs.blobQueen.draw();
+
+  blobs.bloblets.forEach(blob => {
     blob.draw(selectedBlob?.id === blob.id);
     blob.update();
   })
@@ -25,16 +33,20 @@ export const Game = () => {
     const { left, top } = canvas.getBoundingClientRect();
     canvas.width = 800;
     canvas.height = 500;
-    const blobs = [
-      new Bloblet(ctx, '1', canvas.width / 2, canvas.height / 2),
-      new Bloblet(ctx, '2', canvas.width / 4, canvas.height / 2),
-    ];
+
+    const blobs: Blobs = {
+      blobQueen: new BlobQueen(ctx, canvas.width * 0.5, canvas.height * 0.5, 20),
+      bloblets: [
+        new Bloblet(ctx, '1', canvas.width * 0.75, canvas.height / 2),
+        new Bloblet(ctx, '2', canvas.width * 0.25, canvas.height / 2),
+      ]
+    };
 
     const onMouseUp = (e: MouseEvent) => {
       const mouseX = e.x - left;
       const mouseY = e.y - top;
 
-      const clickedBlob = blobs.find(blob => blob.didClick(mouseX, mouseY))
+      const clickedBlob = blobs.bloblets.find(blob => blob.didClick(mouseX, mouseY))
       if (clickedBlob) {
         const deselected = clickedBlob.id === selectedBlob?.id
         selectedBlob = deselected ? null : clickedBlob
