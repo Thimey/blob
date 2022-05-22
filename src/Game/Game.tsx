@@ -1,56 +1,65 @@
-import { useRef, useEffect } from 'react';
-import { Bloblet, BlobQueen, SpawnedBlob } from './Blobs'
+import { useRef, useEffect, useState } from 'react';
+import ReactModal from 'react-modal';
+import blobletImg from '../bloblet.png'
+
+import { Bloblet, BlobQueen } from './Blobs'
 
 const CANVAS_HEIGHT = 500;
 const CANVAS_WIDTH = 800;
-
-let selectedBlob: Bloblet | null = null;
 
 interface Blobs {
   blobQueen: BlobQueen;
   bloblets: Bloblet[];
 }
 
+const blobs: Blobs = {
+  blobQueen: new BlobQueen(CANVAS_WIDTH * 0.5, CANVAS_HEIGHT * 0.5, 20),
+  bloblets: []
+};
+
+let selectedBlob: Bloblet | null = null;
+
 function gameLoop(ctx: CanvasRenderingContext2D, blobs: Blobs) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  blobs.blobQueen.draw();
+  blobs.blobQueen.draw(ctx);
 
   blobs.bloblets.forEach(blob => {
-    blob.draw(selectedBlob?.id === blob.id);
+    blob.draw(ctx, selectedBlob?.id === blob.id);
     blob.update();
   })
 
   window.requestAnimationFrame(() => gameLoop(ctx, blobs))
 }
 
+
+
 export const Game = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [spawnModalOpen, setSpawnModalOpen] = useState<{ top: number, left: number } | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
     const { left, top } = canvas.getBoundingClientRect();
-    canvas.width = 800;
-    canvas.height = 500;
-
-    const blobs: Blobs = {
-      blobQueen: new BlobQueen(ctx, canvas.width * 0.5, canvas.height * 0.5, 20),
-      bloblets: [
-        new Bloblet(ctx, '1', canvas.width * 0.75, canvas.height / 2),
-        new Bloblet(ctx, '2', canvas.width * 0.25, canvas.height / 2),
-      ]
-    };
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
 
     const onMouseUp = (e: MouseEvent) => {
       const mouseX = e.x - left;
       const mouseY = e.y - top;
 
-      const clickedBlob = blobs.bloblets.find(blob => blob.didClick(mouseX, mouseY))
-      if (clickedBlob) {
-        const deselected = clickedBlob.id === selectedBlob?.id
-        selectedBlob = deselected ? null : clickedBlob
+      const clickedBloblet = blobs.bloblets.find(blob => blob.didClick(mouseX, mouseY))
+      if (clickedBloblet) {
+        selectedBlob = selectedBlob?.id ? null : clickedBloblet
         return
+      }
+
+      if (blobs.blobQueen.didClick(mouseX, mouseY)) {
+        setSpawnModalOpen({ top: e.y, left: e.x });
+        selectedBlob = null;
+
+        return;
       }
 
       if (selectedBlob) {
@@ -68,5 +77,23 @@ export const Game = () => {
     }
   }, [])
 
-  return <canvas id="game-canvas" ref={canvasRef} />
+  const handleSpawnBloblet = () => {
+    blobs.bloblets.push(new Bloblet(String(Date.now()), CANVAS_WIDTH * Math.random(), CANVAS_HEIGHT * Math.random()),)
+  }
+
+  return (
+    <>
+      <canvas id="game-canvas" ref={canvasRef} />
+      <ReactModal
+        isOpen={!!spawnModalOpen}
+        ariaHideApp={false}
+        onRequestClose={() => setSpawnModalOpen(null)}
+        style={{ content: { width: 100, height: 100, top: spawnModalOpen?.top, left: spawnModalOpen?.left } }}
+      >
+        <div onClick={handleSpawnBloblet}>
+          <img src={blobletImg} className="w-3" />
+        </div>
+      </ReactModal>
+    </>
+  )
 }

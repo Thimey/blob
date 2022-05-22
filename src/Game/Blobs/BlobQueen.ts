@@ -1,48 +1,54 @@
-import { drawCircle } from "../utils";
+import { drawCircle, isPointWithinEllipse } from "../utils";
 
 export class BlobQueen {
   public x: number;
   public y: number;
   public mass: number;
-  private ctx: CanvasRenderingContext2D;
 
-  constructor(ctx: CanvasRenderingContext2D, x: number, y: number, mass: number) {
-    this.ctx = ctx;
+  constructor(
+    x: number,
+    y: number,
+    mass: number,
+  ) {
     this.x = x;
     this.y = y;
     this.mass = mass;
   }
 
-  private get radiusX() {
+  public get radiusX() {
     return this.mass * 3
   }
 
-  private get radiusY() {
+  public get radiusY() {
     return this.mass * 2
   }
 
-  public draw() {
+  public draw(ctx: CanvasRenderingContext2D) {
     // Body
-    this.ctx.beginPath();
-    this.ctx.ellipse(this.x, this.y, this.radiusX, this.radiusY, 0, Math.PI * 2, 0);
-    this.ctx.fillStyle = '#4c6ef5';
-    this.ctx.fill();
-    this.ctx.strokeStyle = 'black';
-    this.ctx.stroke();
-    this.ctx.closePath();
+    ctx.beginPath();
+    ctx.ellipse(this.x, this.y, this.radiusX, this.radiusY, 0, Math.PI * 2, 0);
+    ctx.fillStyle = '#4c6ef5';
+    ctx.fill();
+    ctx.strokeStyle = 'black';
+    ctx.stroke();
+    ctx.closePath();
 
     // Left eye
-    this.ctx.beginPath()
-    drawCircle(this.ctx, this.x - 4, this.y - 20, 2, 'black');
-    this.ctx.closePath()
+    ctx.beginPath()
+    drawCircle(ctx, this.x - 4, this.y - 20, 2, 'black');
+    ctx.closePath()
 
     // Right eye
-    this.ctx.beginPath()
-    drawCircle(this.ctx, this.x + 4, this.y - 20, 2, 'black');
-    this.ctx.closePath()
+    ctx.beginPath()
+    drawCircle(ctx, this.x + 4, this.y - 20, 2, 'black');
+    ctx.closePath()
   }
 
   public update() {
     return;
+  }
+
+  public didClick(xClicked: number, yClicked: number) {
+    return isPointWithinEllipse(this, [xClicked, yClicked])
   }
 }
