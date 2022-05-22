@@ -5,7 +5,6 @@ const LEAF_WIDTH = 13;
 
 export class Shrub {
     public id: string
-    private ctx: CanvasRenderingContext2D;
 
     public x: number;
     public y: number;
@@ -13,14 +12,12 @@ export class Shrub {
     public leafCoordinates: { x: number, y: number }[]
 
     constructor(
-        ctx: CanvasRenderingContext2D,
         id: string,
         x: number,
         y: number,
         remainingPercent: number
     ) {
         this.id = id;
-        this.ctx = ctx;
         this.x = x;
         this.y = y;
         this.remainingPercent = remainingPercent;
@@ -46,10 +43,10 @@ export class Shrub {
         ]
     }
 
-    draw() {
+    draw(ctx: CanvasRenderingContext2D) {
         this.leafCoordinates.forEach(({ x, y }) => {
             drawDiamond(
-                this.ctx,
+                ctx,
                 x,
                 y,
                 LEAF_WIDTH,

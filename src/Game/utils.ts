@@ -10,6 +10,14 @@ export function makeRandNumber(max: number = 1) {
   return Math.random() > 0.5 ?randNumber : randNumber * -1
 }
 
+interface Ellipse { x: number, y: number, radiusX: number, radiusY: number }
+
+export function isPointWithinEllipse(ellipse: Ellipse, [x, y]: Point) {
+  return (
+    (((x - ellipse.x) ** 2) / (ellipse.radiusX ** 2))
+    + (((y - ellipse.y) ** 2) / (ellipse.radiusY ** 2)) <= 1)
+}
+
 export function drawCircle(
   ctx: CanvasRenderingContext2D,
   x: number,

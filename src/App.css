@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 #game-canvas {
   width: 800px;
   height: 500px;
