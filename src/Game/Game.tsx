@@ -2,7 +2,9 @@ import { useRef, useEffect, useState } from 'react';
 import ReactModal from 'react-modal';
 import blobletImg from '../bloblet.png'
 
+import { getDistance } from './utils'
 import { Bloblet, BlobQueen } from './Blobs'
+import { createBloblet } from './Blobs/Bloblet'
 import { Shrub } from './Resources';
 
 const CANVAS_HEIGHT = 500;
@@ -31,15 +33,22 @@ const resources: Resources = {
 
 let selectedBlob: Bloblet | null = null;
 
+const newBloblet = createBloblet()
+
 function gameLoop(ctx: CanvasRenderingContext2D, blobs: Blobs) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  blobs.blobQueen.draw(ctx);
 
-  blobs.bloblets.forEach(blob => {
-    blob.draw(ctx, selectedBlob?.id === blob.id);
-    blob.update();
-  })
+
+  // blobs.blobQueen.draw(ctx);
+
+  // blobs.bloblets.forEach(blob => {
+  //   blob.draw(ctx, selectedBlob?.id === blob.id);
+  //   blob.update();
+  // })
+
+  newBloblet.send('DRAW', { ctx });
+  newBloblet.send('UPDATE', { ctx });
 
   resources.shrubs.forEach(s => {
     s.draw(ctx)
@@ -64,6 +73,8 @@ export const Game = () => {
     const onMouseUp = (e: MouseEvent) => {
       const mouseX = e.x - left;
       const mouseY = e.y - top;
+
+      newBloblet.send('CLICKED', { mouseX, mouseY })
 
       const clickedBloblet = blobs.bloblets.find(blob => blob.didClick(mouseX, mouseY))
       if (clickedBloblet) {
