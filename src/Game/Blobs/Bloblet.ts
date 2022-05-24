@@ -37,9 +37,12 @@ function drawDeselected(context: any, event: any) {
   drawBody(context, event)
 }
 
-const setDestination = assign((context: any, { x, y }: any) => ({
-  destination: (context: any, { x, y }: any) => ({ x, y } as any)
-}))
+const setDestinationOnClick = assign((_: any, { mouseX, mouseY }: any) => {
+  return {
+    destination: { x: mouseX, y: mouseY }
+  }
+})
+
 
 function didClickOnBlob({ position: { x, y }, radius }: any, { mouseX, mouseY }: any) {
   const distanceFromClick = getDistance([mouseX, mouseY], [x, y]);
@@ -66,6 +69,11 @@ export function createBloblet() {
   const machine = createMachine({
     type: 'parallel',
     context: { position: { x: 100, y: 100 }, destination: { x: 0, y: 0 }, radius: 20 },
+    on: {
+      DRAW: {
+        actions: [drawDeselected]
+      },
+    },
     states: {
       selection: {
         initial: 'deselected',
@@ -78,7 +86,8 @@ export function createBloblet() {
                   cond: didClickOnBlob,
                 },
                 {
-                  actions: (_, { mouseX, mouseY }) => send('MOVE_TO', { x: mouseX, y: mouseY }),
+                  target: '#moving',
+                  actions: [setDestinationOnClick],
                 }
               ],
               DRAW: {
@@ -92,9 +101,6 @@ export function createBloblet() {
                 target: 'selected',
                 cond: didClickOnBlob,
               },
-              DRAW: {
-                actions: [drawDeselected]
-              },
             },
           },
         },
@@ -103,19 +109,16 @@ export function createBloblet() {
         initial: 'stationary',
         states: {
           stationary: {
-            on: {
-              MOVE_TO: {
-                target: 'moving',
-                actions: [setDestination],
-              }
-            }
+            // on: {
+            //   MOVE_TO: {
+            //     target: 'moving',
+            //     actions: [setDestination],
+            //   }
+            // }
           },
           moving: {
             id: 'moving',
             on: {
-              MOVE_TO: {
-                actions: [setDestination],
-              },
               UPDATE: [
                 {
                   target: 'stationary',
