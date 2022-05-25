@@ -1,3 +1,2 @@
-export { Bloblet } from './Bloblet';
+export { makeBloblet } from './Bloblet';
 export { BlobQueen } from './BlobQueen';
-export { SpawnedBlob } from './SpawnedBlob';
