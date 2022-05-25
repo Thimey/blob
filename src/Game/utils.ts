@@ -1,3 +1,6 @@
+export const CANVAS_HEIGHT = 500;
+export const CANVAS_WIDTH = 800;
+
 export type Point = [number, number];
 
 export function getDistance([x1, y1]: Point, [x2, y2]: Point) {
@@ -7,7 +10,7 @@ export function getDistance([x1, y1]: Point, [x2, y2]: Point) {
 export function makeRandNumber(max: number = 1) {
   const randNumber = Math.random() * max;
 
-  return Math.random() > 0.5 ?randNumber : randNumber * -1
+  return Math.random() > 0.5 ? randNumber : randNumber * -1
 }
 
 interface Ellipse { x: number, y: number, radiusX: number, radiusY: number }

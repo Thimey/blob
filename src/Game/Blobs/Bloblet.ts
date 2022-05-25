@@ -51,15 +51,17 @@ function hasReachedDestination({ position, destination }: any) {
   return position.x === destination.x && position.y === destination.y;
 }
 
-const stepToDestination = assign(({ position, destination }: any) => {
+
+const stepToDestination = assign(({ position, destination, counter }: any) => {
   const dx = destination.x - position.x;
   const dy = destination.y - position.y;
 
   return {
     position: {
-      x: position.x + (dx / 30),
-      y: position.y + (dy / 30),
-    }
+      x: position.x + (dx / 40),
+      y: position.y + (dy / 40),
+    },
+    counter: counter + 1,
   }
 })
 
@@ -70,9 +72,9 @@ interface Args {
 }
 
 export function makeBloblet({ position, destination = { x: position.x, y: position.y }, radius = 20 }: Args) {
-  const machine = createMachine({
+  return createMachine({
     type: 'parallel',
-    context: { position, destination, radius },
+    context: { position, destination, radius, counter: 0 },
     on: {
       DRAW: {
         actions: [drawDeselected]
@@ -138,6 +140,4 @@ export function makeBloblet({ position, destination = { x: position.x, y: positi
       },
     },
   })
-
-  return interpret(machine).start();
 }
