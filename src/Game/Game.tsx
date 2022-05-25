@@ -2,9 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import ReactModal from 'react-modal';
 import blobletImg from '../bloblet.png'
 
-import { getDistance } from './utils'
-import { Bloblet, BlobQueen } from './Blobs'
-import { createBloblet } from './Blobs/Bloblet'
+import { makeBloblet, BlobQueen } from './Blobs'
 import { Shrub } from './Resources';
 
 const CANVAS_HEIGHT = 500;
@@ -12,7 +10,7 @@ const CANVAS_WIDTH = 800;
 
 interface Blobs {
   blobQueen: BlobQueen;
-  bloblets: Bloblet[];
+  bloblets: any[];
 }
 
 interface Resources {
@@ -31,24 +29,15 @@ const resources: Resources = {
   ]
 }
 
-let selectedBlob: Bloblet | null = null;
-
-const newBloblet = createBloblet()
-
 function gameLoop(ctx: CanvasRenderingContext2D, blobs: Blobs) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+  blobs.blobQueen.draw(ctx);
 
-
-  // blobs.blobQueen.draw(ctx);
-
-  // blobs.bloblets.forEach(blob => {
-  //   blob.draw(ctx, selectedBlob?.id === blob.id);
-  //   blob.update();
-  // })
-
-  newBloblet.send('DRAW', { ctx });
-  newBloblet.send('UPDATE', { ctx });
+  blobs.bloblets.forEach(bloblet => {
+    bloblet.send('DRAW', { ctx });
+    bloblet.send('UPDATE', { ctx });
+  })
 
   resources.shrubs.forEach(s => {
     s.draw(ctx)
@@ -74,26 +63,14 @@ export const Game = () => {
       const mouseX = e.x - left;
       const mouseY = e.y - top;
 
-      newBloblet.send('CLICKED', { mouseX, mouseY })
-
-      const clickedBloblet = blobs.bloblets.find(blob => blob.didClick(mouseX, mouseY))
-      if (clickedBloblet) {
-        selectedBlob = clickedBloblet.id === selectedBlob?.id
-          ? null
-          : clickedBloblet
-        return;
-      }
+      blobs.bloblets.forEach((bloblet, index) => {
+        bloblet.send('CLICKED', { x: mouseX, y: mouseY, isOtherSelected: blobs.bloblets.some((b, i) => b.state.value === 'selected' && i !== index) })
+      })
 
       if (blobs.blobQueen.didClick(mouseX, mouseY)) {
         setSpawnModalOpen({ top: e.y, left: e.x });
-        selectedBlob = null;
 
         return;
-      }
-
-      if (selectedBlob) {
-        selectedBlob.targetX = mouseX
-        selectedBlob.targetY = mouseY
       }
     }
 
@@ -107,7 +84,9 @@ export const Game = () => {
   }, [])
 
   const handleSpawnBloblet = () => {
-    blobs.bloblets.push(new Bloblet(String(Date.now()), CANVAS_WIDTH * Math.random(), CANVAS_HEIGHT * Math.random()))
+    blobs.bloblets.push(makeBloblet({
+      position: { x: CANVAS_WIDTH * Math.random(), y: CANVAS_HEIGHT * Math.random() }
+    }))
   }
 
   return (
