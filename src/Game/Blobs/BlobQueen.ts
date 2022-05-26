@@ -1,6 +1,13 @@
 import { interpret, createMachine, assign, spawn } from 'xstate';
 
-import { drawCircle, isPointWithinEllipse, CANVAS_HEIGHT, CANVAS_WIDTH } from "../utils";
+import {
+  generateId,
+  drawCircle,
+  isPointWithinEllipse,
+  didClickOnCircle,
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH
+} from "../utils";
 import { makeBloblet } from './Bloblet';
 
 function makeRadius(mass: number) {
@@ -10,7 +17,7 @@ function makeRadius(mass: number) {
   }
 }
 
-function draw({ position: { x, y }, mass }: any, { ctx }: any) {
+function drawBody({ position: { x, y }, mass }: any, { ctx }: any) {
   const { radiusX, radiusY } = makeRadius(mass);
   // Body
   ctx.beginPath();
@@ -32,18 +39,42 @@ function draw({ position: { x, y }, mass }: any, { ctx }: any) {
   ctx.closePath()
 }
 
+function drawBloblets({ bloblets }: any, { ctx }: any) {
+  bloblets.forEach((blob: any) => blob.send('DRAW', { ctx }))
+}
+
+function drawSpawn({ position: { x, y } }: any, { ctx }: any) {
+  ctx.beginPath()
+  drawCircle(ctx, x, y + 20, 10, '#268645');
+  ctx.closePath()
+}
+
 function didClickOnBlobQueen({ position: { x, y }, mass }: any, { x: mouseX, y: mouseY }: any) {
-  console.log('QUEEN', isPointWithinEllipse({ x, y, ...makeRadius(mass) }, [mouseX, mouseY]))
   return isPointWithinEllipse({ x, y, ...makeRadius(mass) }, [mouseX, mouseY]);
 }
 
-function propagateClickToBlobs(context: any, event: any) {
+function propagateClickToBlobs({ bloblets, selectedBlobId }: any, event: any) {
+  const isOtherBlobSelected = (id: string) => bloblets.some(
+    ({ state }: any) => state.matches({ selection: 'selected' }) && state.context.id !== id
+  )
+  bloblets.forEach((blob: any) => {
+    blob.send('CLICKED', { ...event, isOtherBlobSelected: isOtherBlobSelected(blob.state.context.id)})
+  })
+}
+
+function propagateUpdateToBlobs({ bloblets }: any) {
+  bloblets.forEach((blob: any) => {
+    blob.send('UPDATE')
+  })
+}
+
+function onBlobSelected(_: any, { id }: any) {
 
 }
 
 const spawnBloblet = assign((context: any, event: any) => {
   const machine = makeBloblet({
-    position: { x: CANVAS_WIDTH * Math.random(), y: CANVAS_HEIGHT * Math.random() }
+    id: generateId(), position: { x: CANVAS_WIDTH * Math.random(), y: CANVAS_HEIGHT * Math.random() }
   })
 
   return {
@@ -60,8 +91,11 @@ export function makeBlobQueen() {
     },
     on: {
       DRAW: {
-        actions: [draw]
+        actions: [drawBody, drawBloblets]
       },
+      UPDATE: {
+        actions: [propagateUpdateToBlobs]
+      }
     },
     type: 'parallel',
     states: {
@@ -83,12 +117,20 @@ export function makeBlobQueen() {
           },
           open: {
             on: {
-              BLOB_SELECTED: {
-                actions: [spawnBloblet]
+              DRAW: {
+                actions: [drawBloblets, drawBody, drawSpawn]
               },
-              CLOSE_BLOB_SELECT: {
-                target: 'closed',
-              },
+              CLICKED: [
+                {
+                  actions: [spawnBloblet],
+                  cond: ({ position: { x, y }}, event) => {
+                    return didClickOnCircle({ position: { x, y: y + 20}, radius: 10}, event)
+                  },
+                },
+                {
+                  target: 'closed',
+                }
+              ],
             }
           },
         }

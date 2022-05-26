@@ -1,5 +1,5 @@
 import { createMachine, interpret, assign } from 'xstate';
-import { drawCircle, getDistance } from '../utils'
+import { drawCircle, getDistance, didClickOnCircle } from '../utils'
 
 function drawBody({ position: { x, y }, radius }: any, { ctx }: any) {
   // Body
@@ -37,9 +37,12 @@ function drawDeselected(context: any, event: any) {
   drawBody(context, event)
 }
 
-const setDestination = assign((_: any, { x, y }: any) => ({
-  destination: { x, y }
-}))
+const setDestination = assign((_: any, { x, y }: any) => {
+  console.log('setDestination')
+  return {
+    destination: { x, y }
+  }
+})
 
 
 function didClickOnBlob({ position: { x, y }, radius }: any, { x: mouseX, y: mouseY }: any) {
@@ -66,15 +69,16 @@ const stepToDestination = assign(({ position, destination, counter }: any) => {
 })
 
 interface Args {
+  id: string;
   position: { x: number, y: number };
   destination?: { x: number, y: number };
   radius?: number;
 }
 
-export function makeBloblet({ position, destination = { x: position.x, y: position.y }, radius = 20 }: Args) {
+export function makeBloblet({ id, position, destination = { x: position.x, y: position.y }, radius = 20 }: Args) {
   return createMachine({
     type: 'parallel',
-    context: { position, destination, radius, counter: 0 },
+    context: {id, position, destination, radius, counter: 0 },
     on: {
       DRAW: {
         actions: [drawDeselected]

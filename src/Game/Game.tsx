@@ -24,6 +24,12 @@ const blobQueen = interpret(makeBlobQueen()).start();
 function gameLoop(ctx: CanvasRenderingContext2D, blobQueen: any) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+  ctx.font = "20px Arial";
+  ctx.fillText(JSON.stringify(blobQueen.state.value), 30, 80);
+  ctx.fillText(JSON.stringify(blobQueen.state.context.bloblets[0]?.state.value), 30, 100);
+  ctx.fillText(JSON.stringify(blobQueen.state.context.bloblets[0]?.state.context), 30, 120);
+
+
   blobQueen.send('DRAW', { ctx });
   blobQueen.send('UPDATE', { ctx });
 
