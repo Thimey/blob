@@ -10,6 +10,7 @@ import {
   CANVAS_WIDTH
 } from "../utils";
 import { makeBloblet, BlobletActor } from './Bloblet';
+import { animationMachine } from '../animations/animationMachine'
 
 type SpawnType = 'bloblet';
 type SpawnOptionDetails = {
@@ -24,6 +25,7 @@ interface Context {
   mass: number;
   spawnOptions: SpawnOptions;
   bloblets: BlobletActor[];
+  animations: any[];
 }
 
 type StateValues =
@@ -49,12 +51,12 @@ type UpdateEvent = {
   type: 'UPDATE';
 }
 
-type FeedShrubEvent = {
+type FeedOnShrubEvent = {
   type: 'FEED_SHRUB';
-  amount: number;
+  amount?: number;
 }
 
-type Events = DrawEvent | UpdateEvent | ClickedEvent | FeedShrubEvent;
+type Events = DrawEvent | UpdateEvent | ClickedEvent | FeedOnShrubEvent;
 
 function makeRadius(mass: number) {
   return {
@@ -165,9 +167,15 @@ function shrubToMass(shrubAmount: number) {
   return shrubAmount;
 }
 
-const feedShrub = assign(({ mass }: Context, { amount }: FeedShrubEvent) => ({
-  mass: mass + shrubToMass(amount)
-}))
+const feedOnShrub = assign(({ mass, position: { x, y } }: Context, { amount = 3 }: FeedOnShrubEvent) => {
+  const massToAdd = shrubToMass(amount);
+  const newMass = mass + massToAdd;
+  const { radiusY } = makeRadius(newMass);
+  animationMachine.send('SHOW_NUMBER', { x, y: y - radiusY, amount: massToAdd })
+  return {
+    mass: newMass,
+  }
+})
 
 const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
   const machine = makeBloblet({
@@ -194,6 +202,7 @@ export function makeBlobQueen() {
         }
       },
       bloblets: [],
+      animations: [],
     },
     on: {
       DRAW: {
@@ -203,7 +212,7 @@ export function makeBlobQueen() {
         actions: [updateBlobs]
       },
       FEED_SHRUB: {
-        actions: [feedShrub]
+        actions: [feedOnShrub]
       },
     },
     type: 'parallel',
