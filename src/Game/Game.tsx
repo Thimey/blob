@@ -38,15 +38,8 @@ function gameLoop(ctx: CanvasRenderingContext2D, blobQueen: any) {
   window.requestAnimationFrame(() => gameLoop(ctx, blobQueen))
 }
 
-
-
 export const Game = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const [spawnModalOpen, setSpawnModalOpen] = useState(false);
-
-  useEffect(() => {
-    setSpawnModalOpen(blobQueen.state.matches({ spawnModalOpen: 'open' }))
-  }, [blobQueen.state.matches({ spawnModalOpen: 'open' })])
 
   useEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
