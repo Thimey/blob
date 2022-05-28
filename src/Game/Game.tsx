@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { interpret } from 'xstate'
 
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils'
