@@ -26,7 +26,7 @@ interface Context {
   bloblets: BlobletActor[];
 }
 
-type StateValues = 
+type StateValues =
   { selection: 'deselected' } |
   { selection: 'selected' }
 
@@ -49,7 +49,12 @@ type UpdateEvent = {
   type: 'UPDATE';
 }
 
-type Events = DrawEvent | UpdateEvent | ClickedEvent;
+type FeedShrubEvent = {
+  type: 'FEED_SHRUB';
+  amount: number;
+}
+
+type Events = DrawEvent | UpdateEvent | ClickedEvent | FeedShrubEvent;
 
 function makeRadius(mass: number) {
   return {
@@ -125,10 +130,10 @@ function blobletClicked(bloblet: BlobletActor, { coordinates }: ClickedEvent) {
 }
 
 function didClickOnBloblet({ bloblets }: Context, e: ClickedEvent) {
-  return bloblets.some((b)=> blobletClicked(b, e))
+  return bloblets.some((b) => blobletClicked(b, e))
 }
 
-function propergateBlobletClicked({ bloblets }: Context, e: ClickedEvent) {
+function propagateBlobletClicked({ bloblets }: Context, e: ClickedEvent) {
   const clickedBlobletContext = bloblets.find(b => blobletClicked(b, e))?.getSnapshot()?.context
 
   bloblets.forEach((b: any) => {
@@ -147,14 +152,22 @@ function mapClicked(
   })
 }
 
-function didCLickOnSpawnBloblet(
-  { bloblets, spawnOptions }: Context,
+function didClickOnSpawnBloblet(
+  { spawnOptions }: Context,
   { coordinates: clickCoordinates }: ClickedEvent
 ) {
   const { bloblet: { position, radius } } = spawnOptions
 
   return didClickOnCircle(position, radius, clickCoordinates)
 }
+
+function shrubToMass(shrubAmount: number) {
+  return shrubAmount;
+}
+
+const feedShrub = assign(({ mass }: Context, { amount }: FeedShrubEvent) => ({
+  mass: mass + shrubToMass(amount)
+}))
 
 const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
   const machine = makeBloblet({
@@ -188,7 +201,10 @@ export function makeBlobQueen() {
       },
       UPDATE: {
         actions: [updateBlobs]
-      }
+      },
+      FEED_SHRUB: {
+        actions: [feedShrub]
+      },
     },
     type: 'parallel',
     states: {
@@ -203,7 +219,7 @@ export function makeBlobQueen() {
                   cond: didClickOnBlobQueen,
                 },
                 {
-                  actions: [propergateBlobletClicked],
+                  actions: [propagateBlobletClicked],
                   cond: didClickOnBloblet,
                 },
                 {
@@ -220,7 +236,7 @@ export function makeBlobQueen() {
               CLICKED: [
                 {
                   actions: [spawnBloblet],
-                  cond: didCLickOnSpawnBloblet,
+                  cond: didClickOnSpawnBloblet,
                   target: 'deselected',
                 },
                 {
