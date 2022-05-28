@@ -1,2 +1,2 @@
-export { makeBloblet } from './Bloblet';
-export { BlobQueen } from './BlobQueen';
+export * from './Bloblet';
+export * from './BlobQueen';
