@@ -1,3 +1,5 @@
+import { Coordinates } from "../types";
+
 export const CANVAS_HEIGHT = 500;
 export const CANVAS_WIDTH = 800;
 
@@ -25,8 +27,12 @@ export function isPointWithinEllipse(ellipse: Ellipse, [x, y]: Point) {
     + (((y - ellipse.y) ** 2) / (ellipse.radiusY ** 2)) <= 1)
 }
 
-export function didClickOnCircle({ position: { x, y }, radius }: any, { x: mouseX, y: mouseY }: any) {
-  const distanceFromClick = getDistance([mouseX, mouseY], [x, y]);
+export function didClickOnCircle(
+  { x: positionX, y: positionY }: Coordinates,
+  radius: number,
+  { x: mouseX, y: mouseY }: Coordinates) {
+  const distanceFromClick = getDistance([mouseX, mouseY], [positionX, positionY]);
+
   return distanceFromClick <= radius;
 }
 

@@ -1,4 +1,4 @@
-import { createMachine, assign, EventObject } from 'xstate';
+import { createMachine, assign, ActorRefFrom, StateMachine } from 'xstate';
 
 import { Coordinates } from '../../types'
 import { drawCircle } from '../utils'
@@ -41,6 +41,8 @@ type UpdateEvent = {
 }
 
 type Events = BlobClickEvent | MapClickEvent | DrawEvent | UpdateEvent;
+
+export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Events>>;
 
 
 function drawBody({ position: { x, y }, radius }: Context, { ctx }: DrawEvent) {

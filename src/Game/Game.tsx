@@ -52,7 +52,7 @@ export const Game = () => {
       const mouseX = e.x - left;
       const mouseY = e.y - top;
 
-      blobQueen.send('CLICKED', { x: mouseX, y: mouseY })
+      blobQueen.send('CLICKED', { coordinates: { x: mouseX, y: mouseY }})
     }
 
     window.addEventListener('mouseup', onMouseUp)
