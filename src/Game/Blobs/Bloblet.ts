@@ -1,5 +1,5 @@
-import { createMachine, interpret, assign } from 'xstate';
-import { drawCircle, getDistance, didClickOnCircle } from '../utils'
+import { createMachine, assign } from 'xstate';
+import { drawCircle } from '../utils'
 
 function drawBody({ position: { x, y }, radius }: any, { ctx }: any) {
   // Body
@@ -37,17 +37,12 @@ function drawDeselected(context: any, event: any) {
   drawBody(context, event)
 }
 
-const setDestination = assign((_: any, { x, y }: any) => {
-  console.log('setDestination')
-  return {
-    destination: { x, y }
-  }
-})
+const setDestination = assign((_: any, { x, y }: any) => ({
+  destination: { x, y }
+}))
 
-
-function didClickOnBlob({ position: { x, y }, radius }: any, { x: mouseX, y: mouseY }: any) {
-  const distanceFromClick = getDistance([mouseX, mouseY], [x, y]);
-  return distanceFromClick <= radius;
+function clickedThisBloblet({ id }: any, { id: clickedId }: any) {
+  return id === clickedId;
 }
 
 function hasReachedDestination({ position, destination }: any) {
@@ -78,7 +73,7 @@ interface Args {
 export function makeBloblet({ id, position, destination = { x: position.x, y: position.y }, radius = 20 }: Args) {
   return createMachine({
     type: 'parallel',
-    context: {id, position, destination, radius, counter: 0 },
+    context: { id, position, destination, radius, counter: 0 },
     on: {
       DRAW: {
         actions: [drawDeselected]
@@ -90,11 +85,12 @@ export function makeBloblet({ id, position, destination = { x: position.x, y: po
         states: {
           selected: {
             on: {
-              CLICKED: [
+              BLOBLET_CLICKED: [
                 {
                   target: 'deselected',
-                  cond: didClickOnBlob,
                 },
+              ],
+              MAP_CLICKED: [
                 {
                   target: '#moving',
                   actions: [setDestination],
@@ -107,9 +103,9 @@ export function makeBloblet({ id, position, destination = { x: position.x, y: po
           },
           deselected: {
             on: {
-              CLICKED: {
+              BLOBLET_CLICKED: {
                 target: 'selected',
-                cond: didClickOnBlob,
+                cond: clickedThisBloblet,
               },
             },
           },

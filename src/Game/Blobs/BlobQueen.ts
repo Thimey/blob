@@ -43,6 +43,12 @@ function drawBloblets({ bloblets }: any, { ctx }: any) {
   bloblets.forEach((blob: any) => blob.send('DRAW', { ctx }))
 }
 
+function updateBlobs({ bloblets }: any) {
+  bloblets.forEach((blob: any) => {
+    blob.send('UPDATE')
+  })
+}
+
 function drawSpawn({ position: { x, y } }: any, { ctx }: any) {
   ctx.beginPath()
   drawCircle(ctx, x, y + 20, 10, '#268645');
@@ -53,23 +59,23 @@ function didClickOnBlobQueen({ position: { x, y }, mass }: any, { x: mouseX, y: 
   return isPointWithinEllipse({ x, y, ...makeRadius(mass) }, [mouseX, mouseY]);
 }
 
-function propagateClickToBlobs({ bloblets, selectedBlobId }: any, event: any) {
-  const isOtherBlobSelected = (id: string) => bloblets.some(
-    ({ state }: any) => state.matches({ selection: 'selected' }) && state.context.id !== id
-  )
-  bloblets.forEach((blob: any) => {
-    blob.send('CLICKED', { ...event, isOtherBlobSelected: isOtherBlobSelected(blob.state.context.id)})
+function didClickOnBloblet({ bloblets }: any, { x, y }: any) {
+  return bloblets.some((b: any) => {
+    return didClickOnCircle(b.state.context, { x, y })
   })
 }
 
-function propagateUpdateToBlobs({ bloblets }: any) {
+function blobletClicked({ bloblets }: any, { x, y }: any) {
+  const clickedBloblet = bloblets.find((b: any) => didClickOnCircle(b.state.context, { x, y }))
   bloblets.forEach((blob: any) => {
-    blob.send('UPDATE')
+    blob.send('BLOBLET_CLICKED', { id: clickedBloblet?.state?.context?.id });
   })
 }
 
-function onBlobSelected(_: any, { id }: any) {
-
+function mapClicked({ bloblets }: any, { x, y }: any) {
+  bloblets.forEach((blob: any) => {
+    blob.send('MAP_CLICKED', { x, y });
+  })
 }
 
 const spawnBloblet = assign((context: any, event: any) => {
@@ -94,7 +100,7 @@ export function makeBlobQueen() {
         actions: [drawBody, drawBloblets]
       },
       UPDATE: {
-        actions: [propagateUpdateToBlobs]
+        actions: [updateBlobs]
       }
     },
     type: 'parallel',
@@ -110,7 +116,11 @@ export function makeBlobQueen() {
                   cond: didClickOnBlobQueen,
                 },
                 {
-                  actions: [propagateClickToBlobs]
+                  actions: [blobletClicked],
+                  cond: didClickOnBloblet,
+                },
+                {
+                  actions: [mapClicked],
                 },
               ]
             }
@@ -123,8 +133,8 @@ export function makeBlobQueen() {
               CLICKED: [
                 {
                   actions: [spawnBloblet],
-                  cond: ({ position: { x, y }}, event) => {
-                    return didClickOnCircle({ position: { x, y: y + 20}, radius: 10}, event)
+                  cond: ({ position: { x, y } }, event) => {
+                    return didClickOnCircle({ position: { x, y: y + 20 }, radius: 10 }, event)
                   },
                 },
                 {
