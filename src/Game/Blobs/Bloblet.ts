@@ -1,7 +1,51 @@
-import { createMachine, assign } from 'xstate';
+import { createMachine, assign, ActorRefFrom, StateMachine } from 'xstate';
+
+import { Coordinates } from '../../types'
 import { drawCircle } from '../utils'
 
-function drawBody({ position: { x, y }, radius }: any, { ctx }: any) {
+interface Context {
+  id: string;
+  position: Coordinates;
+  radius: number;
+  destination: Coordinates;
+}
+
+type StateValues = 
+  { selection: 'deselected' } |
+  { selection: 'selected' } |
+  { movement: 'stationary' } |
+  { movement: 'moving' }
+
+type State = {
+  value: StateValues;
+  context: Context
+}
+
+type BlobClickEvent = {
+  type: 'BLOBLET_CLICKED';
+  id: string
+}
+
+type MapClickEvent = {
+  type: 'MAP_CLICKED';
+  coordinates: Coordinates
+}
+
+type DrawEvent = {
+  type: 'DRAW';
+  ctx: CanvasRenderingContext2D;
+}
+
+type UpdateEvent = {
+  type: 'UPDATE';
+}
+
+type Events = BlobClickEvent | MapClickEvent | DrawEvent | UpdateEvent;
+
+export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Events>>;
+
+
+function drawBody({ position: { x, y }, radius }: Context, { ctx }: DrawEvent) {
   // Body
   ctx.beginPath();
   drawCircle(ctx, x, y, radius, '#82c91e')
@@ -20,7 +64,7 @@ function drawBody({ position: { x, y }, radius }: any, { ctx }: any) {
   ctx.closePath()
 }
 
-function drawSelectBox({ position: { x, y }, radius }: any, { ctx }: any) {
+function drawSelectBox({ position: { x, y }, radius }: Context, { ctx }: DrawEvent) {
   ctx.beginPath();
   drawCircle(ctx, x, y, radius + 2, 'transparent');
   ctx.strokeStyle = 'red'
@@ -28,29 +72,29 @@ function drawSelectBox({ position: { x, y }, radius }: any, { ctx }: any) {
   ctx.closePath()
 }
 
-function drawSelected(context: any, event: any) {
+function drawSelected(context: Context, event: DrawEvent) {
   drawBody(context, event)
   drawSelectBox(context, event)
 }
 
-function drawDeselected(context: any, event: any) {
+function drawDeselected(context: Context, event: DrawEvent) {
   drawBody(context, event)
 }
 
-const setDestination = assign((_: any, { x, y }: any) => ({
+const setDestination = assign((_: Context, { coordinates: { x, y } }: MapClickEvent) => ({
   destination: { x, y }
 }))
 
-function clickedThisBloblet({ id }: any, { id: clickedId }: any) {
+function clickedThisBloblet({ id }: Context, { id: clickedId }: BlobClickEvent) {
   return id === clickedId;
 }
 
-function hasReachedDestination({ position, destination }: any) {
+function hasReachedDestination({ position, destination }: Context, _: UpdateEvent) {
   return position.x === destination.x && position.y === destination.y;
 }
 
 
-const stepToDestination = assign(({ position, destination, counter }: any) => {
+const stepToDestination = assign(({ position, destination }: Context, _: UpdateEvent) => {
   const dx = destination.x - position.x;
   const dy = destination.y - position.y;
 
@@ -59,7 +103,6 @@ const stepToDestination = assign(({ position, destination, counter }: any) => {
       x: position.x + (dx / 40),
       y: position.y + (dy / 40),
     },
-    counter: counter + 1,
   }
 })
 
@@ -71,9 +114,9 @@ interface Args {
 }
 
 export function makeBloblet({ id, position, destination = { x: position.x, y: position.y }, radius = 20 }: Args) {
-  return createMachine({
+  return createMachine<Context, Events, State>({
     type: 'parallel',
-    context: { id, position, destination, radius, counter: 0 },
+    context: { id, position, destination, radius },
     on: {
       DRAW: {
         actions: [drawDeselected]
