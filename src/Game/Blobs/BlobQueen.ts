@@ -136,6 +136,7 @@ export function makeBlobQueen() {
                   cond: ({ position: { x, y } }, event) => {
                     return didClickOnCircle({ position: { x, y: y + 20 }, radius: 10 }, event)
                   },
+                  target: 'closed',
                 },
                 {
                   target: 'closed',

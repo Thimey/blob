@@ -27,7 +27,6 @@ export function isPointWithinEllipse(ellipse: Ellipse, [x, y]: Point) {
 
 export function didClickOnCircle({ position: { x, y }, radius }: any, { x: mouseX, y: mouseY }: any) {
   const distanceFromClick = getDistance([mouseX, mouseY], [x, y]);
-  console.log('distanceFromClick', distanceFromClick)
   return distanceFromClick <= radius;
 }
 

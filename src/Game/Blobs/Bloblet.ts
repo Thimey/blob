@@ -83,6 +83,14 @@ export function makeBloblet({ id, position, destination = { x: position.x, y: po
       selection: {
         initial: 'deselected',
         states: {
+          deselected: {
+            on: {
+              BLOBLET_CLICKED: {
+                target: 'selected',
+                cond: clickedThisBloblet,
+              },
+            },
+          },
           selected: {
             on: {
               BLOBLET_CLICKED: [
@@ -101,27 +109,12 @@ export function makeBloblet({ id, position, destination = { x: position.x, y: po
               }
             }
           },
-          deselected: {
-            on: {
-              BLOBLET_CLICKED: {
-                target: 'selected',
-                cond: clickedThisBloblet,
-              },
-            },
-          },
         },
       },
       movement: {
         initial: 'stationary',
         states: {
-          stationary: {
-            on: {
-              MOVE_TO: {
-                target: 'moving',
-                actions: [setDestination],
-              }
-            }
-          },
+          stationary: {},
           moving: {
             id: 'moving',
             on: {
