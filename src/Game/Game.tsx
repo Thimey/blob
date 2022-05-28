@@ -1,7 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
 import { interpret } from 'xstate'
-import ReactModal from 'react-modal';
-import blobletImg from '../bloblet.png'
 
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils'
 import { makeBlobQueen } from './Blobs'
@@ -62,20 +60,9 @@ export const Game = () => {
       const mouseY = e.y - top;
 
       blobQueen.send('CLICKED', { x: mouseX, y: mouseY })
-
-      // blobs.bloblets.forEach((bloblet, index) => {
-      //   bloblet.send('CLICKED', { x: mouseX, y: mouseY, isOtherSelected: blobs.bloblets.some((b, i) => b.state.value === 'selected' && i !== index) })
-      // })
-
-      // if (blobs.blobQueen.didClick(mouseX, mouseY)) {
-      //   setSpawnModalOpen({ top: e.y, left: e.x });
-
-      //   return;
-      // }
     }
 
     window.addEventListener('mouseup', onMouseUp)
-
     gameLoop(ctx, blobQueen)
 
     return () => {
@@ -83,26 +70,9 @@ export const Game = () => {
     }
   }, [])
 
-  const handleSpawnBloblet = () => {
-    blobQueen.send('SPAWN_BLOBLET');
-    // blobs.bloblets.push(makeBloblet({
-    //   position: { x: CANVAS_WIDTH * Math.random(), y: CANVAS_HEIGHT * Math.random() }
-    // }))
-  }
-
   return (
     <>
       <canvas id="game-canvas" ref={canvasRef} />
-      <ReactModal
-        isOpen={spawnModalOpen}
-        ariaHideApp={false}
-        onRequestClose={() => blobQueen.send('CLOSE_BLOB_SELECT')}
-        style={{ content: { width: 100, height: 100, top: CANVAS_HEIGHT / 2, left: CANVAS_WIDTH / 2 } }}
-      >
-        <div onClick={handleSpawnBloblet}>
-          <img src={blobletImg} className="w-3" />
-        </div>
-      </ReactModal>
     </>
   )
 }
