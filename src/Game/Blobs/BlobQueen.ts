@@ -8,16 +8,12 @@ import {
   didClickOnCircle,
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
+  QUEEN_POSITION,
 } from '../utils';
 import { blobQueenColor } from '../colors';
 import { makeShrub, ShrubActor } from '../Resources/Shrub';
-import { makeBloblet, BlobletActor } from './Bloblet';
 import { animationMachine } from '../animations/animationMachine';
-
-export const QUEEN_POSITION: Coordinates = {
-  x: CANVAS_WIDTH / 2,
-  y: CANVAS_HEIGHT / 2,
-};
+import { makeBloblet, BlobletActor } from './Bloblet';
 
 type SpawnType = 'bloblet';
 type SpawnOptionDetails = {
