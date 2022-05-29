@@ -116,11 +116,11 @@ function drawBody({ position: { x, y }, mass }: Context, { ctx }: DrawEvent) {
 }
 
 function drawBloblets({ bloblets }: Context, { ctx }: DrawEvent) {
-  bloblets.forEach((blob: any) => blob.send('DRAW', { ctx }));
+  bloblets.forEach((blob) => blob.send({ type: 'DRAW', ctx }));
 }
 
 function drawShrubs({ shrubs }: Context, { ctx }: DrawEvent) {
-  shrubs.forEach((shrub: any) => shrub.send('DRAW', { ctx }));
+  shrubs.forEach((shrub) => shrub.send({ type: 'DRAW', ctx }));
 }
 
 function drawSelected(
@@ -150,8 +150,8 @@ function drawSelected(
   });
 }
 
-function updateBlobs({ bloblets }: Context, _: UpdateEvent) {
-  bloblets.forEach((blob: any) => {
+function updateBlobs({ bloblets }: Context) {
+  bloblets.forEach((blob) => {
     blob.send('UPDATE');
   });
 }
@@ -241,7 +241,7 @@ const feedOnShrub = assign(
   }
 );
 
-const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
+const spawnBloblet = assign((context: Context) => {
   const machine = makeBloblet({
     id: generateId(),
     position: {
