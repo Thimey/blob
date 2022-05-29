@@ -38,6 +38,7 @@ const addNumberAnimation = assign((context: any, { position, amount, colorHex }:
 })
 
 function drawAnimations({ animations }: Context, { ctx }: DrawEvent) {
+  // TODO: Remove finished animations
   animations.forEach((animation) => animation.send({ type: 'DRAW', ctx }))
 }
 
