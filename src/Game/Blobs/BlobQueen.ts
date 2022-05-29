@@ -9,7 +9,10 @@ import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH
 } from "../utils";
-import { makeBloblet, BlobletActor } from './Bloblet';
+import { makeShrub, ShrubActor } from '../Resources/Shrub'
+import { makeBloblet, BlobletActor, Event as BlobletEvent } from './Bloblet';
+
+export const QUEEN_POSITION: Coordinates = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
 
 type SpawnType = 'bloblet';
 type SpawnOptionDetails = {
@@ -24,6 +27,7 @@ interface Context {
   mass: number;
   spawnOptions: SpawnOptions;
   bloblets: BlobletActor[];
+  shrubs: ShrubActor[];
 }
 
 type StateValues =
@@ -54,7 +58,7 @@ type FeedShrubEvent = {
   amount: number;
 }
 
-type Events = DrawEvent | UpdateEvent | ClickedEvent | FeedShrubEvent;
+type Event = DrawEvent | UpdateEvent | ClickedEvent | FeedShrubEvent;
 
 function makeRadius(mass: number) {
   return {
@@ -62,6 +66,15 @@ function makeRadius(mass: number) {
     radiusY: mass * 2,
   }
 }
+
+const initialiseShrubs = assign(({ shrubs }: Context) => ({
+  shrubs: [
+    ...shrubs,
+    spawn(makeShrub({ id: '1', position: { x: CANVAS_WIDTH * 0.9, y: CANVAS_HEIGHT * 0.1 } })),
+    spawn(makeShrub({  id: '2', position: { x: CANVAS_WIDTH * 0.1, y: CANVAS_HEIGHT * 0.1 }})),
+    spawn(makeShrub({  id: '3', position: { x: CANVAS_WIDTH * 0.5, y: CANVAS_HEIGHT * 0.9 }}))
+  ]
+}))
 
 function drawBody({ position: { x, y }, mass }: Context, { ctx }: DrawEvent) {
   const { radiusX, radiusY } = makeRadius(mass);
@@ -87,6 +100,10 @@ function drawBody({ position: { x, y }, mass }: Context, { ctx }: DrawEvent) {
 
 function drawBloblets({ bloblets }: Context, { ctx }: DrawEvent) {
   bloblets.forEach((blob: any) => blob.send('DRAW', { ctx }))
+}
+
+function drawShrubs({ shrubs }: Context, { ctx }: DrawEvent) {
+  shrubs.forEach((shrub: any) => shrub.send('DRAW', { ctx }))
 }
 
 function drawSelected({ position, mass, spawnOptions }: Context, { ctx }: DrawEvent) {
@@ -143,7 +160,7 @@ function propagateBlobletClicked({ bloblets }: Context, e: ClickedEvent) {
   })
 }
 
-function mapClicked(
+function propagateMapClicked(
   { bloblets }: Context,
   { coordinates }: ClickedEvent
 ) {
@@ -152,7 +169,16 @@ function mapClicked(
   })
 }
 
-function didClickOnSpawnBloblet(
+function propagateShrubClicked(
+  { bloblets }: Context,
+  { coordinates }: ClickedEvent
+) {
+  bloblets.forEach((blob: any) => {
+    blob.send('SHRUB_CLICKED', { coordinates });
+  })
+}
+
+function didCLickOnSpawnBloblet(
   { spawnOptions }: Context,
   { coordinates: clickCoordinates }: ClickedEvent
 ) {
@@ -179,25 +205,35 @@ const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
   }
 })
 
-export function makeBlobQueen() {
-  const queenPosition = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 }
+function shrubClicked(shrub: ShrubActor, { coordinates }: ClickedEvent) {
+  const shrubContext = shrub.getSnapshot()?.context
 
-  const machine = createMachine<Context, Events, State>({
+  return shrubContext &&
+    didClickOnCircle(shrubContext.position, 20, coordinates)
+}
+
+function didClickOnShrub({ shrubs }: Context, e: ClickedEvent) {
+  return shrubs.some((b)=> shrubClicked(b, e))
+}
+
+export function makeBlobQueen() {
+  const machine = createMachine<Context, Event, State>({
     context: {
-      position: queenPosition,
+      position: QUEEN_POSITION,
       mass: 20,
       spawnOptions: {
         bloblet: {
           color: '#268645',
-          position: { x: queenPosition.x, y: queenPosition.y + 20 },
+          position: { x: QUEEN_POSITION.x, y: QUEEN_POSITION.y + 20 },
           radius: 10,
         }
       },
       bloblets: [],
+      shrubs: [],
     },
     on: {
       DRAW: {
-        actions: [drawBody, drawBloblets]
+        actions: [drawBody, drawBloblets, drawShrubs]
       },
       UPDATE: {
         actions: [updateBlobs]
@@ -206,47 +242,61 @@ export function makeBlobQueen() {
         actions: [feedShrub]
       },
     },
-    type: 'parallel',
+    initial: 'initialise',
     states: {
-      selection: {
-        initial: 'deselected',
+      initialise: {
+        entry: [initialiseShrubs],
+        always: { target: 'ready'}
+      },
+      ready: {
+        type: 'parallel',
         states: {
-          deselected: {
-            on: {
-              CLICKED: [
-                {
-                  target: 'selected',
-                  cond: didClickOnBlobQueen,
-                },
-                {
-                  actions: [propagateBlobletClicked],
-                  cond: didClickOnBloblet,
-                },
-                {
-                  actions: [mapClicked],
-                },
-              ]
-            }
-          },
-          selected: {
-            on: {
-              DRAW: {
-                actions: [drawBloblets, drawBody, drawSelected]
-              },
-              CLICKED: [
-                {
-                  actions: [spawnBloblet],
-                  cond: didClickOnSpawnBloblet,
-                  target: 'deselected',
-                },
-                {
-                  target: 'deselected',
+          selection: {
+            initial: 'deselected',
+            states: {
+              deselected: {
+                on: {
+                  CLICKED: [
+                    {
+                      target: 'selected',
+                      cond: didClickOnBlobQueen,
+                    },
+                    {
+                      actions: [propagateBlobletClicked],
+                      cond: didClickOnBloblet,
+                    },
+                    {
+                      actions: [propagateShrubClicked],
+                      cond: didClickOnShrub,
+                    },
+                    {
+                      actions: [propagateMapClicked],
+                    },
+                  ]
                 }
-              ],
+              },
+              selected: {
+                on: {
+                  DRAW: {
+                    actions: [drawBloblets, drawBody, drawSelected, drawShrubs]
+                  },
+                  CLICKED: [
+                    {
+                      actions: [spawnBloblet],
+                      cond: didCLickOnSpawnBloblet,
+                      target: 'deselected',
+                    },
+                    {
+                      target: 'deselected',
+                    }
+                  ],
+                }
+              },
             }
-          },
+          }
         }
       }
+      
     }
   })
 
