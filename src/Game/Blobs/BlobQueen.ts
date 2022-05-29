@@ -9,6 +9,7 @@ import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH
 } from "../utils";
+import { blobQueenColor } from '../colors';
 import { makeShrub, ShrubActor } from '../Resources/Shrub'
 import { makeBloblet, BlobletActor, Event as BlobletEvent } from './Bloblet';
 import { animationMachine } from '../animations/animationMachine'
@@ -87,7 +88,7 @@ function drawBody({ position: { x, y }, mass }: Context, { ctx }: DrawEvent) {
   // Body
   ctx.beginPath();
   ctx.ellipse(x, y, radiusX, radiusY, 0, Math.PI * 2, 0);
-  ctx.fillStyle = '#4c6ef5';
+  ctx.fillStyle = blobQueenColor;
   ctx.fill();
   ctx.strokeStyle = 'black';
   ctx.stroke();
@@ -201,7 +202,13 @@ const feedOnShrub = assign(({ mass, position: { x, y } }: Context, { amount = 1 
   const massToAdd = shrubToMass(amount);
   const newMass = mass + massToAdd;
   const { radiusY } = makeRadius(newMass);
-  animationMachine.send('SHOW_NUMBER', { position: { x, y: y - radiusY }, amount: massToAdd })
+  animationMachine.send(
+    'SHOW_NUMBER',
+    {
+      position: { x, y: y - radiusY },
+      amount: massToAdd,
+      colorHex: blobQueenColor,
+    })
   return {
     mass: newMass,
   }

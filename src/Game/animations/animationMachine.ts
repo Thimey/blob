@@ -21,15 +21,16 @@ type State = {
 }
 
 type ShowNumberAnimationEvent = {
-  type: 'SHOW_NUMBER',
-  amount: number,
-  position: Coordinates,
+  type: 'SHOW_NUMBER';
+  amount: number;
+  position: Coordinates;
+  colorHex?: string;
 }
 
 type Event = DrawEvent | ShowNumberAnimationEvent;
 
-const addNumberAnimation = assign((context: any, { position, amount }: ShowNumberAnimationEvent) => {
-  const machine = makeShowNumber({ position, amount })
+const addNumberAnimation = assign((context: any, { position, amount, colorHex }: ShowNumberAnimationEvent) => {
+  const machine = makeShowNumber({ position, amount, colorHex })
 
   return {
     animations: [...context.animations, spawn(machine)],

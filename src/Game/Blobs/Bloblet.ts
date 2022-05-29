@@ -1,6 +1,7 @@
 import { createMachine, assign, ActorRefFrom, StateMachine, actions } from 'xstate';
 
 import { Coordinates } from '../../types'
+import { blobletColor } from '../colors';
 import { drawCircle } from '../utils'
 import { QUEEN_POSITION } from './BlobQueen'
 
@@ -62,7 +63,7 @@ export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 function drawBody({ position: { x, y }, radius }: Context, { ctx }: DrawEvent) {
   // Body
   ctx.beginPath();
-  drawCircle(ctx, x, y, radius, '#82c91e')
+  drawCircle(ctx, x, y, radius, blobletColor)
   ctx.strokeStyle = 'black'
   ctx.stroke()
   ctx.closePath();
