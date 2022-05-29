@@ -29,7 +29,6 @@ interface Context {
   spawnOptions: SpawnOptions;
   bloblets: BlobletActor[];
   shrubs: ShrubActor[];
-  animations: any[];
 }
 
 type StateValues = { selection: 'deselected' } | { selection: 'selected' };
@@ -281,7 +280,6 @@ export function makeBlobQueen() {
         },
       },
       bloblets: [],
-      animations: [],
       shrubs: [],
     },
     on: {
