@@ -67,6 +67,9 @@ function makeRadius(mass: number) {
 
 function drawBody({ position: { x, y }, mass }: Context, { ctx }: DrawEvent) {
   const { radiusX, radiusY } = makeRadius(mass);
+  const eyeYOffset = radiusY - 20;
+  const eyeXOffset = - 4;
+
   // Body
   ctx.beginPath();
   ctx.ellipse(x, y, radiusX, radiusY, 0, Math.PI * 2, 0);
@@ -78,12 +81,12 @@ function drawBody({ position: { x, y }, mass }: Context, { ctx }: DrawEvent) {
 
   // Left eye
   ctx.beginPath()
-  drawCircle(ctx, x - 4, y - 20, 2, 'black');
+  drawCircle(ctx, x - eyeXOffset, y - eyeYOffset, 2, 'black');
   ctx.closePath()
 
   // Right eye
   ctx.beginPath()
-  drawCircle(ctx, x + 4, y - 20, 2, 'black');
+  drawCircle(ctx, x + eyeXOffset, y - eyeYOffset, 2, 'black');
   ctx.closePath()
 }
 
