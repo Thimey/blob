@@ -1,26 +1,58 @@
-import { createMachine, interpret, assign, spawn } from "xstate";
+import { createMachine, interpret, assign, spawn, ActorRefFrom, StateMachine } from "xstate";
+import { Coordinates } from "../../types";
 import { makeShowNumber } from './ShowNumber'
 
-const addNumberAnimation = assign((context: any, { x, y, amount }: any) => {
-  const machine = makeShowNumber({ position: { x, y }, amount })
+type DrawEvent = {
+  type: 'DRAW';
+  ctx: CanvasRenderingContext2D;
+}
+
+type AnimationActor = ActorRefFrom<StateMachine<any, any, DrawEvent>>;
+
+interface Context {
+  animations: AnimationActor[];
+}
+
+type StateValues = 'animating'
+
+type State = {
+  value: StateValues;
+  context: Context
+}
+
+type ShowNumberAnimationEvent = {
+  type: 'SHOW_NUMBER',
+  amount: number,
+  position: Coordinates,
+}
+
+type Event = DrawEvent | ShowNumberAnimationEvent;
+
+const addNumberAnimation = assign((context: any, { position, amount }: ShowNumberAnimationEvent) => {
+  const machine = makeShowNumber({ position, amount })
 
   return {
     animations: [...context.animations, spawn(machine)],
   }
 })
 
-function drawAnimations({ animations }: any, { ctx }: any) {
-  animations.forEach((a: any) => a.send('DRAW', { ctx }))
+function drawAnimations({ animations }: Context, { ctx }: DrawEvent) {
+  animations.forEach((animation) => animation.send({ type: 'DRAW', ctx }))
 }
 
-const machine = createMachine({
+const machine = createMachine<Context, Event, State>({
   context: { animations: [] },
-  on: {
-    SHOW_NUMBER: {
-      actions: [addNumberAnimation]
-    },
-    DRAW: {
-      actions: [drawAnimations]
+  initial: 'animating',
+  states: {
+    animating: {
+      on: {
+        SHOW_NUMBER: {
+          actions: [addNumberAnimation]
+        },
+        DRAW: {
+          actions: [drawAnimations]
+        }
+      },
     }
   }
 })

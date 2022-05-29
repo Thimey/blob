@@ -65,8 +65,8 @@ type Event = DrawEvent | UpdateEvent | ClickedEvent | FeedOnShrubEvent;
 
 function makeRadius(mass: number) {
   return {
-    radiusX: mass * 3,
-    radiusY: mass * 2,
+    radiusX: mass * 1.5,
+    radiusY: mass * 1,
   }
 }
 
@@ -152,16 +152,16 @@ function blobletClicked(bloblet: BlobletActor, { coordinates }: ClickedEvent) {
     didClickOnCircle(blobletContext.position, blobletContext.radius, coordinates)
 }
 
-function didClickOnBloblet({ bloblets }: Context, e: ClickedEvent) {
-  return bloblets.some((b) => blobletClicked(b, e))
+function didClickOnBloblet({ bloblets }: Context, event: ClickedEvent) {
+  return bloblets.some((blob) => blobletClicked(blob, event))
 }
 
-function propagateBlobletClicked({ bloblets }: Context, e: ClickedEvent) {
-  const clickedBlobletContext = bloblets.find(b => blobletClicked(b, e))?.getSnapshot()?.context
+function propagateBlobletClicked({ bloblets }: Context, event: ClickedEvent) {
+  const clickedBlobletContext = bloblets.find(blob => blobletClicked(blob, event))?.getSnapshot()?.context
 
-  bloblets.forEach((b: any) => {
+  bloblets.forEach((blob) => {
     if (clickedBlobletContext) {
-      b.send('BLOBLET_CLICKED', { id: clickedBlobletContext.id });
+      blob.send({ type: 'BLOBLET_CLICKED', id: clickedBlobletContext.id });
     }
   })
 }
@@ -170,8 +170,8 @@ function propagateMapClicked(
   { bloblets }: Context,
   { coordinates }: ClickedEvent
 ) {
-  bloblets.forEach((blob: any) => {
-    blob.send('MAP_CLICKED', { coordinates });
+  bloblets.forEach((blob) => {
+    blob.send({ type: 'MAP_CLICKED', coordinates });
   })
 }
 
@@ -179,8 +179,8 @@ function propagateShrubClicked(
   { bloblets }: Context,
   { coordinates }: ClickedEvent
 ) {
-  bloblets.forEach((blob: any) => {
-    blob.send('SHRUB_CLICKED', { coordinates });
+  bloblets.forEach((blob) => {
+    blob.send({ type: 'SHRUB_CLICKED', coordinates });
   })
 }
 
@@ -197,11 +197,11 @@ function shrubToMass(shrubAmount: number) {
   return shrubAmount;
 }
 
-const feedOnShrub = assign(({ mass, position: { x, y } }: Context, { amount = 3 }: FeedOnShrubEvent) => {
+const feedOnShrub = assign(({ mass, position: { x, y } }: Context, { amount = 1 }: FeedOnShrubEvent) => {
   const massToAdd = shrubToMass(amount);
   const newMass = mass + massToAdd;
   const { radiusY } = makeRadius(newMass);
-  animationMachine.send('SHOW_NUMBER', { x, y: y - radiusY, amount: massToAdd })
+  animationMachine.send('SHOW_NUMBER', { position: { x, y: y - radiusY }, amount: massToAdd })
   return {
     mass: newMass,
   }

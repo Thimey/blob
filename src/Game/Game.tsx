@@ -4,7 +4,6 @@ import { interpret } from 'xstate'
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils'
 import { makeBlobQueen } from './Blobs'
 import { animationMachine } from './animations/animationMachine'
-import { Shrub } from './Resources';
 
 const blobQueen = interpret(makeBlobQueen()).start();
 
