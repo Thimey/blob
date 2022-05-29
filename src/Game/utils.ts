@@ -3,6 +3,11 @@ import { Coordinates } from '../types';
 export const CANVAS_HEIGHT = 500;
 export const CANVAS_WIDTH = 800;
 
+export const QUEEN_POSITION = {
+  x: CANVAS_WIDTH / 2,
+  y: CANVAS_HEIGHT / 2,
+};
+
 export type Point = [number, number];
 
 export function generateId() {
