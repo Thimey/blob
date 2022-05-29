@@ -6,18 +6,6 @@ import { makeBlobQueen } from './Blobs'
 import { animationMachine } from './animations/animationMachine'
 import { Shrub } from './Resources';
 
-interface Resources {
-  shrubs: Shrub[];
-}
-
-const resources: Resources = {
-  shrubs: [
-    new Shrub('1', CANVAS_WIDTH * 0.9, CANVAS_HEIGHT * 0.1, 1),
-    new Shrub('2', CANVAS_WIDTH * 0.1, CANVAS_HEIGHT * 0.1, 1),
-    new Shrub('3', CANVAS_WIDTH * 0.5, CANVAS_HEIGHT * 0.9, 1)
-  ]
-}
-
 const blobQueen = interpret(makeBlobQueen()).start();
 
 function gameLoop(ctx: CanvasRenderingContext2D, blobQueen: any) {
@@ -25,10 +13,6 @@ function gameLoop(ctx: CanvasRenderingContext2D, blobQueen: any) {
 
   blobQueen.send('DRAW', { ctx });
   blobQueen.send('UPDATE', { ctx });
-
-  resources.shrubs.forEach(s => {
-    s.draw(ctx)
-  })
 
   animationMachine.send('DRAW', { ctx })
 
