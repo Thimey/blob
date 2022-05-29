@@ -122,7 +122,7 @@ const setHarvestingShrub = assign(
   })
 );
 
-const setDestinationAsQueen = assign((_: Context) => ({
+const setDestinationAsQueen = assign(() => ({
   destination: QUEEN_POSITION,
 }));
 
@@ -137,29 +137,24 @@ function clickedThisBloblet(
   return id === clickedId;
 }
 
-function hasReachedDestination(
-  { position, destination }: Context,
-  _: UpdateEvent
-) {
+function hasReachedDestination({ position, destination }: Context) {
   return (
     Math.abs(position.x - destination.x) <= 1 &&
     Math.abs(position.y - destination.y) <= 1
   );
 }
 
-const stepToDestination = assign(
-  ({ position, destination }: Context, _: UpdateEvent) => {
-    const dx = destination.x - position.x;
-    const dy = destination.y - position.y;
+const stepToDestination = assign(({ position, destination }: Context) => {
+  const dx = destination.x - position.x;
+  const dy = destination.y - position.y;
 
-    return {
-      position: {
-        x: position.x + dx / 40,
-        y: position.y + dy / 40,
-      },
-    };
-  }
-);
+  return {
+    position: {
+      x: position.x + dx / 40,
+      y: position.y + dy / 40,
+    },
+  };
+});
 
 interface Args {
   id: string;
