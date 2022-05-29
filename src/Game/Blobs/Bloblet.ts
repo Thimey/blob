@@ -2,19 +2,28 @@ import { createMachine, assign, ActorRefFrom, StateMachine } from 'xstate';
 
 import { Coordinates } from '../../types'
 import { drawCircle } from '../utils'
+import { QUEEN_POSITION } from './BlobQueen'
 
-interface Context {
+type Context = {
   id: string;
   position: Coordinates;
   radius: number;
   destination: Coordinates;
+  harvestingShrub?: {
+    position: Coordinates;
+  }
 }
 
 type StateValues = 
   { selection: 'deselected' } |
   { selection: 'selected' } |
   { movement: 'stationary' } |
-  { movement: 'moving' }
+  { movement: 'moving' } |
+  { movement: { harvestingShrub: 'movingToShrub' }} |
+  { movement: { harvestingShrub: 'atShrub' }} |
+  { movement: { harvestingShrub: 'movingToQueen' }} |
+  { movement: { harvestingShrub: 'atQueen' }}
+
 
 type State = {
   value: StateValues;
@@ -31,6 +40,11 @@ type MapClickEvent = {
   coordinates: Coordinates
 }
 
+type ShrubClickEvent = {
+  type: 'SHRUB_CLICKED';
+  coordinates: Coordinates
+}
+
 type DrawEvent = {
   type: 'DRAW';
   ctx: CanvasRenderingContext2D;
@@ -40,9 +54,9 @@ type UpdateEvent = {
   type: 'UPDATE';
 }
 
-type Events = BlobClickEvent | MapClickEvent | DrawEvent | UpdateEvent;
+export type Event = BlobClickEvent | MapClickEvent | DrawEvent | UpdateEvent | ShrubClickEvent;
 
-export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Events>>;
+export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 
 
 function drawBody({ position: { x, y }, radius }: Context, { ctx }: DrawEvent) {
@@ -82,7 +96,22 @@ function drawDeselected(context: Context, event: DrawEvent) {
 }
 
 const setDestination = assign((_: Context, { coordinates: { x, y } }: MapClickEvent) => ({
-  destination: { x, y }
+  destination: { x, y },
+}))
+
+const setHarvestingShrub = assign((_: Context, { coordinates: { x, y } }: ShrubClickEvent) => ({
+  destination: { x, y },
+  harvestingShrub: {
+    position: { x, y }
+  }
+}))
+
+const setDestinationAsQueen = assign((_: Context) => ({
+  destination: QUEEN_POSITION,
+}))
+
+const setDestinationAsShrub = assign(({ harvestingShrub }: Context) => ({
+  destination: harvestingShrub?.position,
 }))
 
 function clickedThisBloblet({ id }: Context, { id: clickedId }: BlobClickEvent) {
@@ -90,7 +119,7 @@ function clickedThisBloblet({ id }: Context, { id: clickedId }: BlobClickEvent) 
 }
 
 function hasReachedDestination({ position, destination }: Context, _: UpdateEvent) {
-  return position.x === destination.x && position.y === destination.y;
+  return Math.abs(position.x - destination.x) <= 1 && Math.abs(position.y - destination.y) <= 1;
 }
 
 
@@ -114,7 +143,7 @@ interface Args {
 }
 
 export function makeBloblet({ id, position, destination = { x: position.x, y: position.y }, radius = 20 }: Args) {
-  return createMachine<Context, Events, State>({
+  return createMachine<Context, Event, State>({
     type: 'parallel',
     context: { id, position, destination, radius },
     on: {
@@ -136,6 +165,9 @@ export function makeBloblet({ id, position, destination = { x: position.x, y: po
           },
           selected: {
             on: {
+              DRAW: {
+                actions: [drawSelected]
+              },
               BLOBLET_CLICKED: [
                 {
                   target: 'deselected',
@@ -147,8 +179,9 @@ export function makeBloblet({ id, position, destination = { x: position.x, y: po
                   actions: [setDestination],
                 }
               ],
-              DRAW: {
-                actions: [drawSelected]
+              SHRUB_CLICKED: {
+                target: '#harvestingShrub',
+                actions: [setHarvestingShrub],
               }
             }
           },
@@ -172,6 +205,52 @@ export function makeBloblet({ id, position, destination = { x: position.x, y: po
               ],
             }
           },
+          harvestingShrub: {
+            id: 'harvestingShrub',
+            initial: 'movingToShrub',
+            states: {
+              movingToShrub: {
+                  on: {
+                    UPDATE: [
+                      {
+                        target: 'atShrub',
+                        cond: hasReachedDestination,
+                      },
+                      {
+                        actions: [stepToDestination],
+                      },
+                    ],
+                  }
+                },
+                atShrub: {
+                  after: [{
+                    delay: 3000,
+                    target: 'movingToQueen',
+                    actions: setDestinationAsQueen
+                  }],
+                },
+                movingToQueen: {
+                  on: {
+                    UPDATE: [
+                      {
+                        target: 'atQueen',
+                        cond: hasReachedDestination,
+                      },
+                      {
+                        actions: [stepToDestination],
+                      },
+                    ],
+                  }
+                },
+                atQueen: {
+                  after: [{
+                    delay: 1000,
+                    target: 'movingToShrub',
+                    actions: setDestinationAsShrub
+                  }],
+                }
+              },
+            }
         },
       },
     },
