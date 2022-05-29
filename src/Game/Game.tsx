@@ -3,7 +3,7 @@ import { interpret } from 'xstate'
 
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils'
 import { makeBlobQueen } from './Blobs'
-import { Shrub } from './Resources';
+import { animationMachine } from './animations/animationMachine'
 
 const blobQueen = interpret(makeBlobQueen()).start();
 
@@ -12,6 +12,8 @@ function gameLoop(ctx: CanvasRenderingContext2D, blobQueen: any) {
 
   blobQueen.send('DRAW', { ctx });
   blobQueen.send('UPDATE', { ctx });
+
+  animationMachine.send('DRAW', { ctx })
 
   window.requestAnimationFrame(() => gameLoop(ctx, blobQueen))
 }
@@ -43,6 +45,7 @@ export const Game = () => {
 
   return (
     <>
+      <button onClick={() => { blobQueen.send('FEED_SHRUB', { amount: 4 }) }}>Feed</button>
       <canvas id="game-canvas" ref={canvasRef} />
     </>
   )

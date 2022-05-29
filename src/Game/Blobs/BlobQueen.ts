@@ -9,8 +9,11 @@ import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH
 } from "../utils";
+import { blobQueenColor } from '../colors';
 import { makeShrub, ShrubActor } from '../Resources/Shrub'
 import { makeBloblet, BlobletActor, Event as BlobletEvent } from './Bloblet';
+import { animationMachine } from '../animations/animationMachine'
+
 
 export const QUEEN_POSITION: Coordinates = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
 
@@ -28,6 +31,7 @@ interface Context {
   spawnOptions: SpawnOptions;
   bloblets: BlobletActor[];
   shrubs: ShrubActor[];
+  animations: any[];
 }
 
 type StateValues =
@@ -53,17 +57,17 @@ type UpdateEvent = {
   type: 'UPDATE';
 }
 
-type FeedShrubEvent = {
+type FeedOnShrubEvent = {
   type: 'FEED_SHRUB';
-  amount: number;
+  amount?: number;
 }
 
-type Event = DrawEvent | UpdateEvent | ClickedEvent | FeedShrubEvent;
+type Event = DrawEvent | UpdateEvent | ClickedEvent | FeedOnShrubEvent;
 
 function makeRadius(mass: number) {
   return {
-    radiusX: mass * 3,
-    radiusY: mass * 2,
+    radiusX: mass * 1.5,
+    radiusY: mass * 1,
   }
 }
 
@@ -71,17 +75,20 @@ const initialiseShrubs = assign(({ shrubs }: Context) => ({
   shrubs: [
     ...shrubs,
     spawn(makeShrub({ id: '1', position: { x: CANVAS_WIDTH * 0.9, y: CANVAS_HEIGHT * 0.1 } })),
-    spawn(makeShrub({  id: '2', position: { x: CANVAS_WIDTH * 0.1, y: CANVAS_HEIGHT * 0.1 }})),
-    spawn(makeShrub({  id: '3', position: { x: CANVAS_WIDTH * 0.5, y: CANVAS_HEIGHT * 0.9 }}))
+    spawn(makeShrub({ id: '2', position: { x: CANVAS_WIDTH * 0.1, y: CANVAS_HEIGHT * 0.1 } })),
+    spawn(makeShrub({ id: '3', position: { x: CANVAS_WIDTH * 0.5, y: CANVAS_HEIGHT * 0.9 } }))
   ]
 }))
 
 function drawBody({ position: { x, y }, mass }: Context, { ctx }: DrawEvent) {
   const { radiusX, radiusY } = makeRadius(mass);
+  const eyeYOffset = radiusY - 20;
+  const eyeXOffset = - 4;
+
   // Body
   ctx.beginPath();
   ctx.ellipse(x, y, radiusX, radiusY, 0, Math.PI * 2, 0);
-  ctx.fillStyle = '#4c6ef5';
+  ctx.fillStyle = blobQueenColor;
   ctx.fill();
   ctx.strokeStyle = 'black';
   ctx.stroke();
@@ -89,12 +96,12 @@ function drawBody({ position: { x, y }, mass }: Context, { ctx }: DrawEvent) {
 
   // Left eye
   ctx.beginPath()
-  drawCircle(ctx, x - 4, y - 20, 2, 'black');
+  drawCircle(ctx, x - eyeXOffset, y - eyeYOffset, 2, 'black');
   ctx.closePath()
 
   // Right eye
   ctx.beginPath()
-  drawCircle(ctx, x + 4, y - 20, 2, 'black');
+  drawCircle(ctx, x + eyeXOffset, y - eyeYOffset, 2, 'black');
   ctx.closePath()
 }
 
@@ -146,16 +153,16 @@ function blobletClicked(bloblet: BlobletActor, { coordinates }: ClickedEvent) {
     didClickOnCircle(blobletContext.position, blobletContext.radius, coordinates)
 }
 
-function didClickOnBloblet({ bloblets }: Context, e: ClickedEvent) {
-  return bloblets.some((b) => blobletClicked(b, e))
+function didClickOnBloblet({ bloblets }: Context, event: ClickedEvent) {
+  return bloblets.some((blob) => blobletClicked(blob, event))
 }
 
-function propagateBlobletClicked({ bloblets }: Context, e: ClickedEvent) {
-  const clickedBlobletContext = bloblets.find(b => blobletClicked(b, e))?.getSnapshot()?.context
+function propagateBlobletClicked({ bloblets }: Context, event: ClickedEvent) {
+  const clickedBlobletContext = bloblets.find(blob => blobletClicked(blob, event))?.getSnapshot()?.context
 
-  bloblets.forEach((b: any) => {
+  bloblets.forEach((blob) => {
     if (clickedBlobletContext) {
-      b.send('BLOBLET_CLICKED', { id: clickedBlobletContext.id });
+      blob.send({ type: 'BLOBLET_CLICKED', id: clickedBlobletContext.id });
     }
   })
 }
@@ -164,8 +171,8 @@ function propagateMapClicked(
   { bloblets }: Context,
   { coordinates }: ClickedEvent
 ) {
-  bloblets.forEach((blob: any) => {
-    blob.send('MAP_CLICKED', { coordinates });
+  bloblets.forEach((blob) => {
+    blob.send({ type: 'MAP_CLICKED', coordinates });
   })
 }
 
@@ -173,8 +180,8 @@ function propagateShrubClicked(
   { bloblets }: Context,
   { coordinates }: ClickedEvent
 ) {
-  bloblets.forEach((blob: any) => {
-    blob.send('SHRUB_CLICKED', { coordinates });
+  bloblets.forEach((blob) => {
+    blob.send({ type: 'SHRUB_CLICKED', coordinates });
   })
 }
 
@@ -191,9 +198,21 @@ function shrubToMass(shrubAmount: number) {
   return shrubAmount;
 }
 
-const feedShrub = assign(({ mass }: Context, { amount }: FeedShrubEvent) => ({
-  mass: mass + shrubToMass(amount)
-}))
+const feedOnShrub = assign(({ mass, position: { x, y } }: Context, { amount = 1 }: FeedOnShrubEvent) => {
+  const massToAdd = shrubToMass(amount);
+  const newMass = mass + massToAdd;
+  const { radiusY } = makeRadius(newMass);
+  animationMachine.send(
+    'SHOW_NUMBER',
+    {
+      position: { x, y: y - radiusY },
+      amount: massToAdd,
+      colorHex: blobQueenColor,
+    })
+  return {
+    mass: newMass,
+  }
+})
 
 const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
   const machine = makeBloblet({
@@ -213,7 +232,7 @@ function shrubClicked(shrub: ShrubActor, { coordinates }: ClickedEvent) {
 }
 
 function didClickOnShrub({ shrubs }: Context, e: ClickedEvent) {
-  return shrubs.some((b)=> shrubClicked(b, e))
+  return shrubs.some((b) => shrubClicked(b, e))
 }
 
 export function makeBlobQueen() {
@@ -229,6 +248,7 @@ export function makeBlobQueen() {
         }
       },
       bloblets: [],
+      animations: [],
       shrubs: [],
     },
     on: {
@@ -239,14 +259,14 @@ export function makeBlobQueen() {
         actions: [updateBlobs]
       },
       FEED_SHRUB: {
-        actions: [feedShrub]
+        actions: [feedOnShrub]
       },
     },
     initial: 'initialise',
     states: {
       initialise: {
         entry: [initialiseShrubs],
-        always: { target: 'ready'}
+        always: { target: 'ready' }
       },
       ready: {
         type: 'parallel',
@@ -296,7 +316,7 @@ export function makeBlobQueen() {
           }
         }
       }
-      
+
     }
   })
 

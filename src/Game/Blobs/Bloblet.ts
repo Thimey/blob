@@ -1,6 +1,7 @@
-import { createMachine, assign, ActorRefFrom, StateMachine } from 'xstate';
+import { createMachine, assign, ActorRefFrom, StateMachine, actions } from 'xstate';
 
 import { Coordinates } from '../../types'
+import { blobletColor } from '../colors';
 import { drawCircle } from '../utils'
 import { QUEEN_POSITION } from './BlobQueen'
 
@@ -14,15 +15,15 @@ type Context = {
   }
 }
 
-type StateValues = 
+type StateValues =
   { selection: 'deselected' } |
   { selection: 'selected' } |
   { movement: 'stationary' } |
   { movement: 'moving' } |
-  { movement: { harvestingShrub: 'movingToShrub' }} |
-  { movement: { harvestingShrub: 'atShrub' }} |
-  { movement: { harvestingShrub: 'movingToQueen' }} |
-  { movement: { harvestingShrub: 'atQueen' }}
+  { movement: { harvestingShrub: 'movingToShrub' } } |
+  { movement: { harvestingShrub: 'atShrub' } } |
+  { movement: { harvestingShrub: 'movingToQueen' } } |
+  { movement: { harvestingShrub: 'atQueen' } }
 
 
 type State = {
@@ -62,7 +63,7 @@ export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 function drawBody({ position: { x, y }, radius }: Context, { ctx }: DrawEvent) {
   // Body
   ctx.beginPath();
-  drawCircle(ctx, x, y, radius, '#82c91e')
+  drawCircle(ctx, x, y, radius, blobletColor)
   ctx.strokeStyle = 'black'
   ctx.stroke()
   ctx.closePath();
@@ -210,47 +211,47 @@ export function makeBloblet({ id, position, destination = { x: position.x, y: po
             initial: 'movingToShrub',
             states: {
               movingToShrub: {
-                  on: {
-                    UPDATE: [
-                      {
-                        target: 'atShrub',
-                        cond: hasReachedDestination,
-                      },
-                      {
-                        actions: [stepToDestination],
-                      },
-                    ],
-                  }
-                },
-                atShrub: {
-                  after: [{
-                    delay: 3000,
-                    target: 'movingToQueen',
-                    actions: setDestinationAsQueen
-                  }],
-                },
-                movingToQueen: {
-                  on: {
-                    UPDATE: [
-                      {
-                        target: 'atQueen',
-                        cond: hasReachedDestination,
-                      },
-                      {
-                        actions: [stepToDestination],
-                      },
-                    ],
-                  }
-                },
-                atQueen: {
-                  after: [{
-                    delay: 1000,
-                    target: 'movingToShrub',
-                    actions: setDestinationAsShrub
-                  }],
+                on: {
+                  UPDATE: [
+                    {
+                      target: 'atShrub',
+                      cond: hasReachedDestination,
+                    },
+                    {
+                      actions: [stepToDestination],
+                    },
+                  ],
                 }
               },
-            }
+              atShrub: {
+                after: [{
+                  delay: 3000,
+                  target: 'movingToQueen',
+                  actions: setDestinationAsQueen
+                }],
+              },
+              movingToQueen: {
+                on: {
+                  UPDATE: [
+                    {
+                      target: 'atQueen',
+                      cond: hasReachedDestination,
+                    },
+                    {
+                      actions: [stepToDestination],
+                    },
+                  ],
+                }
+              },
+              atQueen: {
+                after: [{
+                  delay: 1000,
+                  target: 'movingToShrub',
+                  actions: [setDestinationAsShrub, actions.sendParent('FEED_SHRUB')]
+                }],
+              }
+            },
+          }
         },
       },
     },
