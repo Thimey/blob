@@ -1,29 +1,29 @@
-import { useRef, useEffect } from 'react';
-import { interpret } from 'xstate'
+import React, { useRef, useEffect } from 'react';
+import { interpret } from 'xstate';
 
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils'
-import { makeBlobQueen } from './Blobs'
-import { animationMachine } from './animations/animationMachine'
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils';
+import { makeBlobQueen } from './Blobs';
+import { animationMachine } from './animations/animationMachine';
 
 const blobQueen = interpret(makeBlobQueen()).start();
 
-function gameLoop(ctx: CanvasRenderingContext2D, blobQueen: any) {
+function gameLoop(ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   blobQueen.send('DRAW', { ctx });
   blobQueen.send('UPDATE', { ctx });
 
-  animationMachine.send('DRAW', { ctx })
+  animationMachine.send('DRAW', { ctx });
 
-  window.requestAnimationFrame(() => gameLoop(ctx, blobQueen))
+  window.requestAnimationFrame(() => gameLoop(ctx));
 }
 
 export const Game = () => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     const { left, top } = canvas.getBoundingClientRect();
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
@@ -32,21 +32,27 @@ export const Game = () => {
       const mouseX = e.x - left;
       const mouseY = e.y - top;
 
-      blobQueen.send('CLICKED', { coordinates: { x: mouseX, y: mouseY } })
-    }
+      blobQueen.send('CLICKED', { coordinates: { x: mouseX, y: mouseY } });
+    };
 
-    window.addEventListener('mouseup', onMouseUp)
-    gameLoop(ctx, blobQueen)
+    window.addEventListener('mouseup', onMouseUp);
+    gameLoop(ctx);
 
     return () => {
-      window.removeEventListener('mouseup', onMouseUp)
-    }
-  }, [])
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, []);
 
   return (
     <>
-      <button onClick={() => { blobQueen.send('FEED_SHRUB', { amount: 4 }) }}>Feed</button>
+      <button
+        onClick={() => {
+          blobQueen.send('FEED_SHRUB', { amount: 4 });
+        }}
+      >
+        Feed
+      </button>
       <canvas id="game-canvas" ref={canvasRef} />
     </>
-  )
-}
+  );
+};

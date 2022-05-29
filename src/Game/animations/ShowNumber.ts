@@ -1,6 +1,6 @@
-import { createMachine, interpret, assign } from "xstate";
-import { Coordinates } from '../../types'
-import { hexToRGB, RGB } from '../utils'
+import { createMachine, interpret, assign } from 'xstate';
+import { Coordinates } from '../../types';
+import { hexToRGB, RGB } from '../utils';
 
 const FLOAT_TIME_MS = 1000;
 interface Context {
@@ -10,18 +10,21 @@ interface Context {
   opacity: number;
 }
 
-type StateValues = 'animate' | 'end'
+type StateValues = 'animate' | 'end';
 
 type State = {
   value: StateValues;
-  context: Context
-}
+  context: Context;
+};
 
-type DrawAmountEvent = { type: 'DRAW', ctx: CanvasRenderingContext2D }
+type DrawAmountEvent = { type: 'DRAW'; ctx: CanvasRenderingContext2D };
 
 type Event = DrawAmountEvent;
 
-function drawAmount({ amount, position: { x, y }, opacity, colorRGB: { r, g, b } }: Context, { ctx }: DrawAmountEvent) {
+function drawAmount(
+  { amount, position: { x, y }, opacity, colorRGB: { r, g, b } }: Context,
+  { ctx }: DrawAmountEvent
+) {
   ctx.font = '12px Arial';
   ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
   ctx.fillText(`${amount < 0 ? '-' : '+'} ${amount}`, x, y);
@@ -30,7 +33,7 @@ function drawAmount({ amount, position: { x, y }, opacity, colorRGB: { r, g, b }
 const raise = assign(({ position: { x, y }, opacity }: any) => ({
   position: { x, y: y - 0.5 },
   opacity: opacity - 0.01,
-}))
+}));
 
 interface Args {
   position: Coordinates;
@@ -50,14 +53,14 @@ export function makeShowNumber({ amount, position, colorHex = '#000' }: Args) {
           },
         },
         after: {
-          [FLOAT_TIME_MS]: { target: 'end' }
-        }
+          [FLOAT_TIME_MS]: { target: 'end' },
+        },
       },
       end: {
         // type: 'final',
-      }
-    }
-  })
+      },
+    },
+  });
 
   return interpret(machine).start();
 }

@@ -1,4 +1,4 @@
-import { Coordinates } from "../types";
+import { Coordinates } from '../types';
 
 export const CANVAS_HEIGHT = 500;
 export const CANVAS_WIDTH = 800;
@@ -6,21 +6,21 @@ export const CANVAS_WIDTH = 800;
 export type Point = [number, number];
 
 export function generateId() {
-  return Date.now().toString()
+  return Date.now().toString();
 }
 
 export function getDistance([x1, y1]: Point, [x2, y2]: Point) {
-  return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+  return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
 
-export function makeRandNumber(max: number = 1) {
+export function makeRandNumber(max = 1) {
   const randNumber = Math.random() * max;
 
-  return Math.random() > 0.5 ? randNumber : randNumber * -1
+  return Math.random() > 0.5 ? randNumber : randNumber * -1;
 }
 
-export type RGB = { r: number, g: number, b: number };
-const blackRGB: RGB = { r: 0, g: 0, b: 0 }
+export type RGB = { r: number; g: number; b: number };
+const blackRGB: RGB = { r: 0, g: 0, b: 0 };
 export function hexToRGB(hex: string): RGB {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 
@@ -28,26 +28,37 @@ export function hexToRGB(hex: string): RGB {
     return {
       r: parseInt(result[1], 16),
       g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    }
+      b: parseInt(result[3], 16),
+    };
   }
 
-  return blackRGB
+  return blackRGB;
 }
 
-interface Ellipse { x: number, y: number, radiusX: number, radiusY: number }
+interface Ellipse {
+  x: number;
+  y: number;
+  radiusX: number;
+  radiusY: number;
+}
 
 export function isPointWithinEllipse(ellipse: Ellipse, [x, y]: Point) {
   return (
-    (((x - ellipse.x) ** 2) / (ellipse.radiusX ** 2))
-    + (((y - ellipse.y) ** 2) / (ellipse.radiusY ** 2)) <= 1)
+    (x - ellipse.x) ** 2 / ellipse.radiusX ** 2 +
+      (y - ellipse.y) ** 2 / ellipse.radiusY ** 2 <=
+    1
+  );
 }
 
 export function didClickOnCircle(
   { x: positionX, y: positionY }: Coordinates,
   radius: number,
-  { x: mouseX, y: mouseY }: Coordinates) {
-  const distanceFromClick = getDistance([mouseX, mouseY], [positionX, positionY]);
+  { x: mouseX, y: mouseY }: Coordinates
+) {
+  const distanceFromClick = getDistance(
+    [mouseX, mouseY],
+    [positionX, positionY]
+  );
 
   return distanceFromClick <= radius;
 }
@@ -71,7 +82,7 @@ export function drawDiamond(
   width: number,
   height: number,
   fill: string,
-  stroke?: string,
+  stroke?: string
 ) {
   ctx.beginPath();
 
