@@ -61,7 +61,7 @@ type FeedOnShrubEvent = {
   amount?: number;
 }
 
-type Events = DrawEvent | UpdateEvent | ClickedEvent | FeedOnShrubEvent;
+type Event = DrawEvent | UpdateEvent | ClickedEvent | FeedOnShrubEvent;
 
 function makeRadius(mass: number) {
   return {
