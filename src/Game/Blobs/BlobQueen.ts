@@ -11,7 +11,7 @@ import {
   QUEEN_POSITION,
 } from '../utils';
 import { blobQueenColor } from '../colors';
-import { makeShrub, ShrubActor } from '../Resources/Shrub';
+import { makeShrub, ShrubActor } from '../Resources';
 import { animationMachine } from '../animations/animationMachine';
 import { makeBloblet, BlobletActor } from './Bloblet';
 
@@ -72,19 +72,19 @@ const initialiseShrubs = assign(({ shrubs }: Context) => ({
     spawn(
       makeShrub({
         id: '1',
-        position: { x: CANVAS_WIDTH * 0.9, y: CANVAS_HEIGHT * 0.1 },
+        harvestRate: 1,
       })
     ),
     spawn(
       makeShrub({
         id: '2',
-        position: { x: CANVAS_WIDTH * 0.1, y: CANVAS_HEIGHT * 0.1 },
+        harvestRate: 2,
       })
     ),
     spawn(
       makeShrub({
         id: '3',
-        position: { x: CANVAS_WIDTH * 0.5, y: CANVAS_HEIGHT * 0.9 },
+        harvestRate: 2.5,
       })
     ),
   ],

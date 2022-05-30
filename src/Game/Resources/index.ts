@@ -1,1 +1,1 @@
-export { Shrub } from './Shrub';
+export * from './Shrub';
