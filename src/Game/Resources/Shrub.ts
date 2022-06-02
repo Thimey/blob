@@ -1,7 +1,7 @@
 import { createMachine, ActorRefFrom, StateMachine } from 'xstate';
 
 import { Coordinates } from '../../types';
-import { drawDiamond, makeRandNumber } from '../utils';
+import { drawDiamond, makeRandNumber, QUEEN_POSITION } from '../utils';
 import { shrubColor } from '../colors';
 
 const LEAF_HEIGHT = 18;
@@ -11,6 +11,7 @@ type Context = {
   id: string;
   position: Coordinates;
   leafPositions: Coordinates[];
+  harvestRate: number;
 };
 
 type StateValues = 'idle';
@@ -28,6 +29,18 @@ type DrawEvent = {
 type Event = DrawEvent;
 
 export type ShrubActor = ActorRefFrom<StateMachine<Context, any, Event>>;
+
+function makePosition(harvestRate: number): Coordinates {
+  const angle = Math.random() * 2 * Math.PI;
+  const distance = (1 / harvestRate) * 400
+
+  console.log(distance)
+
+  return {
+    x: QUEEN_POSITION.x + (distance * Math.cos(angle)),
+    y: QUEEN_POSITION.y + (distance * Math.sin(angle)),
+  }
+}
 
 function makeShrubRow(length: number, x: number, y: number, offset: number) {
   return new Array(length).fill(0).map((_, i) => {
@@ -60,16 +73,19 @@ function drawShrub({ leafPositions }: Context, { ctx }: DrawEvent) {
 
 interface Args {
   id: string;
-  position: Coordinates;
+  harvestRate: number;
 }
 
-export function makeShrub({ id, position }: Args) {
+export function makeShrub({ id, harvestRate }: Args) {
+  const position = makePosition(harvestRate);
+
   return createMachine<Context, Event, State>({
     initial: 'idle',
     context: {
       id,
       position,
       leafPositions: initialiseLeafPositions(position),
+      harvestRate,
     },
     on: {
       DRAW: {
