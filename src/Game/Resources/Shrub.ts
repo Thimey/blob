@@ -1,9 +1,8 @@
-import { createMachine, ActorRefFrom, StateMachine, assign } from 'xstate';
+import { createMachine, ActorRefFrom, StateMachine } from 'xstate';
 
 import { Coordinates } from '../../types';
 import { drawDiamond, makeRandNumber, QUEEN_POSITION } from '../utils';
 import { shrubColor } from '../colors';
-import { sendParent } from 'xstate/lib/actions';
 
 const LEAF_HEIGHT = 18;
 const LEAF_WIDTH = 13;
@@ -13,7 +12,6 @@ type Context = {
   position: Coordinates;
   leafPositions: Coordinates[];
   harvestRate: number;
-  harvesterCount: number;
 };
 
 type StateValues = 'idle';
@@ -28,15 +26,7 @@ type DrawEvent = {
   ctx: CanvasRenderingContext2D;
 };
 
-type AddHarvester = {
-  type: 'ADD_HARVESTER',
-}
-
-type RemoveHarvester = {
-  type: 'REMOVE_HARVESTER',
-}
-
-type Event = DrawEvent | AddHarvester | RemoveHarvester;
+type Event = DrawEvent;
 
 export type ShrubActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 
@@ -81,26 +71,6 @@ function drawShrub({ leafPositions }: Context, { ctx }: DrawEvent) {
   });
 }
 
-const addHarvester = assign<Context, AddHarvester>(({ harvesterCount }) => ({
-  harvesterCount: harvesterCount + 1,
-}))
-
-const removeHarvester = assign<Context, RemoveHarvester>(({ harvesterCount }) => ({
-  harvesterCount: harvesterCount > 0 ? harvesterCount - 1 : harvesterCount,
-}))
-
-const feedQueen = sendParent(({ harvestRate, harvesterCount }: Context) => {
-
-  return {
-    type: 'FEED_SHRUB',
-    amount: harvestRate * harvesterCount
-  }
-})
-
-function hasHarvesters({ harvesterCount}: Context) {
-  return !!harvesterCount
-}
-
 interface Args {
   id: string;
   harvestRate: number;
@@ -116,38 +86,14 @@ export function makeShrub({ id, harvestRate }: Args) {
       position,
       leafPositions: initialiseLeafPositions(position),
       harvestRate,
-      harvesterCount: 0,
     },
     on: {
       DRAW: {
         actions: drawShrub,
       },
-      ADD_HARVESTER: {
-        actions: addHarvester
-      },
-      REMOVE_HARVESTER: {
-        actions: removeHarvester,
-      }
     },
     states: {
-      idle: {
-        after: [{
-          delay: 1000,
-          target: 'feedToSend',
-          cond: hasHarvesters,
-        },]
-      },
-      noFeedToSend: {
-        always: {
-          target: 'notSendingFeed'
-        }
-      },
-      feedToSend: {
-        entry: feedQueen,
-        always: {
-          target: 'notSendingFeed'
-        }
-      }
+      idle: {},
     },
   });
 }
