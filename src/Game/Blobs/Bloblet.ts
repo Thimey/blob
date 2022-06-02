@@ -87,12 +87,12 @@ function drawBody({ position: { x, y }, radius }: Context, { ctx }: DrawEvent) {
 
   // Left eye
   ctx.beginPath();
-  drawCircle(ctx, x - 3, y - 5, 2, 'black');
+  drawCircle(ctx, x - 2, y - 5, 1, 'black');
   ctx.closePath();
 
   // Right eye
   ctx.beginPath();
-  drawCircle(ctx, x + 3, y - 5, 2, 'black');
+  drawCircle(ctx, x + 2, y - 5, 1, 'black');
   ctx.closePath();
 }
 
@@ -164,8 +164,8 @@ const stepToDestination = assign(({ position, destination }: Context) => {
 
   return {
     position: {
-      x: position.x + dx / 40,
-      y: position.y + dy / 40,
+      x: position.x + dx / 100,
+      y: position.y + dy / 100,
     },
   };
 });
@@ -181,7 +181,7 @@ export function makeBloblet({
   id,
   position,
   destination = { x: position.x, y: position.y },
-  radius = 20,
+  radius = 10,
 }: Args) {
   return createMachine<Context, Event, State>({
     type: 'parallel',
@@ -290,7 +290,7 @@ export function makeBloblet({
                   atShrub: {
                     after: [
                       {
-                        delay: 3000,
+                        delay: 1000,
                         target: 'movingToQueen',
                         actions: setDestinationAsQueen,
                       },

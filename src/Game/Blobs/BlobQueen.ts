@@ -59,10 +59,10 @@ type FeedOnShrubEvent = {
 
 type Event = DrawEvent | UpdateEvent | ClickedEvent | FeedOnShrubEvent;
 
-function makeRadius(mass: number) {
+function makeRadius(_mass: number) {
   return {
-    radiusX: mass * 0.75,
-    radiusY: mass * 0.5,
+    radiusX: 60,
+    radiusY: 40,
   };
 }
 
@@ -319,16 +319,16 @@ export function makeBlobQueen() {
                 on: {
                   CLICKED: [
                     {
-                      target: 'selected',
-                      cond: didClickOnBlobQueen,
+                      actions: [propagateShrubClicked],
+                      cond: didClickOnShrub,
                     },
                     {
                       actions: [propagateBlobletClicked],
                       cond: didClickOnBloblet,
                     },
                     {
-                      actions: [propagateShrubClicked],
-                      cond: didClickOnShrub,
+                      target: 'selected',
+                      cond: didClickOnBlobQueen,
                     },
                     {
                       actions: [propagateMapClicked],
