@@ -32,14 +32,14 @@ export type ShrubActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 
 function makePosition(harvestRate: number): Coordinates {
   const angle = Math.random() * 2 * Math.PI;
-  const distance = (1 / harvestRate) * 400
+  const distance = (1 / harvestRate) * 400;
 
-  console.log(distance)
+  console.log(distance);
 
   return {
-    x: QUEEN_POSITION.x + (distance * Math.cos(angle)),
-    y: QUEEN_POSITION.y + (distance * Math.sin(angle)),
-  }
+    x: QUEEN_POSITION.x + distance * Math.cos(angle),
+    y: QUEEN_POSITION.y + distance * Math.sin(angle),
+  };
 }
 
 function makeShrubRow(length: number, x: number, y: number, offset: number) {

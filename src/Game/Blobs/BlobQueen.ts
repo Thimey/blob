@@ -59,10 +59,10 @@ type FeedOnShrubEvent = {
 
 type Event = DrawEvent | UpdateEvent | ClickedEvent | FeedOnShrubEvent;
 
-function makeRadius(mass: number) {
+function makeRadius(_mass: number) {
   return {
-    radiusX: mass * 1.5,
-    radiusY: mass * 1,
+    radiusX: 60,
+    radiusY: 40,
   };
 }
 
@@ -201,16 +201,34 @@ function propagateMapClicked(
   });
 }
 
-function propagateShrubClicked(
-  { bloblets }: Context,
-  { coordinates }: ClickedEvent
-) {
-  bloblets.forEach((blob) => {
-    blob.send({ type: 'SHRUB_CLICKED', coordinates });
-  });
+function shrubClicked(shrub: ShrubActor, { coordinates }: ClickedEvent) {
+  const shrubContext = shrub.getSnapshot()?.context;
+
+  return (
+    shrubContext && didClickOnCircle(shrubContext.position, 20, coordinates)
+  );
 }
 
-function didCLickOnSpawnBloblet(
+function propagateShrubClicked(
+  { bloblets, shrubs }: Context,
+  event: ClickedEvent
+) {
+  const clickedShrub = shrubs.find((shrub) => shrubClicked(shrub, event));
+  const clickedShrubContext = clickedShrub?.getSnapshot()?.context;
+
+  if (clickedShrubContext) {
+    bloblets.forEach((blob) => {
+      blob.send({
+        type: 'SHRUB_CLICKED',
+        shrubId: clickedShrubContext.id,
+        harvestRate: clickedShrubContext.harvestRate,
+        coordinates: clickedShrubContext.position,
+      });
+    });
+  }
+}
+
+function didClickOnSpawnBloblet(
   { spawnOptions }: Context,
   { coordinates: clickCoordinates }: ClickedEvent
 ) {
@@ -255,14 +273,6 @@ const spawnBloblet = assign((context: Context) => {
   };
 });
 
-function shrubClicked(shrub: ShrubActor, { coordinates }: ClickedEvent) {
-  const shrubContext = shrub.getSnapshot()?.context;
-
-  return (
-    shrubContext && didClickOnCircle(shrubContext.position, 20, coordinates)
-  );
-}
-
 function didClickOnShrub({ shrubs }: Context, e: ClickedEvent) {
   return shrubs.some((b) => shrubClicked(b, e));
 }
@@ -271,7 +281,7 @@ export function makeBlobQueen() {
   const machine = createMachine<Context, Event, State>({
     context: {
       position: QUEEN_POSITION,
-      mass: 20,
+      mass: 50,
       spawnOptions: {
         bloblet: {
           color: '#268645',
@@ -309,16 +319,16 @@ export function makeBlobQueen() {
                 on: {
                   CLICKED: [
                     {
-                      target: 'selected',
-                      cond: didClickOnBlobQueen,
+                      actions: [propagateShrubClicked],
+                      cond: didClickOnShrub,
                     },
                     {
                       actions: [propagateBlobletClicked],
                       cond: didClickOnBloblet,
                     },
                     {
-                      actions: [propagateShrubClicked],
-                      cond: didClickOnShrub,
+                      target: 'selected',
+                      cond: didClickOnBlobQueen,
                     },
                     {
                       actions: [propagateMapClicked],
@@ -334,7 +344,7 @@ export function makeBlobQueen() {
                   CLICKED: [
                     {
                       actions: [spawnBloblet],
-                      cond: didCLickOnSpawnBloblet,
+                      cond: didClickOnSpawnBloblet,
                       target: 'deselected',
                     },
                     {
