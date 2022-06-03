@@ -8,7 +8,7 @@ import {
 } from 'xstate';
 import { Coordinates } from '../../types';
 
-import { makeShowNumber, ShowNumberActor } from './ShowNumber';
+import { makeShowNumber, ShowNumberActor } from './showNumber';
 
 type DrawEvent = {
   type: 'DRAW';

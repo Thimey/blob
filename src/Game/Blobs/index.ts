@@ -1,2 +1,2 @@
-export * from './Bloblet';
-export * from './BlobQueen';
+export * from './bloblet/bloblet';
+export * from './blobQueen';
