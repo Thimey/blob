@@ -56,12 +56,9 @@ function drawAnimations({ animations }: Context, { ctx }: DrawEvent) {
   animations.forEach((animation) => animation.send({ type: 'DRAW', ctx }));
 }
 
-const removeAnimation = assign<Context, RemoveAnimationEvent>(({ animations }, { id }) => {
-  console.log('removeAnimation')
-  return {
+const removeAnimation = assign<Context, RemoveAnimationEvent>(({ animations }, { id }) => ({
     animations: animations.filter(animation => animation.getSnapshot()?.context.id !== id )
-  }
-})
+}))
 
 const machine = createMachine<Context, Event, State>({
   context: { animations: [] },
