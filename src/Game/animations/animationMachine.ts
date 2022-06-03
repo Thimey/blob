@@ -7,14 +7,15 @@ import {
   StateMachine,
 } from 'xstate';
 import { Coordinates } from '../../types';
-import { makeShowNumber } from './ShowNumber';
+
+import { makeShowNumber, ShowNumberActor } from './ShowNumber';
 
 type DrawEvent = {
   type: 'DRAW';
   ctx: CanvasRenderingContext2D;
 };
 
-type AnimationActor = ActorRefFrom<StateMachine<any, any, DrawEvent>>;
+type AnimationActor = ShowNumberActor;
 
 interface Context {
   animations: AnimationActor[];
@@ -34,7 +35,12 @@ type ShowNumberAnimationEvent = {
   colorHex?: string;
 };
 
-type Event = DrawEvent | ShowNumberAnimationEvent;
+type RemoveAnimationEvent = {
+  type: "REMOVE_ANIMATION",
+  id: string;
+}
+
+type Event = DrawEvent | ShowNumberAnimationEvent | RemoveAnimationEvent;
 
 const addNumberAnimation = assign(
   (context: any, { position, amount, colorHex }: ShowNumberAnimationEvent) => {
@@ -47,9 +53,15 @@ const addNumberAnimation = assign(
 );
 
 function drawAnimations({ animations }: Context, { ctx }: DrawEvent) {
-  // TODO: Remove finished animations
   animations.forEach((animation) => animation.send({ type: 'DRAW', ctx }));
 }
+
+const removeAnimation = assign<Context, RemoveAnimationEvent>(({ animations }, { id }) => {
+  console.log('removeAnimation')
+  return {
+    animations: animations.filter(animation => animation.getSnapshot()?.context.id !== id )
+  }
+})
 
 const machine = createMachine<Context, Event, State>({
   context: { animations: [] },
@@ -63,6 +75,9 @@ const machine = createMachine<Context, Event, State>({
         DRAW: {
           actions: [drawAnimations],
         },
+        REMOVE_ANIMATION: {
+          actions: [removeAnimation],
+        }
       },
     },
   },
