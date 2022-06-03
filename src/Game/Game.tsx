@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { interpret } from 'xstate';
 
+import { persistGameState, restoreGameState } from './persist';
 import { blobQueenColor } from './colors';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils';
 import { makeBlobQueen } from './blobs';
@@ -42,6 +43,12 @@ export const Game = () => {
 
     window.addEventListener('mouseup', onMouseUp);
     gameLoop(ctx);
+
+    restoreGameState();
+
+    window.addEventListener('beforeunload', () =>
+      persistGameState(blobQueen as any)
+    );
 
     return () => {
       window.removeEventListener('mouseup', onMouseUp);

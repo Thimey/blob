@@ -1,4 +1,4 @@
-import { createMachine, assign, spawn } from 'xstate';
+import { createMachine, assign, spawn, Interpreter } from 'xstate';
 
 import {
   generateId,
@@ -37,6 +37,8 @@ type State = {
 };
 
 type Event = DrawEvent | UpdateEvent | ClickedEvent | FeedOnShrubEvent;
+
+export type BlobQueenService = Interpreter<Context, any, Event, State>;
 
 const initialiseShrubs = assign(({ shrubs }: Context) => ({
   shrubs: [

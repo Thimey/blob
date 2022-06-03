@@ -7,7 +7,7 @@ import { shrubColor } from '../colors';
 const LEAF_HEIGHT = 18;
 const LEAF_WIDTH = 13;
 
-type Context = {
+export type Context = {
   id: string;
   position: Coordinates;
   leafPositions: Coordinates[];
