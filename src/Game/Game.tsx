@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { interpret } from 'xstate';
 
+import { blobQueenColor } from './colors';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils';
 import { makeBlobQueen } from './Blobs';
 import { animationMachine } from './animations/animationMachine';
@@ -9,6 +10,10 @@ const blobQueen = interpret(makeBlobQueen()).start();
 
 function gameLoop(ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+  ctx.font = "20px Arial";
+  ctx.fillStyle = blobQueenColor;
+  ctx.fillText(`Feed: ${blobQueen.state.context.mass}`, 10, 30);
 
   blobQueen.send('DRAW', { ctx });
   blobQueen.send('UPDATE', { ctx });
@@ -44,15 +49,6 @@ export const Game = () => {
   }, []);
 
   return (
-    <>
-      <button
-        onClick={() => {
-          blobQueen.send('FEED_SHRUB', { amount: 4 });
-        }}
-      >
-        Feed
-      </button>
-      <canvas id="game-canvas" ref={canvasRef} />
-    </>
+    <canvas id="game-canvas" ref={canvasRef} />
   );
 };
