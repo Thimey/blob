@@ -1,1 +1,1 @@
-export { makeShowNumber } from './ShowNumber';
+export { makeShowNumber } from './showNumber';

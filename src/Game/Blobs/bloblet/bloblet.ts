@@ -6,21 +6,18 @@ import {
   sendParent,
 } from 'xstate';
 
-import { Coordinates } from '../../types';
-import { blobletColor } from '../colors';
-import { drawCircle, QUEEN_POSITION } from '../utils';
-
-type Context = {
-  id: string;
-  position: Coordinates;
-  radius: number;
-  destination: Coordinates;
-  harvestingShrub?: {
-    shrubId: string;
-    harvestRate: number;
-    position: Coordinates;
-  };
-};
+import { QUEEN_POSITION } from '../../utils';
+import { clickedThisBloblet } from './actions/click';
+import { drawDeselected, drawSelected } from './actions/draw';
+import {
+  Context,
+  BlobClickEvent,
+  MapClickEvent,
+  DrawEvent,
+  UpdateEvent,
+  ShrubClickEvent,
+  FeedQueenEvent,
+} from './types';
 
 type StateValues =
   | { selection: 'deselected' }
@@ -37,36 +34,6 @@ type State = {
   context: Context;
 };
 
-type BlobClickEvent = {
-  type: 'BLOBLET_CLICKED';
-  id: string;
-};
-
-type MapClickEvent = {
-  type: 'MAP_CLICKED';
-  coordinates: Coordinates;
-};
-
-type ShrubClickEvent = {
-  type: 'SHRUB_CLICKED';
-  coordinates: Coordinates;
-  shrubId: string;
-  harvestRate: number;
-};
-
-type FeedQueenEvent = {
-  type: 'FEED_QUEEN';
-};
-
-type DrawEvent = {
-  type: 'DRAW';
-  ctx: CanvasRenderingContext2D;
-};
-
-type UpdateEvent = {
-  type: 'UPDATE';
-};
-
 export type Event =
   | BlobClickEvent
   | MapClickEvent
@@ -76,45 +43,6 @@ export type Event =
   | FeedQueenEvent;
 
 export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Event>>;
-
-function drawBody({ position: { x, y }, radius }: Context, { ctx }: DrawEvent) {
-  // Body
-  ctx.beginPath();
-  drawCircle(ctx, x, y, radius, blobletColor);
-  ctx.strokeStyle = 'black';
-  ctx.stroke();
-  ctx.closePath();
-
-  // Left eye
-  ctx.beginPath();
-  drawCircle(ctx, x - 2, y - 5, 1, 'black');
-  ctx.closePath();
-
-  // Right eye
-  ctx.beginPath();
-  drawCircle(ctx, x + 2, y - 5, 1, 'black');
-  ctx.closePath();
-}
-
-function drawSelectBox(
-  { position: { x, y }, radius }: Context,
-  { ctx }: DrawEvent
-) {
-  ctx.beginPath();
-  drawCircle(ctx, x, y, radius + 2, 'transparent');
-  ctx.strokeStyle = 'red';
-  ctx.stroke();
-  ctx.closePath();
-}
-
-function drawSelected(context: Context, event: DrawEvent) {
-  drawBody(context, event);
-  drawSelectBox(context, event);
-}
-
-function drawDeselected(context: Context, event: DrawEvent) {
-  drawBody(context, event);
-}
 
 const setDestination = assign(
   (_: Context, { coordinates: { x, y } }: MapClickEvent) => ({
@@ -143,13 +71,6 @@ const setDestinationAsQueen = assign(() => ({
 const setDestinationAsShrub = assign(({ harvestingShrub }: Context) => ({
   destination: harvestingShrub?.position,
 }));
-
-function clickedThisBloblet(
-  { id }: Context,
-  { id: clickedId }: BlobClickEvent
-) {
-  return id === clickedId;
-}
 
 function hasReachedDestination({ position, destination }: Context) {
   return (
