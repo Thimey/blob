@@ -1,1 +1,1 @@
-export * from './bloblet'
+export * from './bloblet';

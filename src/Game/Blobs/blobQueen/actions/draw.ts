@@ -1,9 +1,6 @@
-
-import {
-  drawCircle,
-} from '../../../utils';
+import { drawCircle } from '../../../utils';
 import { blobQueenColor } from '../../../colors';
-import { Context, DrawEvent, SpawnType } from '../types'
+import { Context, DrawEvent, SpawnType } from '../types';
 
 export function makeRadius(_mass: number) {
   return {
@@ -12,7 +9,10 @@ export function makeRadius(_mass: number) {
   };
 }
 
-export function drawBody({ position: { x, y }, mass }: Context, { ctx }: DrawEvent) {
+export function drawBody(
+  { position: { x, y }, mass }: Context,
+  { ctx }: DrawEvent
+) {
   const { radiusX, radiusY } = makeRadius(mass);
   const eyeYOffset = radiusY - 20;
   const eyeXOffset = -4;

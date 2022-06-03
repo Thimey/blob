@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { interpret } from 'xstate';
 
 import { blobQueenColor } from './colors';
@@ -11,7 +11,7 @@ const blobQueen = interpret(makeBlobQueen()).start();
 function gameLoop(ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  ctx.font = "20px Arial";
+  ctx.font = '20px Arial';
   ctx.fillStyle = blobQueenColor;
   ctx.fillText(`Feed: ${blobQueen.state.context.mass}`, 10, 30);
 
@@ -48,7 +48,5 @@ export const Game = () => {
     };
   }, []);
 
-  return (
-    <canvas id="game-canvas" ref={canvasRef} />
-  );
+  return <canvas id="game-canvas" ref={canvasRef} />;
 };

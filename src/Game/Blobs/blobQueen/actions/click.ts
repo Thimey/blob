@@ -1,10 +1,7 @@
-import {
-  isPointWithinEllipse,
-  didClickOnCircle,
-} from '../../../utils';
-import { makeShrub, ShrubActor } from '../../../resources';
-import { makeBloblet, BlobletActor } from '../../bloblet/bloblet';
-import { Context, ClickedEvent } from '../types'
+import { isPointWithinEllipse, didClickOnCircle } from '../../../utils';
+import { ShrubActor } from '../../../resources';
+import { BlobletActor } from '../../bloblet/bloblet';
+import { Context, ClickedEvent } from '../types';
 import { makeRadius } from './draw';
 
 export function didClickOnBlobQueen(
@@ -14,7 +11,10 @@ export function didClickOnBlobQueen(
   return isPointWithinEllipse({ x, y, ...makeRadius(mass) }, [mouseX, mouseY]);
 }
 
-export function blobletClicked(bloblet: BlobletActor, { coordinates }: ClickedEvent) {
+export function blobletClicked(
+  bloblet: BlobletActor,
+  { coordinates }: ClickedEvent
+) {
   const blobletContext = bloblet.getSnapshot()?.context;
 
   return (
@@ -27,7 +27,10 @@ export function blobletClicked(bloblet: BlobletActor, { coordinates }: ClickedEv
   );
 }
 
-export function propagateBlobletClicked({ bloblets }: Context, event: ClickedEvent) {
+export function propagateBlobletClicked(
+  { bloblets }: Context,
+  event: ClickedEvent
+) {
   const clickedBlobletContext = bloblets
     .find((blob) => blobletClicked(blob, event))
     ?.getSnapshot()?.context;

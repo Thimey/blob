@@ -1,4 +1,10 @@
-import { createMachine, interpret, assign, sendParent, ActorRefFrom, StateMachine } from 'xstate';
+import {
+  createMachine,
+  assign,
+  sendParent,
+  ActorRefFrom,
+  StateMachine,
+} from 'xstate';
 import { Coordinates } from '../../types';
 import { hexToRGB, RGB, generateId } from '../utils';
 
@@ -33,10 +39,12 @@ function drawAmount(
   ctx.fillText(`${amount < 0 ? '-' : '+'} ${amount}`, x, y);
 }
 
-const raise = assign(({ position: { x, y }, opacity }: Context, _: DrawAmountEvent) => ({
-  position: { x, y: y - 0.5 },
-  opacity: opacity - 0.01,
-}));
+const raise = assign(
+  ({ position: { x, y }, opacity }: Context, _: DrawAmountEvent) => ({
+    position: { x, y: y - 0.5 },
+    opacity: opacity - 0.01,
+  })
+);
 
 interface Args {
   position: Coordinates;
@@ -62,7 +70,10 @@ export function makeShowNumber({ amount, position, colorHex = '#000' }: Args) {
         },
       },
       end: {
-        entry: sendParent(({ id }) => ({ type: 'REMOVE_ANIMATION', id})),
+        entry: sendParent(({ id: animationId }) => ({
+          type: 'REMOVE_ANIMATION',
+          id: animationId,
+        })),
         type: 'final',
       },
     },

@@ -1,11 +1,4 @@
-import {
-  createMachine,
-  interpret,
-  assign,
-  spawn,
-  ActorRefFrom,
-  StateMachine,
-} from 'xstate';
+import { createMachine, interpret, assign, spawn } from 'xstate';
 import { Coordinates } from '../../types';
 
 import { makeShowNumber, ShowNumberActor } from './showNumber';
@@ -36,9 +29,9 @@ type ShowNumberAnimationEvent = {
 };
 
 type RemoveAnimationEvent = {
-  type: "REMOVE_ANIMATION",
+  type: 'REMOVE_ANIMATION';
   id: string;
-}
+};
 
 type Event = DrawEvent | ShowNumberAnimationEvent | RemoveAnimationEvent;
 
@@ -56,9 +49,13 @@ function drawAnimations({ animations }: Context, { ctx }: DrawEvent) {
   animations.forEach((animation) => animation.send({ type: 'DRAW', ctx }));
 }
 
-const removeAnimation = assign<Context, RemoveAnimationEvent>(({ animations }, { id }) => ({
-    animations: animations.filter(animation => animation.getSnapshot()?.context.id !== id )
-}))
+const removeAnimation = assign<Context, RemoveAnimationEvent>(
+  ({ animations }, { id }) => ({
+    animations: animations.filter(
+      (animation) => animation.getSnapshot()?.context.id !== id
+    ),
+  })
+);
 
 const machine = createMachine<Context, Event, State>({
   context: { animations: [] },
@@ -74,7 +71,7 @@ const machine = createMachine<Context, Event, State>({
         },
         REMOVE_ANIMATION: {
           actions: [removeAnimation],
-        }
+        },
       },
     },
   },
