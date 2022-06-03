@@ -1,5 +1,5 @@
-import { drawCircle } from '../../../utils';
-import { blobQueenColor } from '../../../colors';
+import { drawCircle } from 'game/utils';
+import { blobQueenColor } from 'game/colors';
 import { Context, DrawEvent, SpawnType } from '../types';
 
 export function makeRadius(_mass: number) {

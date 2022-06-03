@@ -1,6 +1,6 @@
 import { createMachine, ActorRefFrom, StateMachine } from 'xstate';
 
-import { Coordinates } from '../../types';
+import { Coordinates } from 'src/types';
 import { drawDiamond, makeRandNumber, QUEEN_POSITION } from '../utils';
 import { shrubColor } from '../colors';
 

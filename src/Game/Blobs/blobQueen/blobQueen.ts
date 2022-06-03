@@ -5,11 +5,11 @@ import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   QUEEN_POSITION,
-} from '../../utils';
-import { blobQueenColor } from '../../colors';
-import { makeShrub } from '../../resources';
-import { animationMachine } from '../../animations/animationMachine';
-import { makeBloblet } from '../bloblet/bloblet';
+} from 'game/utils';
+import { blobQueenColor } from 'game/colors';
+import { makeShrub } from 'game/resources';
+import { animationMachine } from 'game/animations/animationMachine';
+import { makeBloblet } from 'game/blobs/bloblet/bloblet';
 
 import {
   propagateBlobletClicked,

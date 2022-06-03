@@ -1,5 +1,5 @@
-import { blobletColor } from '../../../colors';
-import { drawCircle } from '../../../utils';
+import { blobletColor } from 'game/colors';
+import { drawCircle } from 'game/utils';
 
 import { Context, DrawEvent } from '../types';
 

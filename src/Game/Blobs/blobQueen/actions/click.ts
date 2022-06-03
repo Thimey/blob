@@ -1,6 +1,6 @@
-import { isPointWithinEllipse, didClickOnCircle } from '../../../utils';
-import { ShrubActor } from '../../../resources';
-import { BlobletActor } from '../../bloblet/bloblet';
+import { isPointWithinEllipse, didClickOnCircle } from 'game/utils';
+import { ShrubActor } from 'game/resources';
+import { BlobletActor } from 'game/blobs/bloblet/bloblet';
 import { Context, ClickedEvent } from '../types';
 import { makeRadius } from './draw';
 

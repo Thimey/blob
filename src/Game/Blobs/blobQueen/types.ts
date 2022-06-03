@@ -1,5 +1,5 @@
-import { Coordinates } from '../../../types';
-import { ShrubActor } from '../../resources';
+import { Coordinates } from 'src/types';
+import { ShrubActor } from 'game/resources';
 import { BlobletActor } from '../bloblet/bloblet';
 
 export type SpawnType = 'bloblet';
