@@ -1,20 +1,20 @@
 import { createMachine, ActorRefFrom, StateMachine } from 'xstate';
 
-import { Coordinates } from 'src/types';
+import { Coordinates, PersistedActor } from 'src/types';
 import { drawDiamond, makeRandNumber, QUEEN_POSITION } from '../utils';
 import { shrubColor } from '../colors';
 
 const LEAF_HEIGHT = 18;
 const LEAF_WIDTH = 13;
 
-type Context = {
+export type Context = {
   id: string;
   position: Coordinates;
   leafPositions: Coordinates[];
   harvestRate: number;
 };
 
-type StateValues = 'idle';
+export type StateValues = 'initialising' | 'initialised';
 
 type State = {
   value: StateValues;
@@ -29,8 +29,9 @@ type DrawEvent = {
 type Event = DrawEvent;
 
 export type ShrubActor = ActorRefFrom<StateMachine<Context, any, Event>>;
+export type PersistedShrubActor = PersistedActor<Context, StateValues>;
 
-function makePosition(harvestRate: number): Coordinates {
+export function makePosition(harvestRate: number): Coordinates {
   const angle = Math.random() * 2 * Math.PI;
   const distance = (1 / harvestRate) * 400;
 
@@ -55,7 +56,7 @@ function makeShrubRow(length: number, x: number, y: number, offset: number) {
   });
 }
 
-function initialiseLeafPositions({ x, y }: Coordinates) {
+export function makeLeafPositions({ x, y }: Coordinates) {
   return [
     ...makeShrubRow(3, x, y - LEAF_HEIGHT, LEAF_WIDTH / 2),
     ...makeShrubRow(4, x, y - LEAF_HEIGHT / 2, 0),
@@ -69,29 +70,31 @@ function drawShrub({ leafPositions }: Context, { ctx }: DrawEvent) {
   });
 }
 
-interface Args {
-  id: string;
-  harvestRate: number;
-}
-
-export function makeShrub({ id, harvestRate }: Args) {
-  const position = makePosition(harvestRate);
-
+export function makeShrub({
+  id,
+  position,
+  leafPositions,
+  harvestRate,
+}: Context) {
   return createMachine<Context, Event, State>({
-    initial: 'idle',
+    initial: 'initialising',
     context: {
       id,
       position,
-      leafPositions: initialiseLeafPositions(position),
+      leafPositions,
       harvestRate,
     },
-    on: {
-      DRAW: {
-        actions: drawShrub,
-      },
-    },
     states: {
-      idle: {},
+      initialising: {
+        always: { target: 'initialised' },
+      },
+      initialised: {
+        on: {
+          DRAW: {
+            actions: drawShrub,
+          },
+        },
+      },
     },
   });
 }

@@ -1,22 +1,25 @@
 import React, { useRef, useEffect } from 'react';
 import { interpret } from 'xstate';
 
+import { persistGameState, restoreGameState } from './persist';
 import { blobQueenColor } from './colors';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils';
-import { makeBlobQueen } from './blobs';
+import { makeBlobQueen, BlobQueenService, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
 
-const blobQueen = interpret(makeBlobQueen()).start();
+let blobQueen: BlobQueenService | null = null;
 
 function gameLoop(ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  ctx.font = '20px Arial';
-  ctx.fillStyle = blobQueenColor;
-  ctx.fillText(`Feed: ${blobQueen.state.context.mass}`, 10, 30);
+  if (blobQueen) {
+    ctx.font = '20px Arial';
+    ctx.fillStyle = blobQueenColor;
+    ctx.fillText(`Feed: ${blobQueen.state.context.mass}`, 10, 30);
 
-  blobQueen.send('DRAW', { ctx });
-  blobQueen.send('UPDATE', { ctx });
+    blobQueen.send('DRAW', { ctx });
+    blobQueen.send('UPDATE', { ctx });
+  }
 
   animationMachine.send('DRAW', { ctx });
 
@@ -37,11 +40,25 @@ export const Game = () => {
       const mouseX = e.x - left;
       const mouseY = e.y - top;
 
-      blobQueen.send('CLICKED', { coordinates: { x: mouseX, y: mouseY } });
+      if (blobQueen) {
+        blobQueen.send('CLICKED', { coordinates: { x: mouseX, y: mouseY } });
+      }
     };
 
     window.addEventListener('mouseup', onMouseUp);
     gameLoop(ctx);
+
+    const retoredGameState = restoreGameState();
+
+    if (retoredGameState) {
+      blobQueen = interpret(
+        makeBlobQueen(retoredGameState as PersistedGameState)
+      ).start() as any;
+    }
+
+    window.addEventListener('beforeunload', () =>
+      persistGameState(blobQueen as any)
+    );
 
     return () => {
       window.removeEventListener('mouseup', onMouseUp);

@@ -1,1 +1,1 @@
-export * from './shrub';
+export * from './shub';

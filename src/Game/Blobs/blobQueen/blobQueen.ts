@@ -1,4 +1,4 @@
-import { createMachine, assign, spawn } from 'xstate';
+import { createMachine, assign, spawn, Interpreter } from 'xstate';
 
 import {
   generateId,
@@ -7,9 +7,15 @@ import {
   QUEEN_POSITION,
 } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
-import { makeShrub } from 'game/resources';
+import { BLOBLET_RADIUS } from 'game/sizes';
+import {
+  makeShrub,
+  makePosition as makeShrubPosition,
+  makeLeafPositions,
+  PersistedShrubActor,
+} from 'game/resources';
 import { animationMachine } from 'game/animations/animationMachine';
-import { makeBloblet } from 'game/blobs/bloblet/bloblet';
+import { makeBloblet, PersistedBlobletActor } from 'game/blobs/bloblet';
 
 import {
   propagateBlobletClicked,
@@ -29,6 +35,11 @@ import {
   FeedOnShrubEvent,
 } from './types';
 
+export type PersistedGameState = {
+  bloblets: PersistedBlobletActor[];
+  shrubs: PersistedShrubActor[];
+} & Omit<Context, 'bloblets' | ' shrubs'>;
+
 type StateValues = { selection: 'deselected' } | { selection: 'selected' };
 
 type State = {
@@ -38,29 +49,36 @@ type State = {
 
 type Event = DrawEvent | UpdateEvent | ClickedEvent | FeedOnShrubEvent;
 
-const initialiseShrubs = assign(({ shrubs }: Context) => ({
-  shrubs: [
-    ...shrubs,
-    spawn(
-      makeShrub({
-        id: '1',
-        harvestRate: 1,
-      })
-    ),
-    spawn(
-      makeShrub({
-        id: '2',
-        harvestRate: 2,
-      })
-    ),
-    spawn(
-      makeShrub({
-        id: '3',
-        harvestRate: 2.5,
-      })
-    ),
-  ],
-}));
+export type BlobQueenService = Interpreter<Context, any, Event, State>;
+
+function initialiseBloblets(persistedBloblet: PersistedBlobletActor[]) {
+  return assign(() => ({
+    bloblets: persistedBloblet.map((bc) => spawn(makeBloblet(bc))),
+  }));
+}
+
+function initialiseShrubs(persistedShrub: PersistedShrubActor[]) {
+  const newShrubPositions = [
+    { position: makeShrubPosition(1), harvestRate: 1 },
+    { position: makeShrubPosition(2), harvestRate: 2 },
+    { position: makeShrubPosition(3), harvestRate: 3 },
+  ];
+
+  return assign(() => ({
+    shrubs: persistedShrub.length
+      ? persistedShrub.map((sc) => spawn(makeShrub(sc.context)))
+      : newShrubPositions.map(({ position, harvestRate }, index) =>
+          spawn(
+            makeShrub({
+              id: `${index + 1}`,
+              position,
+              leafPositions: makeLeafPositions(position),
+              harvestRate,
+            })
+          )
+        ),
+  }));
+}
 
 function drawBloblets({ bloblets }: Context, { ctx }: DrawEvent) {
   bloblets.forEach((blob) => blob.send({ type: 'DRAW', ctx }));
@@ -96,13 +114,20 @@ const feedOnShrub = assign(
   }
 );
 
-const spawnBloblet = assign((context: Context) => {
+const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
+  const startingPosition = {
+    x: CANVAS_WIDTH * Math.random(),
+    y: CANVAS_HEIGHT * Math.random(),
+  };
+
   const machine = makeBloblet({
-    id: generateId(),
-    position: {
-      x: CANVAS_WIDTH * Math.random(),
-      y: CANVAS_HEIGHT * Math.random(),
+    context: {
+      id: generateId(),
+      position: startingPosition,
+      destination: startingPosition,
+      radius: BLOBLET_RADIUS,
     },
+    value: ['deselected'],
   });
 
   return {
@@ -110,15 +135,20 @@ const spawnBloblet = assign((context: Context) => {
   };
 });
 
-export function makeBlobQueen() {
+export function makeBlobQueen({
+  mass,
+  position,
+  bloblets,
+  shrubs,
+}: PersistedGameState) {
   const machine = createMachine<Context, Event, State>({
     context: {
-      position: QUEEN_POSITION,
-      mass: 50,
+      position,
+      mass,
       spawnOptions: {
         bloblet: {
           color: '#268645',
-          position: { x: QUEEN_POSITION.x, y: QUEEN_POSITION.y + 20 },
+          position: { x: position.x, y: position.y + 20 },
           radius: 10,
         },
       },
@@ -139,7 +169,7 @@ export function makeBlobQueen() {
     initial: 'initialise',
     states: {
       initialise: {
-        entry: [initialiseShrubs],
+        entry: [initialiseShrubs(shrubs), initialiseBloblets(bloblets)],
         always: { target: 'ready' },
       },
       ready: {
