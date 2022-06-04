@@ -1,6 +1,7 @@
-import { createMachine, ActorRefFrom, StateMachine } from 'xstate';
+import { createMachine, ActorRefFrom, StateMachine, assign } from 'xstate';
 
 import { Coordinates } from 'src/types';
+import { sendParent } from 'xstate/lib/actions';
 import { drawDiamond, makeRandNumber, QUEEN_POSITION } from '../utils';
 import { shrubColor } from '../colors';
 
@@ -12,6 +13,7 @@ type Context = {
   position: Coordinates;
   leafPositions: Coordinates[];
   harvestRate: number;
+  amount: number;
 };
 
 type StateValues = 'idle';
@@ -26,7 +28,11 @@ type DrawEvent = {
   ctx: CanvasRenderingContext2D;
 };
 
-type Event = DrawEvent;
+type HarvestEvent = {
+  type: 'HARVEST';
+};
+
+type Event = DrawEvent | HarvestEvent;
 
 export type ShrubActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 
@@ -63,11 +69,34 @@ function initialiseLeafPositions({ x, y }: Coordinates) {
   ];
 }
 
-function drawShrub({ leafPositions }: Context, { ctx }: DrawEvent) {
+function drawShrub(
+  { leafPositions, amount, position }: Context,
+  { ctx }: DrawEvent
+) {
+  ctx.font = '20px Arial';
+  ctx.fillStyle = shrubColor;
+  ctx.fillText(`Amount: ${amount}`, position.x, position.y - 50);
   leafPositions.forEach(({ x, y }) => {
     drawDiamond(ctx, x, y, LEAF_WIDTH, LEAF_HEIGHT, shrubColor, 'black');
   });
 }
+
+function hasEnoughShrub({ amount }: Context) {
+  return amount > 0;
+}
+
+function makeHarvestAmount(harvestRate: number, totalAmount: number) {
+  return Math.min(harvestRate, totalAmount);
+}
+
+const decrementAmount = assign(({ harvestRate, amount }: Context) => ({
+  amount: amount - makeHarvestAmount(harvestRate, amount),
+}));
+
+const harvest = sendParent(({ amount, harvestRate }: Context) => ({
+  type: 'FEED_SHRUB',
+  amount: makeHarvestAmount(harvestRate, amount),
+}));
 
 interface Args {
   id: string;
@@ -78,20 +107,32 @@ export function makeShrub({ id, harvestRate }: Args) {
   const position = makePosition(harvestRate);
 
   return createMachine<Context, Event, State>({
-    initial: 'idle',
+    initial: 'active',
     context: {
       id,
       position,
       leafPositions: initialiseLeafPositions(position),
       harvestRate,
-    },
-    on: {
-      DRAW: {
-        actions: drawShrub,
-      },
+      amount: 100,
     },
     states: {
-      idle: {},
+      active: {
+        on: {
+          DRAW: {
+            actions: drawShrub,
+          },
+          HARVEST: [
+            {
+              actions: [harvest, decrementAmount],
+              cond: hasEnoughShrub,
+            },
+            {
+              target: 'depleted',
+            },
+          ],
+        },
+      },
+      depleted: {},
     },
   });
 }

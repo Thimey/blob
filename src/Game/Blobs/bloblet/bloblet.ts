@@ -6,7 +6,7 @@ import {
   sendParent,
 } from 'xstate';
 
-import { QUEEN_POSITION } from 'game/utils';
+import { QUEEN_POSITION } from 'src/Game2/utils';
 import { clickedThisBloblet } from './actions/click';
 import { drawDeselected, drawSelected } from './actions/draw';
 import {
@@ -141,7 +141,7 @@ export function makeBloblet({
                 },
               ],
               SHRUB_CLICKED: {
-                target: '#harvestingShrub',
+                target: ['#harvestingShrub', 'deselected'],
                 actions: [setHarvestingShrub],
               },
             },
@@ -185,8 +185,8 @@ export function makeBloblet({
                   FEED_QUEEN: {
                     actions: [
                       sendParent(({ harvestingShrub }) => ({
-                        type: 'FEED_SHRUB',
-                        amount: harvestingShrub?.harvestRate || 1,
+                        type: 'HARVEST_SHRUB',
+                        shrubId: harvestingShrub?.shrubId,
                       })),
                     ],
                   },
