@@ -30,7 +30,7 @@ type Event = DrawEvent;
 
 export type ShrubActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 
-function makePosition(harvestRate: number): Coordinates {
+export function makePosition(harvestRate: number): Coordinates {
   const angle = Math.random() * 2 * Math.PI;
   const distance = (1 / harvestRate) * 400;
 
@@ -55,7 +55,7 @@ function makeShrubRow(length: number, x: number, y: number, offset: number) {
   });
 }
 
-function initialiseLeafPositions({ x, y }: Coordinates) {
+export function makeLeafPositions({ x, y }: Coordinates) {
   return [
     ...makeShrubRow(3, x, y - LEAF_HEIGHT, LEAF_WIDTH / 2),
     ...makeShrubRow(4, x, y - LEAF_HEIGHT / 2, 0),
@@ -69,20 +69,18 @@ function drawShrub({ leafPositions }: Context, { ctx }: DrawEvent) {
   });
 }
 
-interface Args {
-  id: string;
-  harvestRate: number;
-}
-
-export function makeShrub({ id, harvestRate }: Args) {
-  const position = makePosition(harvestRate);
-
+export function makeShrub({
+  id,
+  position,
+  leafPositions,
+  harvestRate,
+}: Context) {
   return createMachine<Context, Event, State>({
     initial: 'idle',
     context: {
       id,
       position,
-      leafPositions: initialiseLeafPositions(position),
+      leafPositions,
       harvestRate,
     },
     on: {

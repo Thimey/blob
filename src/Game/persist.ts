@@ -1,26 +1,13 @@
-import {
-  BlobQueenService,
-  Context as BlobQueenContext,
-} from 'game/blobs/blobQueen';
-import { Context as BlobletContext } from 'game/blobs/bloblet';
-import { Context as ShrubContext } from 'game/resources';
-
 const LOCAL_STORAGE_GAME_STATE_KEY = 'gameState';
 
-type PersistedGameState = {
-  queenData: Omit<BlobQueenContext, 'bloblets' | ' shrubs'>;
-  bloblets: BlobletContext[];
-  shrubs: ShrubContext[];
-};
-
-export function persistGameState(blobQueen: BlobQueenService) {
+export function persistGameState(blobQueen: any) {
   const { bloblets, shrubs, ...queenData } = blobQueen.state.context;
 
   const blobletsContexts = bloblets
-    .map((bloblet) => bloblet.getSnapshot()?.context)
+    .map((bloblet: any) => bloblet.getSnapshot()?.context)
     .filter(Boolean);
   const shrubsContexts = shrubs
-    .map((shrub) => shrub.getSnapshot()?.context)
+    .map((shrub: any) => shrub.getSnapshot()?.context)
     .filter(Boolean);
 
   localStorage.setItem(
@@ -33,10 +20,15 @@ export function persistGameState(blobQueen: BlobQueenService) {
   );
 }
 
-export function restoreGameState() {
+export function restoreGameState(): Record<any, any> | null {
   const serialisedGameState = localStorage.getItem(
     LOCAL_STORAGE_GAME_STATE_KEY
   );
+  // console.log('GAME_STATE --->', serialisedGameState);
 
-  console.log('GAME_STATE --->', serialisedGameState);
+  if (serialisedGameState) {
+    return JSON.parse(serialisedGameState);
+  }
+
+  return null;
 }

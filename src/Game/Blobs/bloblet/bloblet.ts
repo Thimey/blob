@@ -64,13 +64,15 @@ const setHarvestingShrub = assign(
   })
 );
 
-const setDestinationAsQueen = assign(() => ({
+const setDestinationAsQueen = assign<Context, Event>(() => ({
   destination: QUEEN_POSITION,
 }));
 
-const setDestinationAsShrub = assign(({ harvestingShrub }: Context) => ({
-  destination: harvestingShrub?.position,
-}));
+const setDestinationAsShrub = assign<Context, Event>(
+  ({ harvestingShrub }: Context) => ({
+    destination: harvestingShrub?.position,
+  })
+);
 
 function hasReachedDestination({ position, destination }: Context) {
   return (
@@ -79,34 +81,24 @@ function hasReachedDestination({ position, destination }: Context) {
   );
 }
 
-const stepToDestination = assign(({ position, destination }: Context) => {
-  const dx = destination.x - position.x;
-  const dy = destination.y - position.y;
+const stepToDestination = assign<Context, UpdateEvent>(
+  ({ position, destination }: Context) => {
+    const dx = destination.x - position.x;
+    const dy = destination.y - position.y;
 
-  return {
-    position: {
-      x: position.x + dx / 100,
-      y: position.y + dy / 100,
-    },
-  };
-});
+    return {
+      position: {
+        x: position.x + dx / 100,
+        y: position.y + dy / 100,
+      },
+    };
+  }
+);
 
-interface Args {
-  id: string;
-  position: { x: number; y: number };
-  destination?: { x: number; y: number };
-  radius?: number;
-}
-
-export function makeBloblet({
-  id,
-  position,
-  destination = { x: position.x, y: position.y },
-  radius = 10,
-}: Args) {
+export function makeBloblet(initialContext: Context) {
   return createMachine<Context, Event, State>({
     type: 'parallel',
-    context: { id, position, destination, radius },
+    context: { ...initialContext },
     on: {
       DRAW: {
         actions: [drawDeselected],
@@ -213,7 +205,7 @@ export function makeBloblet({
                       {
                         delay: 1000,
                         target: 'movingToQueen',
-                        actions: setDestinationAsQueen,
+                        actions: [setDestinationAsQueen],
                       },
                     ],
                   },
