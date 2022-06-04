@@ -12,10 +12,10 @@ import {
   makeShrub,
   makePosition as makeShrubPosition,
   makeLeafPositions,
-  Context as ShrubContext,
+  PersistedShrubActor,
 } from 'game/resources';
 import { animationMachine } from 'game/animations/animationMachine';
-import { makeBloblet, Context as BlobletContext } from 'game/blobs/bloblet';
+import { makeBloblet, PersistedBlobletActor } from 'game/blobs/bloblet';
 
 import {
   propagateBlobletClicked,
@@ -36,8 +36,8 @@ import {
 } from './types';
 
 export type PersistedGameState = {
-  bloblets: BlobletContext[];
-  shrubs: ShrubContext[];
+  bloblets: PersistedBlobletActor[];
+  shrubs: PersistedShrubActor[];
 } & Omit<Context, 'bloblets' | ' shrubs'>;
 
 type StateValues = { selection: 'deselected' } | { selection: 'selected' };
@@ -51,13 +51,13 @@ type Event = DrawEvent | UpdateEvent | ClickedEvent | FeedOnShrubEvent;
 
 export type BlobQueenService = Interpreter<Context, any, Event, State>;
 
-function initialiseBloblets(persistedBlobletContexts: BlobletContext[]) {
+function initialiseBloblets(persistedBloblet: PersistedBlobletActor[]) {
   return assign(() => ({
-    bloblets: persistedBlobletContexts.map((bc) => spawn(makeBloblet(bc))),
+    bloblets: persistedBloblet.map((bc) => spawn(makeBloblet(bc))),
   }));
 }
 
-function initialiseShrubs(persistedShrubContexts: ShrubContext[]) {
+function initialiseShrubs(persistedShrub: PersistedShrubActor[]) {
   const newShrubPositions = [
     { position: makeShrubPosition(1), harvestRate: 1 },
     { position: makeShrubPosition(2), harvestRate: 2 },
@@ -65,8 +65,8 @@ function initialiseShrubs(persistedShrubContexts: ShrubContext[]) {
   ];
 
   return assign(() => ({
-    shrubs: persistedShrubContexts.length
-      ? persistedShrubContexts.map((sc) => spawn(makeShrub(sc)))
+    shrubs: persistedShrub.length
+      ? persistedShrub.map((sc) => spawn(makeShrub(sc.context)))
       : newShrubPositions.map(({ position, harvestRate }, index) =>
           spawn(
             makeShrub({
@@ -121,10 +121,13 @@ const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
   };
 
   const machine = makeBloblet({
-    id: generateId(),
-    position: startingPosition,
-    destination: startingPosition,
-    radius: BLOBLET_RADIUS,
+    context: {
+      id: generateId(),
+      position: startingPosition,
+      destination: startingPosition,
+      radius: BLOBLET_RADIUS,
+    },
+    value: ['deselected'],
   });
 
   return {

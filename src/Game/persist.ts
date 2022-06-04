@@ -1,21 +1,33 @@
+import { BlobletActor } from 'game/blobs/bloblet';
+import { ShrubActor } from 'game/resources';
+
 const LOCAL_STORAGE_GAME_STATE_KEY = 'gameState';
 
+function makeActorSnapshot(actor: BlobletActor | ShrubActor) {
+  const state = actor.getSnapshot();
+
+  if (state) {
+    return {
+      context: state.context,
+      value: state.value,
+    };
+  }
+  return null;
+}
+
+// TODO import Queen service and sort out circular dependency
 export function persistGameState(blobQueen: any) {
   const { bloblets, shrubs, ...queenData } = blobQueen.state.context;
 
-  const blobletsContexts = bloblets
-    .map((bloblet: any) => bloblet.getSnapshot()?.context)
-    .filter(Boolean);
-  const shrubsContexts = shrubs
-    .map((shrub: any) => shrub.getSnapshot()?.context)
-    .filter(Boolean);
+  const blobletsSnapshot = bloblets.map(makeActorSnapshot).filter(Boolean);
+  const shrubsSnapshot = shrubs.map(makeActorSnapshot).filter(Boolean);
 
   localStorage.setItem(
     LOCAL_STORAGE_GAME_STATE_KEY,
     JSON.stringify({
       ...queenData,
-      bloblets: blobletsContexts,
-      shrubs: shrubsContexts,
+      bloblets: blobletsSnapshot,
+      shrubs: shrubsSnapshot,
     })
   );
 }

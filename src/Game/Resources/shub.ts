@@ -1,6 +1,6 @@
 import { createMachine, ActorRefFrom, StateMachine } from 'xstate';
 
-import { Coordinates } from 'src/types';
+import { Coordinates, PersistedActor } from 'src/types';
 import { drawDiamond, makeRandNumber, QUEEN_POSITION } from '../utils';
 import { shrubColor } from '../colors';
 
@@ -14,7 +14,7 @@ export type Context = {
   harvestRate: number;
 };
 
-type StateValues = 'idle';
+export type StateValues = 'initialising' | 'initialised';
 
 type State = {
   value: StateValues;
@@ -29,6 +29,7 @@ type DrawEvent = {
 type Event = DrawEvent;
 
 export type ShrubActor = ActorRefFrom<StateMachine<Context, any, Event>>;
+export type PersistedShrubActor = PersistedActor<Context, StateValues>;
 
 export function makePosition(harvestRate: number): Coordinates {
   const angle = Math.random() * 2 * Math.PI;
@@ -76,20 +77,24 @@ export function makeShrub({
   harvestRate,
 }: Context) {
   return createMachine<Context, Event, State>({
-    initial: 'idle',
+    initial: 'initialising',
     context: {
       id,
       position,
       leafPositions,
       harvestRate,
     },
-    on: {
-      DRAW: {
-        actions: drawShrub,
-      },
-    },
     states: {
-      idle: {},
+      initialising: {
+        always: { target: 'initialised' },
+      },
+      initialised: {
+        on: {
+          DRAW: {
+            actions: drawShrub,
+          },
+        },
+      },
     },
   });
 }
