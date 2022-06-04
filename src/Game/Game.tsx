@@ -3,7 +3,7 @@ import { interpret } from 'xstate';
 
 import { blobQueenColor } from './colors';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils';
-import { makeBlobQueen } from './Blob';
+import { makeBlobQueen } from './blobs/blobQueen';
 import { animationMachine } from './animations/animationMachine';
 
 const blobQueen = interpret(makeBlobQueen()).start();

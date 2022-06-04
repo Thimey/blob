@@ -6,7 +6,7 @@ import {
   sendParent,
 } from 'xstate';
 
-import { QUEEN_POSITION } from 'src/Game2/utils';
+import { QUEEN_POSITION } from 'game/utils';
 import { clickedThisBloblet } from './actions/click';
 import { drawDeselected, drawSelected } from './actions/draw';
 import {
