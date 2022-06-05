@@ -41,3 +41,8 @@ export type DrawEvent = {
 export type UpdateEvent = {
   type: 'UPDATE';
 };
+
+export type ShrubDepletedEvent = {
+  type: 'SHRUB_DEPLETED';
+  shrubId: string;
+};

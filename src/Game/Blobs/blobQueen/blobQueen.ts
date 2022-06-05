@@ -28,6 +28,7 @@ import {
   ClickedEvent,
   FeedOnShrubEvent,
   HarvestShrubEvent,
+  ShrubDepletedEvent,
 } from './types';
 
 type StateValues = { selection: 'deselected' } | { selection: 'selected' };
@@ -42,7 +43,8 @@ type Event =
   | UpdateEvent
   | ClickedEvent
   | FeedOnShrubEvent
-  | HarvestShrubEvent;
+  | HarvestShrubEvent
+  | ShrubDepletedEvent;
 
 const initialiseShrubs = assign(({ shrubs }: Context) => ({
   shrubs: [
@@ -90,9 +92,17 @@ function harvestShrub({ shrubs }: Context, { shrubId }: HarvestShrubEvent) {
   }
 }
 
+function propagateShrubDepleted(
+  { bloblets }: Context,
+  event: ShrubDepletedEvent
+) {
+  bloblets.forEach((bloblet) => bloblet.send(event));
+}
+
 function shrubToMass(shrubAmount: number) {
   return shrubAmount;
 }
+
 const feedOnShrub = assign(
   ({ mass, position: { x, y } }: Context, { amount }: FeedOnShrubEvent) => {
     const massToAdd = shrubToMass(amount);
@@ -150,6 +160,9 @@ export function makeBlobQueen() {
       },
       FEED_SHRUB: {
         actions: [feedOnShrub],
+      },
+      SHRUB_DEPLETED: {
+        actions: [propagateShrubDepleted],
       },
     },
     initial: 'initialise',

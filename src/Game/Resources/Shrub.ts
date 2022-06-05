@@ -1,7 +1,7 @@
 import { createMachine, ActorRefFrom, StateMachine, assign } from 'xstate';
 
 import { Coordinates } from 'src/types';
-import { sendParent } from 'xstate/lib/actions';
+import { send, sendParent, pure } from 'xstate/lib/actions';
 import { drawDiamond, makeRandNumber, QUEEN_POSITION } from '../utils';
 import { shrubColor } from '../colors';
 
@@ -32,7 +32,11 @@ type HarvestEvent = {
   type: 'HARVEST';
 };
 
-type Event = DrawEvent | HarvestEvent;
+type DepleteEvent = {
+  type: 'DEPLETE';
+};
+
+type Event = DrawEvent | HarvestEvent | DepleteEvent;
 
 export type ShrubActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 
@@ -73,30 +77,33 @@ function drawShrub(
   { leafPositions, amount, position }: Context,
   { ctx }: DrawEvent
 ) {
-  ctx.font = '20px Arial';
+  ctx.font = '12px Arial';
   ctx.fillStyle = shrubColor;
-  ctx.fillText(`Amount: ${amount}`, position.x, position.y - 50);
+  ctx.fillText(`Amount: ${amount}`, position.x - 20, position.y - 40);
   leafPositions.forEach(({ x, y }) => {
     drawDiamond(ctx, x, y, LEAF_WIDTH, LEAF_HEIGHT, shrubColor, 'black');
   });
-}
-
-function hasEnoughShrub({ amount }: Context) {
-  return amount > 0;
 }
 
 function makeHarvestAmount(harvestRate: number, totalAmount: number) {
   return Math.min(harvestRate, totalAmount);
 }
 
-const decrementAmount = assign(({ harvestRate, amount }: Context) => ({
-  amount: amount - makeHarvestAmount(harvestRate, amount),
-}));
+const harvest = pure(({ harvestRate, amount }: Context) => {
+  const harvestAmount = makeHarvestAmount(harvestRate, amount);
+  const newAmount = amount - harvestAmount;
 
-const harvest = sendParent(({ amount, harvestRate }: Context) => ({
-  type: 'FEED_SHRUB',
-  amount: makeHarvestAmount(harvestRate, amount),
-}));
+  return [
+    assign({
+      amount: newAmount,
+    }),
+    sendParent({
+      type: 'FEED_SHRUB',
+      amount: harvestAmount,
+    }),
+    ...(newAmount <= 0 ? [send('DEPLETE')] : []),
+  ];
+});
 
 interface Args {
   id: string;
@@ -123,13 +130,16 @@ export function makeShrub({ id, harvestRate }: Args) {
           },
           HARVEST: [
             {
-              actions: [harvest, decrementAmount],
-              cond: hasEnoughShrub,
-            },
-            {
-              target: 'depleted',
+              actions: [harvest],
             },
           ],
+          DEPLETE: {
+            target: 'depleted',
+            actions: sendParent(({ id: shrubId }: Context) => ({
+              type: 'SHRUB_DEPLETED',
+              shrubId,
+            })),
+          },
         },
       },
       depleted: {},

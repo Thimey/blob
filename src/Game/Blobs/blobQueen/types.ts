@@ -41,3 +41,8 @@ export type FeedOnShrubEvent = {
   type: 'FEED_SHRUB';
   amount: number;
 };
+
+export type ShrubDepletedEvent = {
+  type: 'SHRUB_DEPLETED';
+  shrubId: string;
+};

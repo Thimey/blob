@@ -17,6 +17,7 @@ import {
   UpdateEvent,
   ShrubClickEvent,
   FeedQueenEvent,
+  ShrubDepletedEvent,
 } from './types';
 
 type StateValues =
@@ -40,7 +41,8 @@ export type Event =
   | DrawEvent
   | UpdateEvent
   | ShrubClickEvent
-  | FeedQueenEvent;
+  | FeedQueenEvent
+  | ShrubDepletedEvent;
 
 export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 
@@ -169,6 +171,15 @@ export function makeBloblet({
           harvestingShrub: {
             id: 'harvestingShrub',
             type: 'parallel',
+            on: {
+              SHRUB_DEPLETED: {
+                target: 'stationary',
+                cond: (
+                  { harvestingShrub }: Context,
+                  { shrubId }: ShrubDepletedEvent
+                ) => harvestingShrub?.shrubId === shrubId,
+              },
+            },
             states: {
               feedingQueen: {
                 invoke: {
