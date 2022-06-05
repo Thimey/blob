@@ -1,4 +1,5 @@
 import { createMachine, assign, spawn } from 'xstate';
+import { pure } from 'xstate/lib/actions';
 
 import {
   generateId,
@@ -92,12 +93,17 @@ function harvestShrub({ shrubs }: Context, { shrubId }: HarvestShrubEvent) {
   }
 }
 
-function propagateShrubDepleted(
-  { bloblets }: Context,
-  event: ShrubDepletedEvent
-) {
-  bloblets.forEach((bloblet) => bloblet.send(event));
-}
+const shrubDepleted = pure(
+  ({ bloblets, shrubs }: Context, event: ShrubDepletedEvent) => {
+    bloblets.forEach((bloblet) => bloblet.send(event));
+
+    return assign({
+      shrubs: shrubs.filter(
+        (shrub) => shrub.getSnapshot()?.context?.id !== event.shrubId
+      ),
+    });
+  }
+);
 
 function shrubToMass(shrubAmount: number) {
   return shrubAmount;
@@ -162,7 +168,7 @@ export function makeBlobQueen() {
         actions: [feedOnShrub],
       },
       SHRUB_DEPLETED: {
-        actions: [propagateShrubDepleted],
+        actions: [shrubDepleted],
       },
     },
     initial: 'initialise',

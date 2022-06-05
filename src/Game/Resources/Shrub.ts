@@ -1,7 +1,7 @@
 import { createMachine, ActorRefFrom, StateMachine, assign } from 'xstate';
+import { send, sendParent, pure } from 'xstate/lib/actions';
 
 import { Coordinates } from 'src/types';
-import { send, sendParent, pure } from 'xstate/lib/actions';
 import { drawDiamond, makeRandNumber, QUEEN_POSITION } from '../utils';
 import { shrubColor } from '../colors';
 
@@ -142,7 +142,9 @@ export function makeShrub({ id, harvestRate }: Args) {
           },
         },
       },
-      depleted: {},
+      depleted: {
+        type: 'final',
+      },
     },
   });
 }
