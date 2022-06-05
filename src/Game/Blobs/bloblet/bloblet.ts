@@ -5,15 +5,18 @@ import {
   StateMachine,
   sendParent,
 } from 'xstate';
+import { send } from 'xstate/lib/actions';
 
 import { QUEEN_POSITION } from 'game/utils';
 import { clickedThisBloblet } from './actions/click';
-import { drawDeselected, drawSelected } from './actions/draw';
+import { drawSelectedOutline, drawBody, drawShrub } from './actions/draw';
 import {
   Context,
   BlobClickEvent,
   MapClickEvent,
   DrawEvent,
+  DrawSelectedEvent,
+  DrawSrubEvent,
   UpdateEvent,
   ShrubClickEvent,
   FeedQueenEvent,
@@ -42,7 +45,9 @@ export type Event =
   | UpdateEvent
   | ShrubClickEvent
   | FeedQueenEvent
-  | ShrubDepletedEvent;
+  | ShrubDepletedEvent
+  | DrawSelectedEvent
+  | DrawSrubEvent;
 
 export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 
@@ -111,7 +116,11 @@ export function makeBloblet({
     context: { id, position, destination, radius },
     on: {
       DRAW: {
-        actions: [drawDeselected],
+        actions: [
+          drawBody,
+          send((_, { ctx }) => ({ type: 'DRAW_SELECTED', ctx })),
+          send((_, { ctx }) => ({ type: 'DRAW_SHRUB', ctx })),
+        ],
       },
     },
     states: {
@@ -128,8 +137,8 @@ export function makeBloblet({
           },
           selected: {
             on: {
-              DRAW: {
-                actions: [drawSelected],
+              DRAW_SELECTED: {
+                actions: [drawSelectedOutline],
               },
               BLOBLET_CLICKED: [
                 {
@@ -239,6 +248,9 @@ export function makeBloblet({
                           actions: [stepToDestination],
                         },
                       ],
+                      DRAW_SHRUB: {
+                        actions: [drawShrub],
+                      },
                     },
                   },
                   atQueen: {

@@ -1,9 +1,12 @@
-import { blobletColor } from 'game/colors';
-import { drawCircle } from 'game/utils';
+import { blobletColor, shrubColor } from 'game/colors';
+import { drawCircle, drawDiamond } from 'game/utils';
 
-import { Context, DrawEvent } from '../types';
+import { Context, DrawEvent, DrawSelectedEvent, DrawSrubEvent } from '../types';
 
-function drawBody({ position: { x, y }, radius }: Context, { ctx }: DrawEvent) {
+export function drawBody(
+  { position: { x, y }, radius }: Context,
+  { ctx }: DrawEvent
+) {
   // Body
   ctx.beginPath();
   drawCircle(ctx, x, y, radius, blobletColor);
@@ -22,9 +25,9 @@ function drawBody({ position: { x, y }, radius }: Context, { ctx }: DrawEvent) {
   ctx.closePath();
 }
 
-function drawSelectBox(
+export function drawSelectedOutline(
   { position: { x, y }, radius }: Context,
-  { ctx }: DrawEvent
+  { ctx }: DrawSelectedEvent
 ) {
   ctx.beginPath();
   drawCircle(ctx, x, y, radius + 2, 'transparent');
@@ -33,11 +36,9 @@ function drawSelectBox(
   ctx.closePath();
 }
 
-export function drawSelected(context: Context, event: DrawEvent) {
-  drawBody(context, event);
-  drawSelectBox(context, event);
-}
-
-export function drawDeselected(context: Context, event: DrawEvent) {
-  drawBody(context, event);
+export function drawShrub(
+  { position: { x, y } }: Context,
+  { ctx }: DrawSrubEvent
+) {
+  return drawDiamond(ctx, x, y + 4, 7, 10, shrubColor, 'black');
 }

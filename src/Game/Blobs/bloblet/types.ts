@@ -38,6 +38,16 @@ export type DrawEvent = {
   ctx: CanvasRenderingContext2D;
 };
 
+export type DrawSrubEvent = {
+  type: 'DRAW_SHRUB';
+  ctx: CanvasRenderingContext2D;
+};
+
+export type DrawSelectedEvent = {
+  type: 'DRAW_SELECTED';
+  ctx: CanvasRenderingContext2D;
+};
+
 export type UpdateEvent = {
   type: 'UPDATE';
 };
