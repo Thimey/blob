@@ -3,11 +3,26 @@ import { interpret } from 'xstate';
 
 import { persistGameState, restoreGameState } from './persist';
 import { blobQueenColor } from './colors';
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils';
-import { makeBlobQueen, BlobQueenService, PersistedGameState } from './blobs';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, QUEEN_POSITION } from './utils';
+import { makeBlobQueen, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
 
-let blobQueen: BlobQueenService | null = null;
+export const INITIAL_GAME_STATE = {
+  mass: 50,
+  position: QUEEN_POSITION,
+  spawnOptions: {
+    bloblet: {
+      color: '#268645',
+      position: { x: QUEEN_POSITION.x, y: QUEEN_POSITION.y + 20 },
+      radius: 10,
+    },
+  },
+  shrubs: [],
+  bloblets: [],
+};
+
+// TODO sort out typing
+let blobQueen: any = null;
 
 function gameLoop(ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -50,11 +65,9 @@ export const Game = () => {
 
     const retoredGameState = restoreGameState();
 
-    if (retoredGameState) {
-      blobQueen = interpret(
-        makeBlobQueen(retoredGameState as PersistedGameState)
-      ).start() as any;
-    }
+    blobQueen = retoredGameState
+      ? interpret(makeBlobQueen(retoredGameState as PersistedGameState)).start()
+      : interpret(makeBlobQueen(INITIAL_GAME_STATE)).start();
 
     window.addEventListener('beforeunload', () =>
       persistGameState(blobQueen as any)

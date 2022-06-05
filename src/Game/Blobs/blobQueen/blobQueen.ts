@@ -1,11 +1,6 @@
 import { createMachine, assign, spawn, Interpreter } from 'xstate';
 
-import {
-  generateId,
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-  QUEEN_POSITION,
-} from 'game/utils';
+import { generateId, CANVAS_HEIGHT, CANVAS_WIDTH } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
 import { BLOBLET_RADIUS } from 'game/sizes';
 import {
@@ -138,6 +133,7 @@ const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
 export function makeBlobQueen({
   mass,
   position,
+  spawnOptions,
   bloblets,
   shrubs,
 }: PersistedGameState) {
@@ -145,13 +141,7 @@ export function makeBlobQueen({
     context: {
       position,
       mass,
-      spawnOptions: {
-        bloblet: {
-          color: '#268645',
-          position: { x: position.x, y: position.y + 20 },
-          radius: 10,
-        },
-      },
+      spawnOptions,
       bloblets: [],
       shrubs: [],
     },
