@@ -36,9 +36,28 @@ export function drawSelectedOutline(
   ctx.closePath();
 }
 
-export function drawShrub(
+export function drawCarryingShrub(
   { position: { x, y } }: Context,
   { ctx }: DrawSrubEvent
 ) {
-  return drawDiamond(ctx, x, y + 4, 7, 10, shrubColor, 'black');
+  // Mini shrub
+  drawDiamond(ctx, x, y + 4, 7, 10, shrubColor, 'black');
+
+  // left hand
+  ctx.beginPath();
+  ctx.arc(x - 6, y + 4, 4, 1.5 * Math.PI, 0.4 * Math.PI);
+  ctx.strokeStyle = 'black';
+  ctx.stroke();
+  ctx.fillStyle = blobletColor;
+  ctx.fill();
+  ctx.closePath();
+
+  // right hand
+  ctx.beginPath();
+  ctx.arc(x + 6, y + 4, 4, 0.6 * Math.PI, 1.5 * Math.PI);
+  ctx.strokeStyle = 'black';
+  ctx.stroke();
+  ctx.fillStyle = blobletColor;
+  ctx.fill();
+  ctx.closePath();
 }

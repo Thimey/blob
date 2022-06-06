@@ -9,7 +9,11 @@ import { send } from 'xstate/lib/actions';
 
 import { QUEEN_POSITION } from 'game/utils';
 import { clickedThisBloblet } from './actions/click';
-import { drawSelectedOutline, drawBody, drawShrub } from './actions/draw';
+import {
+  drawSelectedOutline,
+  drawBody,
+  drawCarryingShrub,
+} from './actions/draw';
 import {
   Context,
   BlobClickEvent,
@@ -249,7 +253,7 @@ export function makeBloblet({
                         },
                       ],
                       DRAW_SHRUB: {
-                        actions: [drawShrub],
+                        actions: [drawCarryingShrub],
                       },
                     },
                   },
