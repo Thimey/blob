@@ -1,16 +1,17 @@
-import { createMachine, assign, spawn } from 'xstate';
+import { createMachine, assign, spawn, Interpreter } from 'xstate';
 import { pure } from 'xstate/lib/actions';
 
-import {
-  generateId,
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-  QUEEN_POSITION,
-} from 'game/utils';
+import { generateId, CANVAS_HEIGHT, CANVAS_WIDTH } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
-import { makeShrub } from 'game/resources';
+import { BLOBLET_RADIUS } from 'game/sizes';
+import {
+  makeShrub,
+  makePosition as makeShrubPosition,
+  makeLeafPositions,
+  PersistedShrubActor,
+} from 'game/resources';
 import { animationMachine } from 'game/animations/animationMachine';
-import { makeBloblet } from 'game/blobs/bloblet';
+import { makeBloblet, PersistedBlobletActor } from 'game/blobs/bloblet';
 
 import {
   propagateBlobletClicked,
@@ -32,6 +33,11 @@ import {
   ShrubDepletedEvent,
 } from './types';
 
+export type PersistedGameState = {
+  bloblets: PersistedBlobletActor[];
+  shrubs: PersistedShrubActor[];
+} & Omit<Context, 'bloblets' | ' shrubs'>;
+
 type StateValues = { selection: 'deselected' } | { selection: 'selected' };
 
 type State = {
@@ -47,29 +53,37 @@ type Event =
   | HarvestShrubEvent
   | ShrubDepletedEvent;
 
-const initialiseShrubs = assign(({ shrubs }: Context) => ({
-  shrubs: [
-    ...shrubs,
-    spawn(
-      makeShrub({
-        id: '1',
-        harvestRate: 1,
-      })
-    ),
-    spawn(
-      makeShrub({
-        id: '2',
-        harvestRate: 2,
-      })
-    ),
-    spawn(
-      makeShrub({
-        id: '3',
-        harvestRate: 2.5,
-      })
-    ),
-  ],
-}));
+export type BlobQueenService = Interpreter<Context, any, Event, State>;
+
+function initialisingBloblets(persistedBloblet: PersistedBlobletActor[]) {
+  return assign(() => ({
+    bloblets: persistedBloblet.map((bc) => spawn(makeBloblet(bc))),
+  }));
+}
+
+function initialisingShrubs(persistedShrub: PersistedShrubActor[]) {
+  const newShrubPositions = [
+    { position: makeShrubPosition(1), harvestRate: 1 },
+    { position: makeShrubPosition(2), harvestRate: 2 },
+    { position: makeShrubPosition(3), harvestRate: 3 },
+  ];
+
+  return assign(() => ({
+    shrubs: persistedShrub.length
+      ? persistedShrub.map((sc) => spawn(makeShrub(sc.context)))
+      : newShrubPositions.map(({ position, harvestRate }, index) =>
+          spawn(
+            makeShrub({
+              id: `${index + 1}`,
+              position,
+              leafPositions: makeLeafPositions(position),
+              harvestRate,
+              amount: 100,
+            })
+          )
+        ),
+  }));
+}
 
 function drawBloblets({ bloblets }: Context, { ctx }: DrawEvent) {
   bloblets.forEach((blob) => blob.send({ type: 'DRAW', ctx }));
@@ -97,11 +111,13 @@ const shrubDepleted = pure(
   ({ bloblets, shrubs }: Context, event: ShrubDepletedEvent) => {
     bloblets.forEach((bloblet) => bloblet.send(event));
 
-    return assign({
-      shrubs: shrubs.filter(
-        (shrub) => shrub.getSnapshot()?.context?.id !== event.shrubId
-      ),
-    });
+    return [
+      assign({
+        shrubs: shrubs.filter(
+          (shrub) => shrub.getSnapshot()?.context?.id !== event.shrubId
+        ),
+      }),
+    ];
   }
 );
 
@@ -125,13 +141,20 @@ const feedOnShrub = assign(
   }
 );
 
-const spawnBloblet = assign((context: Context) => {
+const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
+  const startingPosition = {
+    x: CANVAS_WIDTH * Math.random(),
+    y: CANVAS_HEIGHT * Math.random(),
+  };
+
   const machine = makeBloblet({
-    id: generateId(),
-    position: {
-      x: CANVAS_WIDTH * Math.random(),
-      y: CANVAS_HEIGHT * Math.random(),
+    context: {
+      id: generateId(),
+      position: startingPosition,
+      destination: startingPosition,
+      radius: BLOBLET_RADIUS,
     },
+    value: ['deselected'],
   });
 
   return {
@@ -139,18 +162,19 @@ const spawnBloblet = assign((context: Context) => {
   };
 });
 
-export function makeBlobQueen() {
+export function makeBlobQueen({
+  mass,
+  position,
+  spawnOptions,
+  bloblets,
+  shrubs,
+}: PersistedGameState) {
   const machine = createMachine<Context, Event, State>({
+    initial: 'initialising',
     context: {
-      position: QUEEN_POSITION,
-      mass: 50,
-      spawnOptions: {
-        bloblet: {
-          color: '#268645',
-          position: { x: QUEEN_POSITION.x, y: QUEEN_POSITION.y + 20 },
-          radius: 10,
-        },
-      },
+      position,
+      mass,
+      spawnOptions,
       bloblets: [],
       shrubs: [],
     },
@@ -171,10 +195,9 @@ export function makeBlobQueen() {
         actions: [shrubDepleted],
       },
     },
-    initial: 'initialise',
     states: {
-      initialise: {
-        entry: [initialiseShrubs],
+      initialising: {
+        entry: [initialisingShrubs(shrubs), initialisingBloblets(bloblets)],
         always: { target: 'ready' },
       },
       ready: {

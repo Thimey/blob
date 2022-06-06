@@ -1,22 +1,40 @@
 import React, { useRef, useEffect } from 'react';
 import { interpret } from 'xstate';
 
+import { persistGameState, restoreGameState } from './persist';
 import { blobQueenColor } from './colors';
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './utils';
-import { makeBlobQueen } from './blobs/blobQueen';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, QUEEN_POSITION } from './utils';
+import { makeBlobQueen, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
 
-const blobQueen = interpret(makeBlobQueen()).start();
+export const INITIAL_GAME_STATE = {
+  mass: 50,
+  position: QUEEN_POSITION,
+  spawnOptions: {
+    bloblet: {
+      color: '#268645',
+      position: { x: QUEEN_POSITION.x, y: QUEEN_POSITION.y + 20 },
+      radius: 10,
+    },
+  },
+  shrubs: [],
+  bloblets: [],
+};
+
+// TODO sort out typing
+let blobQueen: any = null;
 
 function gameLoop(ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  ctx.font = '20px Arial';
-  ctx.fillStyle = blobQueenColor;
-  ctx.fillText(`Feed: ${blobQueen.state.context.mass}`, 10, 30);
+  if (blobQueen) {
+    ctx.font = '20px Arial';
+    ctx.fillStyle = blobQueenColor;
+    ctx.fillText(`Feed: ${blobQueen.state.context.mass}`, 10, 30);
 
-  blobQueen.send('DRAW', { ctx });
-  blobQueen.send('UPDATE', { ctx });
+    blobQueen.send('DRAW', { ctx });
+    blobQueen.send('UPDATE', { ctx });
+  }
 
   animationMachine.send('DRAW', { ctx });
 
@@ -37,11 +55,23 @@ export const Game = () => {
       const mouseX = e.x - left;
       const mouseY = e.y - top;
 
-      blobQueen.send('CLICKED', { coordinates: { x: mouseX, y: mouseY } });
+      if (blobQueen) {
+        blobQueen.send('CLICKED', { coordinates: { x: mouseX, y: mouseY } });
+      }
     };
 
     window.addEventListener('mouseup', onMouseUp);
     gameLoop(ctx);
+
+    const retoredGameState = restoreGameState();
+
+    blobQueen = retoredGameState
+      ? interpret(makeBlobQueen(retoredGameState as PersistedGameState)).start()
+      : interpret(makeBlobQueen(INITIAL_GAME_STATE)).start();
+
+    // window.addEventListener('beforeunload', () =>
+    //   persistGameState(blobQueen as any)
+    // );
 
     return () => {
       window.removeEventListener('mouseup', onMouseUp);

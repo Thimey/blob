@@ -1,14 +1,14 @@
 import { createMachine, ActorRefFrom, StateMachine, assign } from 'xstate';
 import { send, sendParent, pure } from 'xstate/lib/actions';
 
-import { Coordinates } from 'src/types';
+import { Coordinates, PersistedActor } from 'src/types';
 import { drawDiamond, makeRandNumber, QUEEN_POSITION } from '../utils';
 import { shrubColor } from '../colors';
 
 const LEAF_HEIGHT = 18;
 const LEAF_WIDTH = 13;
 
-type Context = {
+export type Context = {
   id: string;
   position: Coordinates;
   leafPositions: Coordinates[];
@@ -16,7 +16,7 @@ type Context = {
   amount: number;
 };
 
-type StateValues = 'idle';
+export type StateValues = 'initialising' | 'initialised';
 
 type State = {
   value: StateValues;
@@ -39,8 +39,9 @@ type DepleteEvent = {
 type Event = DrawEvent | HarvestEvent | DepleteEvent;
 
 export type ShrubActor = ActorRefFrom<StateMachine<Context, any, Event>>;
+export type PersistedShrubActor = PersistedActor<Context, StateValues>;
 
-function makePosition(harvestRate: number): Coordinates {
+export function makePosition(harvestRate: number): Coordinates {
   const angle = Math.random() * 2 * Math.PI;
   const distance = (1 / harvestRate) * 400;
 
@@ -65,7 +66,7 @@ function makeShrubRow(length: number, x: number, y: number, offset: number) {
   });
 }
 
-function initialiseLeafPositions({ x, y }: Coordinates) {
+export function makeLeafPositions({ x, y }: Coordinates) {
   return [
     ...makeShrubRow(3, x, y - LEAF_HEIGHT, LEAF_WIDTH / 2),
     ...makeShrubRow(4, x, y - LEAF_HEIGHT / 2, 0),
@@ -105,45 +106,40 @@ const harvest = pure(({ harvestRate, amount }: Context) => {
   ];
 });
 
-interface Args {
-  id: string;
-  harvestRate: number;
-}
-
-export function makeShrub({ id, harvestRate }: Args) {
-  const position = makePosition(harvestRate);
-
+export function makeShrub(context: Context) {
   return createMachine<Context, Event, State>({
-    initial: 'active',
-    context: {
-      id,
-      position,
-      leafPositions: initialiseLeafPositions(position),
-      harvestRate,
-      amount: 100,
-    },
+    initial: 'initialising',
+    context,
     states: {
-      active: {
-        on: {
-          DRAW: {
-            actions: drawShrub,
-          },
-          HARVEST: [
-            {
-              actions: [harvest],
+      initialising: {
+        always: { target: 'ready' },
+      },
+      ready: {
+        initial: 'active',
+        states: {
+          active: {
+            on: {
+              DRAW: {
+                actions: drawShrub,
+              },
+              HARVEST: [
+                {
+                  actions: [harvest],
+                },
+              ],
+              DEPLETE: {
+                target: 'depleted',
+                actions: sendParent(({ id: shrubId }: Context) => ({
+                  type: 'SHRUB_DEPLETED',
+                  shrubId,
+                })),
+              },
             },
-          ],
-          DEPLETE: {
-            target: 'depleted',
-            actions: sendParent(({ id: shrubId }: Context) => ({
-              type: 'SHRUB_DEPLETED',
-              shrubId,
-            })),
+          },
+          depleted: {
+            type: 'final',
           },
         },
-      },
-      depleted: {
-        type: 'final',
       },
     },
   });
