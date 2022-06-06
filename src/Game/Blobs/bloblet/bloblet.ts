@@ -5,19 +5,27 @@ import {
   StateMachine,
   sendParent,
 } from 'xstate';
+import { send } from 'xstate/lib/actions';
 
 import { QUEEN_POSITION } from 'game/utils';
 import { PersistedActor } from 'src/types';
 import { clickedThisBloblet } from './actions/click';
-import { drawDeselected, drawSelected } from './actions/draw';
+import {
+  drawSelectedOutline,
+  drawBody,
+  drawCarryingShrub,
+} from './actions/draw';
 import {
   Context,
   BlobClickEvent,
   MapClickEvent,
   DrawEvent,
+  DrawSelectedEvent,
+  DrawSrubEvent,
   UpdateEvent,
   ShrubClickEvent,
   FeedQueenEvent,
+  ShrubDepletedEvent,
 } from './types';
 
 export type StateValues =
@@ -41,7 +49,10 @@ export type Event =
   | DrawEvent
   | UpdateEvent
   | ShrubClickEvent
-  | FeedQueenEvent;
+  | FeedQueenEvent
+  | ShrubDepletedEvent
+  | DrawSelectedEvent
+  | DrawSrubEvent;
 
 export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 export type PersistedBlobletActor = PersistedActor<Context, string[]>;
@@ -99,8 +110,8 @@ const stepToDestination = assign<Context, UpdateEvent>(
 
 export function makeBloblet({ context, value }: PersistedBlobletActor) {
   return createMachine<Context, Event, State>({
-    context,
     initial: 'initialising',
+    context,
     states: {
       initialising: {
         always: [
@@ -109,14 +120,18 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
             cond: () => !!context.harvestingShrub,
           },
           { target: '#mapMoving', cond: () => !!context.destination },
-          { target: 'initialised' },
+          { target: 'ready' },
         ],
       },
-      initialised: {
+      ready: {
         type: 'parallel',
         on: {
           DRAW: {
-            actions: [drawDeselected],
+            actions: [
+              drawBody,
+              send((_, { ctx }) => ({ type: 'DRAW_SELECTED', ctx })),
+              send((_, { ctx }) => ({ type: 'DRAW_SHRUB', ctx })),
+            ],
           },
         },
         states: {
@@ -133,8 +148,8 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
               },
               selected: {
                 on: {
-                  DRAW: {
-                    actions: [drawSelected],
+                  DRAW_SELECTED: {
+                    actions: [drawSelectedOutline],
                   },
                   BLOBLET_CLICKED: [
                     {
@@ -176,6 +191,15 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
               harvestingShrub: {
                 id: 'harvestingShrub',
                 type: 'parallel',
+                on: {
+                  SHRUB_DEPLETED: {
+                    target: 'stationary',
+                    cond: (
+                      { harvestingShrub }: Context,
+                      { shrubId }: ShrubDepletedEvent
+                    ) => harvestingShrub?.shrubId === shrubId,
+                  },
+                },
                 states: {
                   feedingQueen: {
                     invoke: {
@@ -192,8 +216,8 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                       FEED_QUEEN: {
                         actions: [
                           sendParent(({ harvestingShrub }) => ({
-                            type: 'FEED_SHRUB',
-                            amount: harvestingShrub?.harvestRate || 1,
+                            type: 'HARVEST_SHRUB',
+                            shrubId: harvestingShrub?.shrubId,
                           })),
                         ],
                       },
@@ -235,6 +259,9 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                               actions: [stepToDestination],
                             },
                           ],
+                          DRAW_SHRUB: {
+                            actions: [drawCarryingShrub],
+                          },
                         },
                       },
                       atQueen: {

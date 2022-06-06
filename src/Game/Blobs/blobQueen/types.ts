@@ -32,7 +32,17 @@ export type UpdateEvent = {
   type: 'UPDATE';
 };
 
+export type HarvestShrubEvent = {
+  type: 'HARVEST_SHRUB';
+  shrubId: string;
+};
+
 export type FeedOnShrubEvent = {
   type: 'FEED_SHRUB';
-  amount?: number;
+  amount: number;
+};
+
+export type ShrubDepletedEvent = {
+  type: 'SHRUB_DEPLETED';
+  shrubId: string;
 };

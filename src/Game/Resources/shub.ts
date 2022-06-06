@@ -1,4 +1,5 @@
-import { createMachine, ActorRefFrom, StateMachine } from 'xstate';
+import { createMachine, ActorRefFrom, StateMachine, assign } from 'xstate';
+import { send, sendParent, pure } from 'xstate/lib/actions';
 
 import { Coordinates, PersistedActor } from 'src/types';
 import { drawDiamond, makeRandNumber, QUEEN_POSITION } from '../utils';
@@ -12,6 +13,7 @@ export type Context = {
   position: Coordinates;
   leafPositions: Coordinates[];
   harvestRate: number;
+  amount: number;
 };
 
 export type StateValues = 'initialising' | 'initialised';
@@ -26,7 +28,15 @@ type DrawEvent = {
   ctx: CanvasRenderingContext2D;
 };
 
-type Event = DrawEvent;
+type HarvestEvent = {
+  type: 'HARVEST';
+};
+
+type DepleteEvent = {
+  type: 'DEPLETE';
+};
+
+type Event = DrawEvent | HarvestEvent | DepleteEvent;
 
 export type ShrubActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 export type PersistedShrubActor = PersistedActor<Context, StateValues>;
@@ -64,34 +74,70 @@ export function makeLeafPositions({ x, y }: Coordinates) {
   ];
 }
 
-function drawShrub({ leafPositions }: Context, { ctx }: DrawEvent) {
+function drawShrub(
+  { leafPositions, amount, position }: Context,
+  { ctx }: DrawEvent
+) {
+  ctx.font = '12px Arial';
+  ctx.fillStyle = shrubColor;
+  ctx.fillText(`Amount: ${amount}`, position.x - 20, position.y - 40);
   leafPositions.forEach(({ x, y }) => {
     drawDiamond(ctx, x, y, LEAF_WIDTH, LEAF_HEIGHT, shrubColor, 'black');
   });
 }
 
-export function makeShrub({
-  id,
-  position,
-  leafPositions,
-  harvestRate,
-}: Context) {
+function makeHarvestAmount(harvestRate: number, totalAmount: number) {
+  return Math.min(harvestRate, totalAmount);
+}
+
+const harvest = pure(({ harvestRate, amount }: Context) => {
+  const harvestAmount = makeHarvestAmount(harvestRate, amount);
+  const newAmount = amount - harvestAmount;
+
+  return [
+    assign({
+      amount: newAmount,
+    }),
+    sendParent({
+      type: 'FEED_SHRUB',
+      amount: harvestAmount,
+    }),
+    ...(newAmount <= 0 ? [send('DEPLETE')] : []),
+  ];
+});
+
+export function makeShrub(context: Context) {
   return createMachine<Context, Event, State>({
     initial: 'initialising',
-    context: {
-      id,
-      position,
-      leafPositions,
-      harvestRate,
-    },
+    context,
     states: {
       initialising: {
-        always: { target: 'initialised' },
+        always: { target: 'ready' },
       },
-      initialised: {
-        on: {
-          DRAW: {
-            actions: drawShrub,
+      ready: {
+        initial: 'active',
+        states: {
+          active: {
+            on: {
+              DRAW: {
+                actions: drawShrub,
+              },
+              HARVEST: [
+                {
+                  actions: [harvest],
+                },
+              ],
+              DEPLETE: {
+                target: 'depleted',
+                actions: sendParent(({ id: shrubId }: Context) => ({
+                  type: 'SHRUB_DEPLETED',
+                  shrubId,
+                })),
+              },
+            },
+          },
+          depleted: {
+            type: 'final',
           },
         },
       },

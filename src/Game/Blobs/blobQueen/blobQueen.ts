@@ -1,4 +1,5 @@
 import { createMachine, assign, spawn, Interpreter } from 'xstate';
+import { pure } from 'xstate/lib/actions';
 
 import { generateId, CANVAS_HEIGHT, CANVAS_WIDTH } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
@@ -28,6 +29,8 @@ import {
   UpdateEvent,
   ClickedEvent,
   FeedOnShrubEvent,
+  HarvestShrubEvent,
+  ShrubDepletedEvent,
 } from './types';
 
 export type PersistedGameState = {
@@ -42,17 +45,23 @@ type State = {
   context: Context;
 };
 
-type Event = DrawEvent | UpdateEvent | ClickedEvent | FeedOnShrubEvent;
+type Event =
+  | DrawEvent
+  | UpdateEvent
+  | ClickedEvent
+  | FeedOnShrubEvent
+  | HarvestShrubEvent
+  | ShrubDepletedEvent;
 
 export type BlobQueenService = Interpreter<Context, any, Event, State>;
 
-function initialiseBloblets(persistedBloblet: PersistedBlobletActor[]) {
+function initialisingBloblets(persistedBloblet: PersistedBlobletActor[]) {
   return assign(() => ({
     bloblets: persistedBloblet.map((bc) => spawn(makeBloblet(bc))),
   }));
 }
 
-function initialiseShrubs(persistedShrub: PersistedShrubActor[]) {
+function initialisingShrubs(persistedShrub: PersistedShrubActor[]) {
   const newShrubPositions = [
     { position: makeShrubPosition(1), harvestRate: 1 },
     { position: makeShrubPosition(2), harvestRate: 2 },
@@ -69,6 +78,7 @@ function initialiseShrubs(persistedShrub: PersistedShrubActor[]) {
               position,
               leafPositions: makeLeafPositions(position),
               harvestRate,
+              amount: 100,
             })
           )
         ),
@@ -89,12 +99,34 @@ function updateBlobs({ bloblets }: Context) {
   });
 }
 
+function harvestShrub({ shrubs }: Context, { shrubId }: HarvestShrubEvent) {
+  const shrub = shrubs.find((s) => s.getSnapshot()?.context?.id === shrubId);
+
+  if (shrub) {
+    shrub.send('HARVEST');
+  }
+}
+
+const shrubDepleted = pure(
+  ({ bloblets, shrubs }: Context, event: ShrubDepletedEvent) => {
+    bloblets.forEach((bloblet) => bloblet.send(event));
+
+    return [
+      assign({
+        shrubs: shrubs.filter(
+          (shrub) => shrub.getSnapshot()?.context?.id !== event.shrubId
+        ),
+      }),
+    ];
+  }
+);
+
 function shrubToMass(shrubAmount: number) {
   return shrubAmount;
 }
 
 const feedOnShrub = assign(
-  ({ mass, position: { x, y } }: Context, { amount = 1 }: FeedOnShrubEvent) => {
+  ({ mass, position: { x, y } }: Context, { amount }: FeedOnShrubEvent) => {
     const massToAdd = shrubToMass(amount);
     const newMass = mass + massToAdd;
     const { radiusY } = makeRadius(newMass);
@@ -138,6 +170,7 @@ export function makeBlobQueen({
   shrubs,
 }: PersistedGameState) {
   const machine = createMachine<Context, Event, State>({
+    initial: 'initialising',
     context: {
       position,
       mass,
@@ -152,14 +185,19 @@ export function makeBlobQueen({
       UPDATE: {
         actions: [updateBlobs],
       },
+      HARVEST_SHRUB: {
+        actions: [harvestShrub],
+      },
       FEED_SHRUB: {
         actions: [feedOnShrub],
       },
+      SHRUB_DEPLETED: {
+        actions: [shrubDepleted],
+      },
     },
-    initial: 'initialise',
     states: {
-      initialise: {
-        entry: [initialiseShrubs(shrubs), initialiseBloblets(bloblets)],
+      initialising: {
+        entry: [initialisingShrubs(shrubs), initialisingBloblets(bloblets)],
         always: { target: 'ready' },
       },
       ready: {
