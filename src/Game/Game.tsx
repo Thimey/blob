@@ -69,14 +69,23 @@ export const Game = () => {
       ? interpret(makeBlobQueen(retoredGameState as PersistedGameState)).start()
       : interpret(makeBlobQueen(INITIAL_GAME_STATE)).start();
 
-    // window.addEventListener('beforeunload', () =>
-    //   persistGameState(blobQueen as any)
-    // );
+    window.addEventListener('beforeunload', () =>
+      persistGameState(blobQueen as any)
+    );
 
     return () => {
       window.removeEventListener('mouseup', onMouseUp);
     };
   }, []);
 
-  return <canvas id="game-canvas" ref={canvasRef} />;
+  const resetGame = () => {
+    blobQueen = interpret(makeBlobQueen(INITIAL_GAME_STATE)).start();
+  };
+
+  return (
+    <>
+      <button onClick={resetGame}>Reset Game</button>
+      <canvas id="game-canvas" ref={canvasRef} />
+    </>
+  );
 };
