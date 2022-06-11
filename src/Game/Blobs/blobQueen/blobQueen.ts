@@ -1,7 +1,7 @@
 import { createMachine, assign, spawn, Interpreter } from 'xstate';
 import { pure } from 'xstate/lib/actions';
 
-import { generateId } from 'game/utils';
+import { generateId, makeRandNumber } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
 import {
   BLOBLET_RADIUS,
@@ -191,8 +191,8 @@ const spawnBlobLarva = assign(
   ({ blobLarvae, position: { x, y }, mass }: Context, _: SpawnLarvaEvent) => {
     const { radiusY, radiusX } = makeRadius(mass);
     const position = {
-      x: x + radiusX + Math.random() * 100,
-      y: y + radiusY + Math.random() * 100,
+      x: x + radiusX + makeRandNumber(80),
+      y: y + radiusY + makeRandNumber(80),
     };
 
     const machine = makeBlobLarva({
