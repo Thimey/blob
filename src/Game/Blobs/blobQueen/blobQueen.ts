@@ -1,5 +1,5 @@
 import { createMachine, assign, spawn, Interpreter } from 'xstate';
-import { pure } from 'xstate/lib/actions';
+import { pure, send } from 'xstate/lib/actions';
 
 import { generateId, CANVAS_HEIGHT, CANVAS_WIDTH } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
@@ -11,7 +11,8 @@ import {
   PersistedShrubActor,
 } from 'game/resources';
 import { animationMachine } from 'game/animations/animationMachine';
-import { makeBloblet, PersistedBlobletActor } from 'game/blobs/bloblet';
+import { makeBloblet, PersistedBlobletActor } from '../bloblet';
+import { makeBlobLarva, PersistedLarvaActor } from '../blobLarva';
 
 import {
   propagateBlobletClicked,
@@ -21,6 +22,8 @@ import {
   didClickOnBloblet,
   didClickOnShrub,
   didClickOnSpawnBloblet,
+  propagateLarvaClicked,
+  didClickOnBlobLarva,
 } from './actions/click';
 import { makeRadius, drawBody, drawSelected } from './actions/draw';
 import {
@@ -31,6 +34,7 @@ import {
   FeedOnShrubEvent,
   HarvestShrubEvent,
   ShrubDepletedEvent,
+  SpawnLarvaEvent,
 } from './types';
 
 export type PersistedGameState = {
@@ -51,7 +55,8 @@ type Event =
   | ClickedEvent
   | FeedOnShrubEvent
   | HarvestShrubEvent
-  | ShrubDepletedEvent;
+  | ShrubDepletedEvent
+  | SpawnLarvaEvent;
 
 export type BlobQueenService = Interpreter<Context, any, Event, State>;
 
@@ -83,6 +88,10 @@ function initialisingShrubs(persistedShrub: PersistedShrubActor[]) {
           )
         ),
   }));
+}
+
+function drawLarvae({ blobLarvae }: Context, { ctx }: DrawEvent) {
+  blobLarvae.forEach((larva) => larva.send({ type: 'DRAW', ctx }));
 }
 
 function drawBloblets({ bloblets }: Context, { ctx }: DrawEvent) {
@@ -162,6 +171,37 @@ const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
   };
 });
 
+const MAX_LARVAE = 4;
+
+function shouldSpawnLarva({ blobLarvae }: Context, _: SpawnLarvaEvent) {
+  return blobLarvae.length < MAX_LARVAE;
+}
+
+const spawnBlobLarva = assign(
+  ({ blobLarvae, position: { x, y }, mass }: Context, _: SpawnLarvaEvent) => {
+    const { radiusY, radiusX } = makeRadius(mass);
+    const position = {
+      x: x + radiusX + Math.random() * 100,
+      y: y + radiusY + Math.random() * 100,
+    };
+
+    const machine = makeBlobLarva({
+      context: {
+        id: generateId(),
+        position,
+        larvaBodyRadiusX: 10,
+        larvaBodyRadiusY: 5,
+        larvaHeadRadius: 8,
+      },
+      value: ['larva'],
+    });
+
+    return {
+      blobLarvae: [...blobLarvae, spawn(machine)],
+    };
+  }
+);
+
 export function makeBlobQueen({
   mass,
   position,
@@ -176,11 +216,12 @@ export function makeBlobQueen({
       mass,
       spawnOptions,
       bloblets: [],
+      blobLarvae: [],
       shrubs: [],
     },
     on: {
       DRAW: {
-        actions: [drawBody, drawBloblets, drawShrubs],
+        actions: [drawBody, drawLarvae, drawBloblets, drawShrubs],
       },
       UPDATE: {
         actions: [updateBlobs],
@@ -201,50 +242,40 @@ export function makeBlobQueen({
         always: { target: 'ready' },
       },
       ready: {
-        type: 'parallel',
-        states: {
-          selection: {
-            initial: 'deselected',
-            states: {
-              deselected: {
-                on: {
-                  CLICKED: [
-                    {
-                      actions: [propagateShrubClicked],
-                      cond: didClickOnShrub,
-                    },
-                    {
-                      actions: [propagateBlobletClicked],
-                      cond: didClickOnBloblet,
-                    },
-                    {
-                      target: 'selected',
-                      cond: didClickOnBlobQueen,
-                    },
-                    {
-                      actions: [propagateMapClicked],
-                    },
-                  ],
-                },
-              },
-              selected: {
-                on: {
-                  DRAW: {
-                    actions: [drawBloblets, drawBody, drawSelected, drawShrubs],
-                  },
-                  CLICKED: [
-                    {
-                      actions: [spawnBloblet],
-                      cond: didClickOnSpawnBloblet,
-                      target: 'deselected',
-                    },
-                    {
-                      target: 'deselected',
-                    },
-                  ],
-                },
-              },
+        on: {
+          CLICKED: [
+            {
+              actions: [propagateLarvaClicked],
+              cond: didClickOnBlobLarva,
             },
+            {
+              actions: [propagateShrubClicked],
+              cond: didClickOnShrub,
+            },
+            {
+              actions: [propagateBlobletClicked],
+              cond: didClickOnBloblet,
+            },
+            // {
+            //   target: 'selected',
+            //   cond: didClickOnBlobQueen,
+            // },
+            {
+              actions: [propagateMapClicked],
+            },
+          ],
+          SPAWN_LARVA: {
+            actions: [spawnBlobLarva],
+            cond: shouldSpawnLarva,
+          },
+        },
+        invoke: {
+          src: () => (cb) => {
+            const intervalId = setInterval(() => {
+              cb('SPAWN_LARVA');
+            }, 1000);
+
+            return () => clearInterval(intervalId);
           },
         },
       },
