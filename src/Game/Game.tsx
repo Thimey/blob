@@ -7,7 +7,7 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH, QUEEN_POSITION } from './utils';
 import { makeBlobQueen, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
 
-export const INITIAL_GAME_STATE = {
+export const INITIAL_GAME_STATE: PersistedGameState = {
   mass: 50,
   position: QUEEN_POSITION,
   spawnOptions: {
@@ -19,6 +19,7 @@ export const INITIAL_GAME_STATE = {
   },
   shrubs: [],
   bloblets: [],
+  blobLarvae: [],
 };
 
 // TODO sort out typing
