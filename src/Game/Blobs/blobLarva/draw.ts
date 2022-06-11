@@ -4,8 +4,8 @@ import {
   isPointWithinCircle,
   isPointWithinEllipse,
 } from 'game/utils';
-import { blobLarvaColor, blobPupaColor } from 'game/colors';
-import { Context, DrawEvent, LarvaClickEvent, BlobLarvaActor } from './types';
+import { blobLarvaColor, blobPupaColor, progressBarColor } from 'game/colors';
+import { Context, DrawEvent, BlobLarvaActor } from './types';
 
 // TODO: include direction
 const makeLarvaHeadX = (x: number) => x + 14;
@@ -69,6 +69,32 @@ export function drawPupa(
   ctx.beginPath();
   drawCircle(ctx, x, y - 7, larvaHeadRadius, blobPupaColor);
   ctx.strokeStyle = 'black';
+  ctx.stroke();
+  ctx.closePath();
+}
+
+export function drawProgressBar(
+  { position: { x, y }, larvaBodyRadiusX, larvaBodyRadiusY, pupa }: Context,
+  { ctx }: DrawEvent
+) {
+  if (!pupa) return;
+
+  const progress = 1 - (pupa.hatchAt - Date.now()) / pupa.spawnTime;
+  const barX = x - larvaBodyRadiusX;
+  const barY = y + larvaBodyRadiusY + 4;
+  const barWidth = 2 * larvaBodyRadiusX;
+  const barHeight = 8;
+
+  // Progress
+  ctx.beginPath();
+  ctx.rect(barX, barY, barWidth * progress, barHeight);
+  ctx.fillStyle = progressBarColor;
+  ctx.fill();
+  ctx.closePath();
+
+  // Progress box
+  ctx.beginPath();
+  ctx.rect(barX, barY, barWidth, barHeight);
   ctx.stroke();
   ctx.closePath();
 }

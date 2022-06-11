@@ -1,7 +1,7 @@
 import { createMachine, assign, spawn, Interpreter } from 'xstate';
-import { pure, send } from 'xstate/lib/actions';
+import { pure } from 'xstate/lib/actions';
 
-import { generateId, CANVAS_HEIGHT, CANVAS_WIDTH } from 'game/utils';
+import { generateId } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
 import { BLOBLET_RADIUS } from 'game/sizes';
 import {
@@ -12,20 +12,18 @@ import {
 } from 'game/resources';
 import { animationMachine } from 'game/animations/animationMachine';
 import { makeBloblet, PersistedBlobletActor } from '../bloblet';
-import { makeBlobLarva, PersistedLarvaActor } from '../blobLarva';
+import { makeBlobLarva } from '../blobLarva';
 
 import {
   propagateBlobletClicked,
   propagateMapClicked,
   propagateShrubClicked,
-  didClickOnBlobQueen,
   didClickOnBloblet,
   didClickOnShrub,
-  didClickOnSpawnBloblet,
   propagateLarvaClicked,
   didClickOnBlobLarva,
 } from './actions/click';
-import { makeRadius, drawBody, drawSelected } from './actions/draw';
+import { makeRadius, drawBody } from './actions/draw';
 import {
   Context,
   DrawEvent,
@@ -155,20 +153,27 @@ const feedOnShrub = assign(
 );
 
 const spawnBlob = assign(
-  (context: Context, { blob, position }: BlobHatchedEvent) => {
-    const machine = makeBloblet({
-      context: {
-        id: generateId(),
-        position,
-        destination: position,
-        radius: BLOBLET_RADIUS,
-      },
-      value: ['deselected'],
-    });
+  (context: Context, { blob, position, larvaId }: BlobHatchedEvent) => {
+    if (blob === 'bloblet') {
+      const machine = makeBloblet({
+        context: {
+          id: generateId(),
+          position,
+          destination: position,
+          radius: BLOBLET_RADIUS,
+        },
+        value: ['deselected'],
+      });
 
-    return {
-      bloblets: [...context.bloblets, spawn(machine)],
-    };
+      return {
+        bloblets: [...context.bloblets, spawn(machine)],
+        blobLarvae: context.blobLarvae.filter(
+          (larva) => larva?.getSnapshot()?.context.id !== larvaId
+        ),
+      };
+    }
+
+    return {};
   }
 );
 
@@ -276,10 +281,12 @@ export function makeBlobQueen({
               );
 
               if (larvaToGrow) {
+                const spawnTime = 10 * 1000;
                 larvaToGrow.send({
                   type: 'LARVA_SPAWN_SELECTED',
                   selectedBlob: 'bloblet',
-                  hatchTime: Date.now() + 10 * 1000,
+                  spawnTime,
+                  hatchAt: Date.now() + spawnTime,
                 });
               }
             },

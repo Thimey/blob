@@ -8,7 +8,7 @@ import {
   State,
   PersistedLarvaActor,
 } from './types';
-import { drawLarva, drawPupa } from './draw';
+import { drawLarva, drawPupa, drawProgressBar } from './draw';
 
 function clickedThisLarva(
   { id }: Context,
@@ -45,11 +45,11 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
               },
               LARVA_SPAWN_SELECTED: {
                 target: 'pupa',
-                actions: assign((_, { selectedBlob, hatchTime }) => ({
+                actions: assign((_, { selectedBlob, hatchAt, spawnTime }) => ({
                   pupa: {
                     spawnTo: selectedBlob,
-                    startAt: Date.now(),
-                    hatchTime,
+                    spawnTime,
+                    hatchAt,
                   },
                 })),
               },
@@ -58,15 +58,16 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
           pupa: {
             on: {
               DRAW: {
-                actions: [drawPupa],
+                actions: [drawPupa, drawProgressBar],
               },
               PUPA_HATCH: {
                 target: 'hatched',
                 actions: [
-                  sendParent(({ position, pupa }) => ({
+                  sendParent(({ id, position, pupa }) => ({
                     type: 'BLOB_HATCHED',
                     blob: pupa?.spawnTo,
                     position,
+                    larvaId: id,
                   })),
                 ],
               },
@@ -76,7 +77,7 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                 ({ pupa }) =>
                 (cb) => {
                   const intervalId = setInterval(() => {
-                    if (pupa && Date.now() >= pupa.hatchTime) {
+                    if (pupa && Date.now() >= pupa.hatchAt) {
                       cb('PUPA_HATCH');
                     }
                   }, 1000);

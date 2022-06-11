@@ -63,4 +63,5 @@ export type BlobHatchedEvent = {
   type: 'BLOB_HATCHED';
   blob: 'bloblet';
   position: Coordinates;
+  larvaId: string;
 };

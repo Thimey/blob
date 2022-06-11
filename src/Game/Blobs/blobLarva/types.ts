@@ -9,7 +9,8 @@ export interface Context {
   larvaBodyRadiusY: number;
   pupa?: {
     spawnTo: 'bloblet';
-    hatchTime: number;
+    spawnTime: number;
+    hatchAt: number;
   };
 }
 
@@ -30,7 +31,7 @@ export type LarvaClickEvent = {
 export type LarvaSpawnSelected = {
   type: 'LARVA_SPAWN_SELECTED';
   selectedBlob: 'bloblet';
-  hatchTime: number;
+  hatchAt: number;
 };
 
 export type PupaHatch = {
