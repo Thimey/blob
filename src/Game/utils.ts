@@ -1,11 +1,14 @@
 import { Coordinates } from '../types';
 
-export const CANVAS_HEIGHT = 500;
-export const CANVAS_WIDTH = 800;
+export const WORLD_HEIGHT = 1000;
+export const WORLD_WIDTH = 1600;
+
+export const GAME_OPTIONS_HEIGHT = 50;
+export const GAME_OPTIONS_WIDTH = 150;
 
 export const QUEEN_POSITION = {
-  x: CANVAS_WIDTH / 2,
-  y: CANVAS_HEIGHT / 2,
+  x: WORLD_WIDTH / 2,
+  y: WORLD_HEIGHT / 2,
 };
 
 export type Point = [number, number];

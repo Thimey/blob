@@ -2,8 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+
+#game-options {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 50px;
+  width: 150px;
+  border: 1px solid black;
+}
+
+/* Remove scroll bars */
+::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
 #game-canvas {
-  width: 800px;
-  height: 500px;
-  border: 1px solid;
+  width: 1600px;
+  height: 1000px;
 }
