@@ -248,9 +248,6 @@ export function makeBlobQueen({
         always: { target: 'ready' },
       },
       ready: {
-        states: {
-          spawnSelection: {},
-        },
         on: {
           CLICKED: [
             {
