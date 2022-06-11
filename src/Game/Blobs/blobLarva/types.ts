@@ -7,6 +7,10 @@ export interface Context {
   larvaHeadRadius: number;
   larvaBodyRadiusX: number;
   larvaBodyRadiusY: number;
+  pupa?: {
+    spawnTo: 'bloblet';
+    hatchTime: number;
+  };
 }
 
 export type DrawEvent = {
@@ -14,23 +18,38 @@ export type DrawEvent = {
   ctx: CanvasRenderingContext2D;
 };
 
+export type UpdateEvent = {
+  type: 'UPDATE';
+};
+
 export type LarvaClickEvent = {
   type: 'LARVA_CLICKED';
   id: string;
 };
 
-export type UpdateEvent = {
-  type: 'UPDATE';
+export type LarvaSpawnSelected = {
+  type: 'LARVA_SPAWN_SELECTED';
+  selectedBlob: 'bloblet';
+  hatchTime: number;
 };
 
-type StateValues = 'larva' | 'pupa' | 'grown';
+export type PupaHatch = {
+  type: 'PUPA_HATCH';
+};
+
+type StateValues = 'larva' | 'pupa' | 'hatched';
 
 export type State = {
   value: StateValues;
   context: Context;
 };
 
-export type Events = DrawEvent | LarvaClickEvent | UpdateEvent;
+export type Events =
+  | DrawEvent
+  | UpdateEvent
+  | LarvaClickEvent
+  | LarvaSpawnSelected
+  | PupaHatch;
 
 export type BlobLarvaActor = ActorRefFrom<StateMachine<Context, any, Events>>;
 export type PersistedLarvaActor = PersistedActor<Context, string[]>;

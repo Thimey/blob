@@ -52,3 +52,15 @@ export type ShrubDepletedEvent = {
 export type SpawnLarvaEvent = {
   type: 'SPAWN_LARVA';
 };
+
+export type ShowSpawnSelectionEvent = {
+  type: 'SHOW_SPAWN_SELECTION';
+  postion: Coordinates;
+  larvaId: string;
+};
+
+export type BlobHatchedEvent = {
+  type: 'BLOB_HATCHED';
+  blob: 'bloblet';
+  position: Coordinates;
+};

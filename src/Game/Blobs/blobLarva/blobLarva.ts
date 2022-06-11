@@ -1,5 +1,6 @@
-import { createMachine } from 'xstate';
+import { assign, createMachine } from 'xstate';
 
+import { sendParent } from 'xstate/lib/actions';
 import {
   Context,
   LarvaClickEvent,
@@ -35,19 +36,23 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                 actions: [drawLarva],
               },
               LARVA_CLICKED: {
-                target: 'pupa',
+                actions: sendParent(({ id, position }: Context) => ({
+                  type: 'SHOW_SPAWN_SELECTION',
+                  position,
+                  larvaId: id,
+                })),
                 cond: clickedThisLarva,
               },
-            },
-          },
-          morphingToPupa: {
-            on: {
-              UPDATE: [
-                {
-                  target: 'pupa',
-                  // cond: hasReachedPupa,
-                },
-              ],
+              LARVA_SPAWN_SELECTED: {
+                target: 'pupa',
+                actions: assign((_, { selectedBlob, hatchTime }) => ({
+                  pupa: {
+                    spawnTo: selectedBlob,
+                    startAt: Date.now(),
+                    hatchTime,
+                  },
+                })),
+              },
             },
           },
           pupa: {
@@ -55,9 +60,34 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
               DRAW: {
                 actions: [drawPupa],
               },
+              PUPA_HATCH: {
+                target: 'hatched',
+                actions: [
+                  sendParent(({ position, pupa }) => ({
+                    type: 'BLOB_HATCHED',
+                    blob: pupa?.spawnTo,
+                    position,
+                  })),
+                ],
+              },
+            },
+            invoke: {
+              src:
+                ({ pupa }) =>
+                (cb) => {
+                  const intervalId = setInterval(() => {
+                    if (pupa && Date.now() >= pupa.hatchTime) {
+                      cb('PUPA_HATCH');
+                    }
+                  }, 1000);
+
+                  return () => clearInterval(intervalId);
+                },
             },
           },
-          grown: {},
+          hatched: {
+            type: 'final',
+          },
         },
       },
     },

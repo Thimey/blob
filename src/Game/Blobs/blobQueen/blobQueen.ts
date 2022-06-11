@@ -35,6 +35,8 @@ import {
   HarvestShrubEvent,
   ShrubDepletedEvent,
   SpawnLarvaEvent,
+  ShowSpawnSelectionEvent,
+  BlobHatchedEvent,
 } from './types';
 
 export type PersistedGameState = {
@@ -56,7 +58,9 @@ type Event =
   | FeedOnShrubEvent
   | HarvestShrubEvent
   | ShrubDepletedEvent
-  | SpawnLarvaEvent;
+  | SpawnLarvaEvent
+  | ShowSpawnSelectionEvent
+  | BlobHatchedEvent;
 
 export type BlobQueenService = Interpreter<Context, any, Event, State>;
 
@@ -150,26 +154,23 @@ const feedOnShrub = assign(
   }
 );
 
-const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
-  const startingPosition = {
-    x: CANVAS_WIDTH * Math.random(),
-    y: CANVAS_HEIGHT * Math.random(),
-  };
+const spawnBlob = assign(
+  (context: Context, { blob, position }: BlobHatchedEvent) => {
+    const machine = makeBloblet({
+      context: {
+        id: generateId(),
+        position,
+        destination: position,
+        radius: BLOBLET_RADIUS,
+      },
+      value: ['deselected'],
+    });
 
-  const machine = makeBloblet({
-    context: {
-      id: generateId(),
-      position: startingPosition,
-      destination: startingPosition,
-      radius: BLOBLET_RADIUS,
-    },
-    value: ['deselected'],
-  });
-
-  return {
-    bloblets: [...context.bloblets, spawn(machine)],
-  };
-});
+    return {
+      bloblets: [...context.bloblets, spawn(machine)],
+    };
+  }
+);
 
 const MAX_LARVAE = 4;
 
@@ -242,6 +243,9 @@ export function makeBlobQueen({
         always: { target: 'ready' },
       },
       ready: {
+        states: {
+          spawnSelection: {},
+        },
         on: {
           CLICKED: [
             {
@@ -256,10 +260,6 @@ export function makeBlobQueen({
               actions: [propagateBlobletClicked],
               cond: didClickOnBloblet,
             },
-            // {
-            //   target: 'selected',
-            //   cond: didClickOnBlobQueen,
-            // },
             {
               actions: [propagateMapClicked],
             },
@@ -267,6 +267,25 @@ export function makeBlobQueen({
           SPAWN_LARVA: {
             actions: [spawnBlobLarva],
             cond: shouldSpawnLarva,
+          },
+          SHOW_SPAWN_SELECTION: {
+            actions: ({ blobLarvae }, { larvaId }) => {
+              // For now just auto select bloblet
+              const larvaToGrow = blobLarvae.find(
+                (larva) => larva.getSnapshot()?.context?.id === larvaId
+              );
+
+              if (larvaToGrow) {
+                larvaToGrow.send({
+                  type: 'LARVA_SPAWN_SELECTED',
+                  selectedBlob: 'bloblet',
+                  hatchTime: Date.now() + 10 * 1000,
+                });
+              }
+            },
+          },
+          BLOB_HATCHED: {
+            actions: [spawnBlob],
           },
         },
         invoke: {
