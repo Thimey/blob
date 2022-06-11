@@ -21,7 +21,7 @@ type Event = DrawEvent;
 function drawPlayingViewPort(_: Context, { ctx, mass }: DrawEvent) {
   ctx.font = '20px Arial';
   ctx.fillStyle = blobQueenColor;
-  ctx.fillText(`Feed: ${mass}`, 10, 30);
+  ctx.fillText(`Mass: ${mass}`, 10, 30);
 }
 
 const machine = createMachine<Context, Event, State>({
