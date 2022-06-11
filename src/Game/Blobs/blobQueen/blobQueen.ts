@@ -3,7 +3,11 @@ import { pure } from 'xstate/lib/actions';
 
 import { generateId } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
-import { BLOBLET_RADIUS } from 'game/sizes';
+import {
+  BLOBLET_RADIUS,
+  LARVA_SPAWN_TIME_MS,
+  BLOBLET_SPAWN_TIME_MS,
+} from 'game/paramaters';
 import {
   makeShrub,
   makePosition as makeShrubPosition,
@@ -278,12 +282,11 @@ export function makeBlobQueen({
               );
 
               if (larvaToGrow) {
-                const spawnTime = 10 * 1000;
                 larvaToGrow.send({
                   type: 'LARVA_SPAWN_SELECTED',
                   selectedBlob: 'bloblet',
-                  spawnTime,
-                  hatchAt: Date.now() + spawnTime,
+                  spawnTime: BLOBLET_SPAWN_TIME_MS,
+                  hatchAt: Date.now() + BLOBLET_SPAWN_TIME_MS,
                 });
               }
             },
@@ -296,7 +299,7 @@ export function makeBlobQueen({
           src: () => (cb) => {
             const intervalId = setInterval(() => {
               cb('SPAWN_LARVA');
-            }, 1000);
+            }, LARVA_SPAWN_TIME_MS);
 
             return () => clearInterval(intervalId);
           },
