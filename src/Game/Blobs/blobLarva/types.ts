@@ -31,6 +31,7 @@ export type LarvaClickEvent = {
 export type LarvaSpawnSelected = {
   type: 'LARVA_SPAWN_SELECTED';
   selectedBlob: 'bloblet';
+  spawnTime: number;
   hatchAt: number;
 };
 
