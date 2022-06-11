@@ -1,7 +1,7 @@
 import { createMachine, assign, spawn, Interpreter } from 'xstate';
 import { pure } from 'xstate/lib/actions';
 
-import { generateId, CANVAS_HEIGHT, CANVAS_WIDTH } from 'game/utils';
+import { generateId, WORLD_HEIGHT, WORLD_WIDTH } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
 import { BLOBLET_RADIUS } from 'game/sizes';
 import {
@@ -143,8 +143,8 @@ const feedOnShrub = assign(
 
 const spawnBloblet = assign((context: Context, _: ClickedEvent) => {
   const startingPosition = {
-    x: CANVAS_WIDTH * Math.random(),
-    y: CANVAS_HEIGHT * Math.random(),
+    x: WORLD_WIDTH * Math.random(),
+    y: WORLD_HEIGHT * Math.random(),
   };
 
   const machine = makeBloblet({

@@ -3,7 +3,7 @@ import { interpret } from 'xstate';
 
 import { persistGameState, restoreGameState } from './persist';
 import { blobQueenColor } from './colors';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, QUEEN_POSITION } from './utils';
+import { WORLD_HEIGHT, WORLD_WIDTH, QUEEN_POSITION } from './utils';
 import { makeBlobQueen, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
 
@@ -25,7 +25,7 @@ export const INITIAL_GAME_STATE = {
 let blobQueen: any = null;
 
 function gameLoop(ctx: CanvasRenderingContext2D) {
-  ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  ctx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
   if (blobQueen) {
     ctx.font = '20px Arial';
@@ -47,18 +47,21 @@ export const Game = () => {
   useEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    const { left, top } = canvas.getBoundingClientRect();
-    canvas.width = CANVAS_WIDTH;
-    canvas.height = CANVAS_HEIGHT;
+    canvas.width = WORLD_WIDTH;
+    canvas.height = WORLD_HEIGHT;
 
     const onMouseUp = (e: MouseEvent) => {
-      const mouseX = e.x - left;
-      const mouseY = e.y - top;
+      const mouseX = e.offsetX;
+      const mouseY = e.offsetY;
 
       if (blobQueen) {
         blobQueen.send('CLICKED', { coordinates: { x: mouseX, y: mouseY } });
       }
     };
+
+    window.addEventListener('resize', () => {
+      // Send viewPort RESIZE event
+    });
 
     window.addEventListener('mouseup', onMouseUp);
     gameLoop(ctx);
