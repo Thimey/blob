@@ -2,10 +2,16 @@ import React, { useRef, useEffect } from 'react';
 import { interpret } from 'xstate';
 
 import { persistGameState, restoreGameState } from './persist';
-import { blobQueenColor } from './colors';
-import { WORLD_HEIGHT, WORLD_WIDTH, QUEEN_POSITION } from './utils';
+import {
+  WORLD_HEIGHT,
+  WORLD_WIDTH,
+  QUEEN_POSITION,
+  GAME_OPTIONS_HEIGHT,
+  GAME_OPTIONS_WIDTH,
+} from './utils';
 import { makeBlobQueen, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
+import { gameOptionsMachine } from './gameOptions';
 
 export const INITIAL_GAME_STATE = {
   mass: 50,
@@ -24,31 +30,42 @@ export const INITIAL_GAME_STATE = {
 // TODO sort out typing
 let blobQueen: any = null;
 
-function gameLoop(ctx: CanvasRenderingContext2D) {
-  ctx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+function gameLoop(
+  gameCtx: CanvasRenderingContext2D,
+  optionsCtx: CanvasRenderingContext2D
+) {
+  gameCtx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+  optionsCtx.clearRect(0, 0, GAME_OPTIONS_WIDTH, GAME_OPTIONS_HEIGHT);
 
   if (blobQueen) {
-    ctx.font = '20px Arial';
-    ctx.fillStyle = blobQueenColor;
-    ctx.fillText(`Feed: ${blobQueen.state.context.mass}`, 10, 30);
+    blobQueen.send('DRAW', { ctx: gameCtx });
+    blobQueen.send('UPDATE', { ctx: gameCtx });
 
-    blobQueen.send('DRAW', { ctx });
-    blobQueen.send('UPDATE', { ctx });
+    gameOptionsMachine.send('DRAW', {
+      ctx: optionsCtx,
+      mass: blobQueen.state.context.mass,
+    });
   }
 
-  animationMachine.send('DRAW', { ctx });
+  animationMachine.send('DRAW', { ctx: gameCtx });
 
-  window.requestAnimationFrame(() => gameLoop(ctx));
+  window.requestAnimationFrame(() => gameLoop(gameCtx, optionsCtx));
 }
 
 export const Game = () => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const gameCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const optionsCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    canvas.width = WORLD_WIDTH;
-    canvas.height = WORLD_HEIGHT;
+    const gameCanvas = gameCanvasRef.current as HTMLCanvasElement;
+    const gameCtx = gameCanvas.getContext('2d') as CanvasRenderingContext2D;
+    gameCanvas.width = WORLD_WIDTH;
+    gameCanvas.height = WORLD_HEIGHT;
+
+    const viewPortCanvas = optionsCanvasRef.current as HTMLCanvasElement;
+    const optionsCtx = viewPortCanvas.getContext(
+      '2d'
+    ) as CanvasRenderingContext2D;
 
     const onMouseUp = (e: MouseEvent) => {
       const mouseX = e.offsetX;
@@ -59,12 +76,8 @@ export const Game = () => {
       }
     };
 
-    window.addEventListener('resize', () => {
-      // Send viewPort RESIZE event
-    });
-
     window.addEventListener('mouseup', onMouseUp);
-    gameLoop(ctx);
+    gameLoop(gameCtx, optionsCtx);
 
     const retoredGameState = restoreGameState();
 
@@ -81,5 +94,12 @@ export const Game = () => {
     };
   }, []);
 
-  return <canvas id="game-canvas" ref={canvasRef} />;
+  return (
+    <>
+      <div id="game-options">
+        <canvas id="game-options-canvas" ref={optionsCanvasRef} />
+      </div>
+      <canvas id="game-canvas" ref={gameCanvasRef} />
+    </>
+  );
 };

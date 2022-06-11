@@ -7,14 +7,6 @@ export function drawBody(
   { position: { x, y }, radius }: Context,
   { ctx }: DrawEvent
 ) {
-  ctx.font = '10px Arial';
-  ctx.fillStyle = blobletColor;
-  ctx.fillText(
-    `x: ${Math.round(x * 100) / 100}, y: ${Math.round(y * 100) / 100}`,
-    x - radius,
-    y - radius - 5
-  );
-
   // Body
   ctx.beginPath();
   drawCircle(ctx, x, y, radius, blobletColor);
