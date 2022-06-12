@@ -1,3 +1,4 @@
+export const white = '#ffffff';
 export const blobQueenColor = '#4c6ef5';
 export const blobLarvaColor = '#be4bdb';
 export const blobPupaColor = '#8d9fba';
