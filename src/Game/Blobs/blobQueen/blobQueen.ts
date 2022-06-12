@@ -16,7 +16,7 @@ import {
   makePosition as makeShrubPosition,
   makeLeafPositions,
   PersistedShrubActor,
-} from 'game/resources';
+} from 'game/resources/shub';
 import { animationMachine } from 'game/animations/animationMachine';
 import { makeBloblet, PersistedBlobletActor } from '../bloblet';
 import { makeBlobLarva } from '../blobLarva';
@@ -193,7 +193,7 @@ function shouldSpawnLarva({ blobLarvae }: Context, _: SpawnLarvaEvent) {
   return blobLarvae.length < MAX_LARVAE;
 }
 
-const spawnBlobLarva = assign(
+const spawnBlobLarva = assign<Context, SpawnLarvaEvent>(
   ({ blobLarvae, position: { x, y }, mass }: Context, _: SpawnLarvaEvent) => {
     const { radiusY, radiusX } = makeRadius(mass);
     const position = {

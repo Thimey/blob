@@ -1,46 +1,14 @@
-import { createMachine, ActorRefFrom, StateMachine, assign } from 'xstate';
+import { createMachine, assign } from 'xstate';
 import { send, sendParent, pure } from 'xstate/lib/actions';
 
-import { Coordinates, PersistedActor } from 'src/types';
+import { Coordinates } from 'src/types';
 import { QUEEN_POSITION } from 'game/paramaters';
-import { drawDiamond, makeRandNumber } from '../utils';
-import { shrubColor } from '../colors';
+import { drawDiamond, makeRandNumber } from 'game/utils';
+import { shrubColor } from 'game/colors';
+import { Context, State, DrawEvent } from './types';
 
 const LEAF_HEIGHT = 18;
 const LEAF_WIDTH = 13;
-
-export type Context = {
-  id: string;
-  position: Coordinates;
-  leafPositions: Coordinates[];
-  harvestRate: number;
-  amount: number;
-};
-
-export type StateValues = 'initialising' | 'initialised';
-
-type State = {
-  value: StateValues;
-  context: Context;
-};
-
-type DrawEvent = {
-  type: 'DRAW';
-  ctx: CanvasRenderingContext2D;
-};
-
-type HarvestEvent = {
-  type: 'HARVEST';
-};
-
-type DepleteEvent = {
-  type: 'DEPLETE';
-};
-
-type Event = DrawEvent | HarvestEvent | DepleteEvent;
-
-export type ShrubActor = ActorRefFrom<StateMachine<Context, any, Event>>;
-export type PersistedShrubActor = PersistedActor<Context, StateValues>;
 
 export function makePosition(harvestRate: number): Coordinates {
   const angle = Math.random() * 2 * Math.PI;

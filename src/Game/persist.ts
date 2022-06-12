@@ -1,6 +1,6 @@
 import { BlobletActor } from 'game/blobs/bloblet';
 import { BlobQueenService } from 'game/blobs/blobQueen';
-import { ShrubActor } from 'game/resources';
+import { ShrubActor } from 'game/resources/shub';
 
 const LOCAL_STORAGE_GAME_STATE_KEY = 'gameState';
 

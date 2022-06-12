@@ -1,5 +1,5 @@
 import { isPointWithinEllipse, isPointWithinCircle } from 'game/utils';
-import { ShrubActor } from 'game/resources';
+import { ShrubActor } from 'game/resources/shub';
 import { blobLarvaClicked } from 'game/blobs/blobLarva/draw';
 import { blobletClicked } from 'game/blobs/bloblet/draw';
 import { Context, ClickedEvent } from '../types';
