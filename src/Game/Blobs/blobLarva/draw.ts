@@ -8,10 +8,13 @@ import { blobLarvaColor, blobPupaColor, progressBarColor } from 'game/colors';
 import { Context, DrawEvent, BlobLarvaActor } from './types';
 
 // TODO: include direction
-const makeLarvaHeadX = (x: number) => x + 14;
+const makeLarvaHeadX = (x: number) => x + 12;
 const makeLarvaHeadY = (y: number) => y - 2;
 const makeLarvaEyeX = (headX: number) => headX + 2;
 const makeLarvaEyeY = (headY: number) => headY - 2;
+
+const PROGRESS_BAR_HEIGHT = 8;
+const PROGRESS_BAR_BORDER_WIDTH = 1;
 
 export function drawLarva(
   {
@@ -83,25 +86,23 @@ export function drawProgressBar(
   const barX = x - larvaBodyRadiusX;
   const barY = y + larvaBodyRadiusY + 4;
   const barWidth = 2 * larvaBodyRadiusX;
-  const barHeight = 8;
-  const borderWidth = 1;
 
   // Progress box
   ctx.beginPath();
-  ctx.rect(barX, barY, barWidth, barHeight);
+  ctx.rect(barX, barY, barWidth, PROGRESS_BAR_HEIGHT);
   ctx.fillStyle = 'white';
   ctx.fill();
-  ctx.lineWidth = borderWidth;
+  ctx.lineWidth = PROGRESS_BAR_BORDER_WIDTH;
   ctx.stroke();
   ctx.closePath();
 
   // Progress
   ctx.beginPath();
   ctx.rect(
-    barX + borderWidth,
-    barY + borderWidth,
-    (barWidth - 2 * borderWidth) * progress,
-    barHeight - 2 * borderWidth
+    barX + PROGRESS_BAR_BORDER_WIDTH,
+    barY + PROGRESS_BAR_BORDER_WIDTH,
+    (barWidth - 2 * PROGRESS_BAR_BORDER_WIDTH) * progress,
+    PROGRESS_BAR_HEIGHT - 2 * PROGRESS_BAR_BORDER_WIDTH
   );
   ctx.fillStyle = progressBarColor;
   ctx.fill();

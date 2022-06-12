@@ -5,6 +5,9 @@ import { generateId, makeRandNumber } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
 import {
   BLOBLET_RADIUS,
+  BLOB_LARVA_HEAD_RADIUS,
+  BLOB_LARVA_BODY_RADIUS_X,
+  BLOB_LARVA_BODY_RADIUS_Y,
   LARVA_SPAWN_TIME_MS,
   BLOBLET_SPAWN_TIME_MS,
 } from 'game/paramaters';
@@ -199,9 +202,9 @@ const spawnBlobLarva = assign(
       context: {
         id: generateId(),
         position,
-        larvaBodyRadiusX: 10,
-        larvaBodyRadiusY: 5,
-        larvaHeadRadius: 8,
+        larvaHeadRadius: BLOB_LARVA_HEAD_RADIUS,
+        larvaBodyRadiusX: BLOB_LARVA_BODY_RADIUS_X,
+        larvaBodyRadiusY: BLOB_LARVA_BODY_RADIUS_Y,
       },
       value: ['larva'],
     });
