@@ -1,7 +1,8 @@
 import { assign, createMachine } from 'xstate';
 import { sendParent } from 'xstate/lib/actions';
 
-import { QUEEN_POSITION, makeRandNumber } from 'game/utils';
+import { makeRandNumber } from 'game/utils';
+import { QUEEN_POSITION } from 'game/paramaters';
 import {
   Context,
   Events,
