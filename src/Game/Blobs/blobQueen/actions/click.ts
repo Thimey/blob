@@ -1,6 +1,7 @@
-import { isPointWithinEllipse, didClickOnCircle } from 'game/utils';
+import { isPointWithinEllipse, isPointWithinCircle } from 'game/utils';
 import { ShrubActor } from 'game/resources';
-import { BlobletActor } from 'game/blobs/bloblet/bloblet';
+import { BlobletActor } from 'game/blobs/bloblet';
+import { blobLarvaClicked } from 'game/blobs/blobLarva/draw';
 import { Context, ClickedEvent } from '../types';
 import { makeRadius } from './draw';
 
@@ -8,7 +9,10 @@ export function didClickOnBlobQueen(
   { position: { x, y }, mass }: Context,
   { coordinates: { x: mouseX, y: mouseY } }: ClickedEvent
 ) {
-  return isPointWithinEllipse({ x, y, ...makeRadius(mass) }, [mouseX, mouseY]);
+  return isPointWithinEllipse(
+    { x, y, ...makeRadius(mass) },
+    { x: mouseX, y: mouseY }
+  );
 }
 
 export function blobletClicked(
@@ -19,7 +23,7 @@ export function blobletClicked(
 
   return (
     blobletContext &&
-    didClickOnCircle(
+    isPointWithinCircle(
       blobletContext.position,
       blobletContext.radius,
       coordinates
@@ -31,15 +35,27 @@ export function propagateBlobletClicked(
   { bloblets }: Context,
   event: ClickedEvent
 ) {
-  const clickedBlobletContext = bloblets
-    .find((blob) => blobletClicked(blob, event))
-    ?.getSnapshot()?.context;
+  const clickedBloblet = bloblets.find((blob) => blobletClicked(blob, event));
 
-  bloblets.forEach((blob) => {
-    if (clickedBlobletContext) {
-      blob.send({ type: 'BLOBLET_CLICKED', id: clickedBlobletContext.id });
-    }
-  });
+  const context = clickedBloblet?.getSnapshot()?.context;
+
+  if (context) {
+    clickedBloblet.send({ type: 'BLOBLET_CLICKED', id: context.id });
+  }
+}
+
+export function propagateLarvaClicked(
+  { blobLarvae }: Context,
+  event: ClickedEvent
+) {
+  const clickedLarva = blobLarvae.find((larva) =>
+    blobLarvaClicked(larva, event)
+  );
+  const context = clickedLarva?.getSnapshot()?.context;
+
+  if (context) {
+    clickedLarva.send({ type: 'LARVA_CLICKED', id: context.id });
+  }
 }
 
 export function propagateMapClicked(
@@ -55,7 +71,7 @@ function shrubClicked(shrub: ShrubActor, { coordinates }: ClickedEvent) {
   const shrubContext = shrub.getSnapshot()?.context;
 
   return (
-    shrubContext && didClickOnCircle(shrubContext.position, 20, coordinates)
+    shrubContext && isPointWithinCircle(shrubContext.position, 20, coordinates)
   );
 }
 
@@ -88,7 +104,14 @@ export function didClickOnSpawnBloblet(
     bloblet: { position, radius },
   } = spawnOptions;
 
-  return didClickOnCircle(position, radius, clickCoordinates);
+  return isPointWithinCircle(position, radius, clickCoordinates);
+}
+
+export function didClickOnBlobLarva(
+  { blobLarvae }: Context,
+  event: ClickedEvent
+) {
+  return blobLarvae.some((larva) => blobLarvaClicked(larva, event));
 }
 
 export function didClickOnBloblet({ bloblets }: Context, event: ClickedEvent) {

@@ -1,4 +1,4 @@
-import { Coordinates } from '../../../types';
+import { Coordinates } from 'src/types';
 
 export type Context = {
   id: string;

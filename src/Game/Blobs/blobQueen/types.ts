@@ -1,6 +1,7 @@
 import { Coordinates } from 'src/types';
 import { ShrubActor } from 'game/resources';
-import { BlobletActor } from '../bloblet/bloblet';
+import { BlobletActor } from '../bloblet';
+import { BlobLarvaActor } from '../blobLarva';
 
 export type SpawnType = 'bloblet';
 type SpawnOptionDetails = {
@@ -15,6 +16,7 @@ export interface Context {
   mass: number;
   spawnOptions: SpawnOptions;
   bloblets: BlobletActor[];
+  blobLarvae: BlobLarvaActor[];
   shrubs: ShrubActor[];
 }
 
@@ -45,4 +47,21 @@ export type FeedOnShrubEvent = {
 export type ShrubDepletedEvent = {
   type: 'SHRUB_DEPLETED';
   shrubId: string;
+};
+
+export type SpawnLarvaEvent = {
+  type: 'SPAWN_LARVA';
+};
+
+export type ShowSpawnSelectionEvent = {
+  type: 'SHOW_SPAWN_SELECTION';
+  postion: Coordinates;
+  larvaId: string;
+};
+
+export type BlobHatchedEvent = {
+  type: 'BLOB_HATCHED';
+  blob: 'bloblet';
+  position: Coordinates;
+  larvaId: string;
 };

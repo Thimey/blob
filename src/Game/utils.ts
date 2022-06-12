@@ -50,7 +50,7 @@ interface Ellipse {
   radiusY: number;
 }
 
-export function isPointWithinEllipse(ellipse: Ellipse, [x, y]: Point) {
+export function isPointWithinEllipse(ellipse: Ellipse, { x, y }: Coordinates) {
   return (
     (x - ellipse.x) ** 2 / ellipse.radiusX ** 2 +
       (y - ellipse.y) ** 2 / ellipse.radiusY ** 2 <=
@@ -58,7 +58,7 @@ export function isPointWithinEllipse(ellipse: Ellipse, [x, y]: Point) {
   );
 }
 
-export function didClickOnCircle(
+export function isPointWithinCircle(
   { x: positionX, y: positionY }: Coordinates,
   radius: number,
   { x: mouseX, y: mouseY }: Coordinates
