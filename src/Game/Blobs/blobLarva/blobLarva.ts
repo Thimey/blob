@@ -1,21 +1,8 @@
 import { assign, createMachine } from 'xstate';
 
 import { sendParent } from 'xstate/lib/actions';
-import {
-  Context,
-  LarvaClickEvent,
-  Events,
-  State,
-  PersistedLarvaActor,
-} from './types';
+import { Context, Events, State, PersistedLarvaActor } from './types';
 import { drawLarva, drawPupa, drawProgressBar } from './draw';
-
-function clickedThisLarva(
-  { id }: Context,
-  { id: clickedLarvaId }: LarvaClickEvent
-) {
-  return id === clickedLarvaId;
-}
 
 export function makeBlobLarva({ context }: PersistedLarvaActor) {
   return createMachine<Context, Events, State>({
@@ -41,7 +28,7 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                   position,
                   larvaId: id,
                 })),
-                cond: clickedThisLarva,
+                cond: ({ id }, { id: clickedLarvaId }) => id === clickedLarvaId,
               },
               LARVA_SPAWN_SELECTED: {
                 target: 'pupa',
