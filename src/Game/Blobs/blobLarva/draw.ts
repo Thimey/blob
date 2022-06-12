@@ -84,18 +84,27 @@ export function drawProgressBar(
   const barY = y + larvaBodyRadiusY + 4;
   const barWidth = 2 * larvaBodyRadiusX;
   const barHeight = 8;
-
-  // Progress
-  ctx.beginPath();
-  ctx.rect(barX, barY, barWidth * progress, barHeight);
-  ctx.fillStyle = progressBarColor;
-  ctx.fill();
-  ctx.closePath();
+  const borderWidth = 1;
 
   // Progress box
   ctx.beginPath();
   ctx.rect(barX, barY, barWidth, barHeight);
+  ctx.fillStyle = 'white';
+  ctx.fill();
+  ctx.lineWidth = borderWidth;
   ctx.stroke();
+  ctx.closePath();
+
+  // Progress
+  ctx.beginPath();
+  ctx.rect(
+    barX + borderWidth,
+    barY + borderWidth,
+    (barWidth - 2 * borderWidth) * progress,
+    barHeight - 2 * borderWidth
+  );
+  ctx.fillStyle = progressBarColor;
+  ctx.fill();
   ctx.closePath();
 }
 
