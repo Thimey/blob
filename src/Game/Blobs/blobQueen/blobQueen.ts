@@ -5,6 +5,9 @@ import { generateId, makeRandNumber } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
 import {
   BLOBLET_RADIUS,
+  BLOB_LARVA_HEAD_RADIUS,
+  BLOB_LARVA_BODY_RADIUS_X,
+  BLOB_LARVA_BODY_RADIUS_Y,
   LARVA_SPAWN_TIME_MS,
   BLOBLET_SPAWN_TIME_MS,
 } from 'game/paramaters';
@@ -108,9 +111,12 @@ function drawShrubs({ shrubs }: Context, { ctx }: DrawEvent) {
   shrubs.forEach((shrub) => shrub.send({ type: 'DRAW', ctx }));
 }
 
-function updateBlobs({ bloblets }: Context) {
+function updateBlobs({ bloblets, blobLarvae }: Context) {
   bloblets.forEach((blob) => {
     blob.send('UPDATE');
+  });
+  blobLarvae.forEach((larva) => {
+    larva.send('UPDATE');
   });
 }
 
@@ -199,9 +205,10 @@ const spawnBlobLarva = assign(
       context: {
         id: generateId(),
         position,
-        larvaBodyRadiusX: 10,
-        larvaBodyRadiusY: 5,
-        larvaHeadRadius: 8,
+        destination: position,
+        larvaHeadRadius: BLOB_LARVA_HEAD_RADIUS,
+        larvaBodyRadiusX: BLOB_LARVA_BODY_RADIUS_X,
+        larvaBodyRadiusY: BLOB_LARVA_BODY_RADIUS_Y,
       },
       value: ['larva'],
     });

@@ -8,7 +8,7 @@ import {
   QUEEN_POSITION,
   GAME_OPTIONS_HEIGHT,
   GAME_OPTIONS_WIDTH,
-} from './utils';
+} from './paramaters';
 import { makeBlobQueen, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
 import { gameOptionsMachine } from './gameOptions';

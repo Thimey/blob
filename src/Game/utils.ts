@@ -1,16 +1,5 @@
 import { Coordinates } from '../types';
 
-export const WORLD_HEIGHT = 1000;
-export const WORLD_WIDTH = 1600;
-
-export const GAME_OPTIONS_HEIGHT = 50;
-export const GAME_OPTIONS_WIDTH = 150;
-
-export const QUEEN_POSITION = {
-  x: WORLD_WIDTH / 2,
-  y: WORLD_HEIGHT / 2,
-};
-
 export type Point = [number, number];
 
 export function generateId() {

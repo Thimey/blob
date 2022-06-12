@@ -1,5 +1,4 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
-
 import { Coordinates, PersistedActor } from 'src/types';
 
 export type Context = {

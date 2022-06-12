@@ -2,7 +2,8 @@ import { createMachine, ActorRefFrom, StateMachine, assign } from 'xstate';
 import { send, sendParent, pure } from 'xstate/lib/actions';
 
 import { Coordinates, PersistedActor } from 'src/types';
-import { drawDiamond, makeRandNumber, QUEEN_POSITION } from '../utils';
+import { QUEEN_POSITION } from 'game/paramaters';
+import { drawDiamond, makeRandNumber } from '../utils';
 import { shrubColor } from '../colors';
 
 const LEAF_HEIGHT = 18;
