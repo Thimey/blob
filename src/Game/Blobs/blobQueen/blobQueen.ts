@@ -92,7 +92,8 @@ function initialisingShrubs(persistedShrub: PersistedShrubActor[]) {
               position,
               leafPositions: makeLeafPositions(position),
               harvestRate,
-              amount: 100,
+              initialAmount: 100,
+              amount: 50,
             })
           )
         ),
@@ -133,7 +134,7 @@ const shrubDepleted = pure(
     bloblets.forEach((bloblet) => bloblet.send(event));
 
     return [
-      assign({
+      assign<Context, ShrubDepletedEvent>({
         shrubs: shrubs.filter(
           (shrub) => shrub.getSnapshot()?.context?.id !== event.shrubId
         ),

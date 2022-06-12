@@ -6,10 +6,15 @@ export type Context = {
   position: Coordinates;
   leafPositions: Coordinates[];
   harvestRate: number;
+  initialAmount: number;
   amount: number;
 };
 
-export type StateValues = 'initialising' | 'initialised';
+export type StateValues =
+  | 'initialising'
+  | 'growing'
+  | { ready: 'active' }
+  | { ready: 'depleted' };
 
 export type State = {
   value: StateValues;

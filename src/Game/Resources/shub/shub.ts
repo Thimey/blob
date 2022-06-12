@@ -1,73 +1,22 @@
 import { createMachine, assign } from 'xstate';
 import { send, sendParent, pure } from 'xstate/lib/actions';
 
-import { Coordinates } from 'src/types';
-import { QUEEN_POSITION } from 'game/paramaters';
-import { drawDiamond, makeRandNumber } from 'game/utils';
-import { shrubColor } from 'game/colors';
-import { Context, State, DrawEvent } from './types';
-
-const LEAF_HEIGHT = 18;
-const LEAF_WIDTH = 13;
-
-export function makePosition(harvestRate: number): Coordinates {
-  const angle = Math.random() * 2 * Math.PI;
-  const distance = (1 / harvestRate) * 400;
-
-  return {
-    x: QUEEN_POSITION.x + distance * Math.cos(angle),
-    y: QUEEN_POSITION.y + distance * Math.sin(angle),
-  };
-}
-
-function makeShrubRow(length: number, x: number, y: number, offset: number) {
-  return new Array(length).fill(0).map((_, i) => {
-    const d = i % 2 === 0 ? -1 : 1;
-
-    return {
-      x:
-        x +
-        LEAF_WIDTH * 0.75 * Math.ceil(i / 2) * d +
-        offset +
-        makeRandNumber(1),
-      y: y + makeRandNumber(2),
-    };
-  });
-}
-
-export function makeLeafPositions({ x, y }: Coordinates) {
-  return [
-    ...makeShrubRow(3, x, y - LEAF_HEIGHT, LEAF_WIDTH / 2),
-    ...makeShrubRow(4, x, y - LEAF_HEIGHT / 2, 0),
-    ...makeShrubRow(3, x, y, LEAF_WIDTH / 2),
-  ];
-}
-
-function drawShrub(
-  { leafPositions, amount, position }: Context,
-  { ctx }: DrawEvent
-) {
-  ctx.font = '12px Arial';
-  ctx.fillStyle = shrubColor;
-  ctx.fillText(`Amount: ${amount}`, position.x - 20, position.y - 40);
-  leafPositions.forEach(({ x, y }) => {
-    drawDiamond(ctx, x, y, LEAF_WIDTH, LEAF_HEIGHT, shrubColor, 'black');
-  });
-}
+import { drawShrub, drawGrowingShrub } from './actions/draw';
+import { Context, State, DrawEvent, HarvestEvent, DepleteEvent } from './types';
 
 function makeHarvestAmount(harvestRate: number, totalAmount: number) {
   return Math.min(harvestRate, totalAmount);
 }
 
-const harvest = pure(({ harvestRate, amount }: Context) => {
+const harvest = pure(({ harvestRate, amount }: Context, _: HarvestEvent) => {
   const harvestAmount = makeHarvestAmount(harvestRate, amount);
   const newAmount = amount - harvestAmount;
 
   return [
-    assign({
+    assign<Context, HarvestEvent>({
       amount: newAmount,
     }),
-    sendParent({
+    sendParent<Context, HarvestEvent>({
       type: 'FEED_SHRUB',
       amount: harvestAmount,
     }),
@@ -81,7 +30,40 @@ export function makeShrub(context: Context) {
     context,
     states: {
       initialising: {
-        always: { target: 'ready' },
+        always: [
+          {
+            target: 'growing',
+            cond: ({ amount, initialAmount }) => amount < initialAmount,
+          },
+          { target: 'ready' },
+        ],
+      },
+      growing: {
+        on: {
+          DRAW: {
+            actions: [drawGrowingShrub],
+          },
+          GROW: [
+            {
+              actions: assign(({ amount }) => ({
+                amount: amount + 1,
+              })),
+              cond: ({ amount, initialAmount }) => amount < initialAmount,
+            },
+            {
+              target: 'ready',
+            },
+          ],
+        },
+        invoke: {
+          src: () => (cb) => {
+            const growthInterval = setInterval(() => {
+              cb('GROW');
+            }, 500);
+
+            return () => clearInterval(growthInterval);
+          },
+        },
       },
       ready: {
         initial: 'active',
@@ -89,7 +71,7 @@ export function makeShrub(context: Context) {
           active: {
             on: {
               DRAW: {
-                actions: drawShrub,
+                actions: [drawShrub],
               },
               HARVEST: [
                 {
@@ -98,10 +80,12 @@ export function makeShrub(context: Context) {
               ],
               DEPLETE: {
                 target: 'depleted',
-                actions: sendParent(({ id: shrubId }: Context) => ({
-                  type: 'SHRUB_DEPLETED',
-                  shrubId,
-                })),
+                actions: sendParent<Context, DepleteEvent>(
+                  ({ id: shrubId }: Context) => ({
+                    type: 'SHRUB_DEPLETED',
+                    shrubId,
+                  })
+                ),
               },
             },
           },
