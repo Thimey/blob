@@ -1,7 +1,14 @@
 import { blobletColor, shrubColor } from 'game/colors';
-import { drawCircle, drawDiamond } from 'game/utils';
+import { drawCircle, drawDiamond, isPointWithinCircle } from 'game/utils';
+import { Coordinates } from 'src/types';
 
-import { Context, DrawEvent, DrawSelectedEvent, DrawSrubEvent } from '../types';
+import {
+  Context,
+  DrawEvent,
+  DrawSelectedEvent,
+  DrawSrubEvent,
+  BlobletActor,
+} from './types';
 
 export function drawBody(
   { position: { x, y }, radius }: Context,
@@ -60,4 +67,20 @@ export function drawCarryingShrub(
   ctx.fillStyle = blobletColor;
   ctx.fill();
   ctx.closePath();
+}
+
+export function blobletClicked(
+  bloblet: BlobletActor,
+  { coordinates }: { coordinates: Coordinates }
+) {
+  const blobletContext = bloblet.getSnapshot()?.context;
+
+  return (
+    blobletContext &&
+    isPointWithinCircle(
+      blobletContext.position,
+      blobletContext.radius,
+      coordinates
+    )
+  );
 }

@@ -1,7 +1,7 @@
 import { isPointWithinEllipse, isPointWithinCircle } from 'game/utils';
 import { ShrubActor } from 'game/resources';
-import { BlobletActor } from 'game/blobs/bloblet';
 import { blobLarvaClicked } from 'game/blobs/blobLarva/draw';
+import { blobletClicked } from 'game/blobs/bloblet/draw';
 import { Context, ClickedEvent } from '../types';
 import { makeRadius } from './draw';
 
@@ -12,22 +12,6 @@ export function didClickOnBlobQueen(
   return isPointWithinEllipse(
     { x, y, ...makeRadius(mass) },
     { x: mouseX, y: mouseY }
-  );
-}
-
-export function blobletClicked(
-  bloblet: BlobletActor,
-  { coordinates }: ClickedEvent
-) {
-  const blobletContext = bloblet.getSnapshot()?.context;
-
-  return (
-    blobletContext &&
-    isPointWithinCircle(
-      blobletContext.position,
-      blobletContext.radius,
-      coordinates
-    )
   );
 }
 
@@ -95,17 +79,6 @@ export function propagateShrubClicked(
 }
 
 // GUARDS
-
-export function didClickOnSpawnBloblet(
-  { spawnOptions }: Context,
-  { coordinates: clickCoordinates }: ClickedEvent
-) {
-  const {
-    bloblet: { position, radius },
-  } = spawnOptions;
-
-  return isPointWithinCircle(position, radius, clickCoordinates);
-}
 
 export function didClickOnBlobLarva(
   { blobLarvae }: Context,

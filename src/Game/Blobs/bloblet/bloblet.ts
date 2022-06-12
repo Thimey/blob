@@ -1,61 +1,18 @@
-import {
-  createMachine,
-  assign,
-  ActorRefFrom,
-  StateMachine,
-  sendParent,
-} from 'xstate';
+import { createMachine, assign, sendParent } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { QUEEN_POSITION } from 'game/utils';
-import { PersistedActor } from 'src/types';
-import { clickedThisBloblet } from './actions/click';
-import {
-  drawSelectedOutline,
-  drawBody,
-  drawCarryingShrub,
-} from './actions/draw';
+import { drawSelectedOutline, drawBody, drawCarryingShrub } from './draw';
 import {
   Context,
-  BlobClickEvent,
   MapClickEvent,
-  DrawEvent,
-  DrawSelectedEvent,
-  DrawSrubEvent,
   UpdateEvent,
   ShrubClickEvent,
-  FeedQueenEvent,
   ShrubDepletedEvent,
+  Event,
+  State,
+  PersistedBlobletActor,
 } from './types';
-
-export type StateValues =
-  | { selection: 'deselected' }
-  | { selection: 'selected' }
-  | { movement: 'stationary' }
-  | { movement: 'moving' }
-  | { movement: { harvestingShrub: 'movingToShrub' } }
-  | { movement: { harvestingShrub: 'atShrub' } }
-  | { movement: { harvestingShrub: 'movingToQueen' } }
-  | { movement: { harvestingShrub: 'atQueen' } };
-
-type State = {
-  value: StateValues;
-  context: Context;
-};
-
-export type Event =
-  | BlobClickEvent
-  | MapClickEvent
-  | DrawEvent
-  | UpdateEvent
-  | ShrubClickEvent
-  | FeedQueenEvent
-  | ShrubDepletedEvent
-  | DrawSelectedEvent
-  | DrawSrubEvent;
-
-export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Event>>;
-export type PersistedBlobletActor = PersistedActor<Context, string[]>;
 
 const setDestination = assign(
   (_: Context, { coordinates: { x, y } }: MapClickEvent) => ({
@@ -142,7 +99,7 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                 on: {
                   BLOBLET_CLICKED: {
                     target: 'selected',
-                    cond: clickedThisBloblet,
+                    cond: ({ id }, { id: clickedId }) => id === clickedId,
                   },
                 },
               },
