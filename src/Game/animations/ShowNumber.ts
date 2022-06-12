@@ -8,7 +8,7 @@ import {
 import { Coordinates } from 'src/types';
 import { hexToRGB, RGB, generateId } from '../utils';
 
-const FLOAT_TIME_MS = 1000;
+const FLOAT_TIME_MS = 1500;
 interface Context {
   id: string;
   position: Coordinates;
@@ -41,8 +41,8 @@ function drawAmount(
 
 const raise = assign(
   ({ position: { x, y }, opacity }: Context, _: DrawAmountEvent) => ({
-    position: { x, y: y - 0.5 },
-    opacity: opacity - 0.01,
+    position: { x, y: y - 0.1 },
+    opacity: opacity - 0.005,
   })
 );
 
