@@ -4,6 +4,7 @@ import { Coordinates, PersistedActor } from 'src/types';
 export interface Context {
   id: string;
   position: Coordinates;
+  destination: Coordinates;
   larvaHeadRadius: number;
   larvaBodyRadiusX: number;
   larvaBodyRadiusY: number;

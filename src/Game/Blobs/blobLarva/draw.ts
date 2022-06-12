@@ -7,11 +7,29 @@ import {
 import { blobLarvaColor, blobPupaColor, progressBarColor } from 'game/colors';
 import { Context, DrawEvent, BlobLarvaActor } from './types';
 
-// TODO: include direction
-const makeLarvaHeadX = (x: number) => x + 12;
-const makeLarvaHeadY = (y: number) => y - 2;
-const makeLarvaEyeX = (headX: number) => headX + 2;
-const makeLarvaEyeY = (headY: number) => headY - 2;
+type Direction = 'right' | 'left';
+
+const HEAD_OFFSET_X = 12;
+const HEAD_OFFSET_Y = 2;
+const EYE_OFFSET = 2;
+
+function makeDirection(currentX: number, destinationX: number): Direction {
+  return destinationX > currentX ? 'right' : 'left';
+}
+
+function makeLarvaHeadX(x: number, dir: Direction) {
+  return dir === 'right' ? x + HEAD_OFFSET_X : x - HEAD_OFFSET_X;
+}
+
+function makeLarvaHeadY(y: number) {
+  return y - HEAD_OFFSET_Y;
+}
+function makeLarvaEyeX(headX: number, dir: Direction) {
+  return dir === 'right' ? headX + EYE_OFFSET : headX - EYE_OFFSET;
+}
+function makeLarvaEyeY(headY: number) {
+  return headY - EYE_OFFSET;
+}
 
 const PROGRESS_BAR_HEIGHT = 8;
 const PROGRESS_BAR_BORDER_WIDTH = 1;
@@ -19,13 +37,15 @@ const PROGRESS_BAR_BORDER_WIDTH = 1;
 export function drawLarva(
   {
     position: { x, y },
+    destination,
     larvaHeadRadius,
     larvaBodyRadiusX,
     larvaBodyRadiusY,
   }: Context,
   { ctx }: DrawEvent
 ) {
-  const headX = makeLarvaHeadX(x);
+  const direction = makeDirection(x, destination.x);
+  const headX = makeLarvaHeadX(x, direction);
   const headY = makeLarvaHeadY(y);
 
   // Draw body
@@ -46,7 +66,13 @@ export function drawLarva(
 
   // Draw eye
   ctx.beginPath();
-  drawCircle(ctx, makeLarvaEyeX(headX), makeLarvaEyeY(headY), 1, 'black');
+  drawCircle(
+    ctx,
+    makeLarvaEyeX(headX, direction),
+    makeLarvaEyeY(headY),
+    1,
+    'black'
+  );
   ctx.closePath();
 }
 
@@ -116,11 +142,17 @@ export function blobLarvaClicked(
   const larvaContext = larva.getSnapshot()?.context;
 
   if (!larvaContext) return false;
-  const { position, larvaBodyRadiusX, larvaBodyRadiusY, larvaHeadRadius } =
-    larvaContext;
+  const {
+    position,
+    destination,
+    larvaBodyRadiusX,
+    larvaBodyRadiusY,
+    larvaHeadRadius,
+  } = larvaContext;
 
+  const direction = makeDirection(position.x, destination.x);
   const headPostion = {
-    x: makeLarvaHeadX(position.x),
+    x: makeLarvaHeadX(position.x, direction),
     y: makeLarvaHeadY(position.y),
   };
 
