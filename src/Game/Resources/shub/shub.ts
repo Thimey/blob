@@ -3,7 +3,7 @@ import { send, sendParent, pure } from 'xstate/lib/actions';
 
 import { roundTo } from 'game/utils';
 import { drawShrub, drawGrowingShrub } from './draw';
-import { Context, State, DrawEvent, HarvestEvent, DepleteEvent } from './types';
+import { Context, State, HarvestEvent, DepleteEvent } from './types';
 
 function makeHarvestAmount(harvestRate: number, totalAmount: number) {
   return Math.min(harvestRate, totalAmount);

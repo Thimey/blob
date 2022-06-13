@@ -4,7 +4,6 @@ import { Coordinates, PersistedActor } from 'src/types';
 export type Context = {
   id: string;
   position: Coordinates;
-  leafPositions: Coordinates[];
   harvestRate: number;
   initialAmount: number;
   amount: number;

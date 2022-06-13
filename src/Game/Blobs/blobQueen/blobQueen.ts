@@ -99,7 +99,6 @@ function initialisingShrubs(persistedShrub: PersistedShrubActor[]) {
             makeShrub({
               id: `${index + 1}`,
               position,
-              leafPositions: makeLeafPositions(position),
               harvestRate,
               initialAmount: 100,
               amount: 0,
@@ -212,7 +211,6 @@ const growShrub = assign<Context, GrowShrubEvent>(
     const machine = makeShrub({
       id: generateId(),
       position,
-      leafPositions: makeLeafPositions(position),
       harvestRate,
       initialAmount: roundTo(
         makeRandNumber(MIN_SHRUB_AMOUNT, MAX_SHRUB_AMOUNT),

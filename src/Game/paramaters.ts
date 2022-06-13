@@ -24,8 +24,8 @@ export const BLOBLET_SPAWN_TIME_MS = 10_000;
 
 // Shrubs
 export const MAX_SHRUB = 5;
-export const MIN_SHRUB_AMOUNT = 100;
-export const MAX_SHRUB_AMOUNT = 400;
+export const MIN_SHRUB_AMOUNT = 50;
+export const MAX_SHRUB_AMOUNT = 300;
 export const MIN_HARVEST_RATE = 0.5;
 export const MAX_HARVEST_RATE = 2;
 export const SHRUB_GROW_TIME_MS = 20_000;
