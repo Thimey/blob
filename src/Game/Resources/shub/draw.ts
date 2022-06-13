@@ -19,12 +19,12 @@ export function makePosition(harvestRate: number): Coordinates {
 
 function makeShrubRow(length: number, x: number, y: number, offset: number) {
   return new Array(length).fill(0).map((_, i) => {
-    const d = i % 2 === 0 ? -1 : 1;
+    const shiftDirection = i % 2 === 0 ? -1 : 1;
 
     return {
       x:
         x +
-        LEAF_WIDTH * 0.75 * Math.ceil(i / 2) * d +
+        LEAF_WIDTH * 0.75 * Math.ceil(i / 2) * shiftDirection +
         offset +
         makeRandNumber(0, 1),
       y: y + makeRandNumber(0, 2),
