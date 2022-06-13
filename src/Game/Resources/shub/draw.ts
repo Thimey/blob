@@ -2,7 +2,7 @@ import { Coordinates } from 'src/types';
 import { QUEEN_POSITION } from 'game/paramaters';
 import { drawDiamond, makeRandNumber } from 'game/utils';
 import { shrubColor, growingShrubColor } from 'game/colors';
-import { Context, DrawEvent } from '../types';
+import { Context, DrawEvent } from './types';
 
 const LEAF_HEIGHT = 18;
 const LEAF_WIDTH = 13;

@@ -2,7 +2,7 @@ import { createMachine, assign } from 'xstate';
 import { send, sendParent, pure } from 'xstate/lib/actions';
 
 import { roundTo } from 'game/utils';
-import { drawShrub, drawGrowingShrub } from './actions/draw';
+import { drawShrub, drawGrowingShrub } from './draw';
 import { Context, State, DrawEvent, HarvestEvent, DepleteEvent } from './types';
 
 function makeHarvestAmount(harvestRate: number, totalAmount: number) {
