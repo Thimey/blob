@@ -11,6 +11,7 @@ export const QUEEN_POSITION = {
 };
 
 // Larvae
+export const MAX_LARVAE = 4;
 export const BLOB_LARVA_HEAD_RADIUS = 7;
 export const BLOB_LARVA_BODY_RADIUS_X = 9;
 export const BLOB_LARVA_BODY_RADIUS_Y = 4;
@@ -22,6 +23,7 @@ export const BLOBLET_RADIUS = 10;
 export const BLOBLET_SPAWN_TIME_MS = 10_000;
 
 // Shrubs
+export const MAX_SHRUB = 5;
 export const MIN_SHRUB_AMOUNT = 100;
 export const MAX_SHRUB_AMOUNT = 400;
 export const MIN_HARVEST_RATE = 0.5;

@@ -8,9 +8,11 @@ import {
   BLOB_LARVA_HEAD_RADIUS,
   BLOB_LARVA_BODY_RADIUS_X,
   BLOB_LARVA_BODY_RADIUS_Y,
+  MAX_LARVAE,
   LARVA_SPAWN_TIME_MS,
   BLOBLET_SPAWN_TIME_MS,
   SHRUB_GROW_TIME_MS,
+  MAX_SHRUB,
   MIN_SHRUB_AMOUNT,
   MAX_SHRUB_AMOUNT,
   MIN_HARVEST_RATE,
@@ -195,8 +197,6 @@ const spawnBlob = assign(
   }
 );
 
-const MAX_SHRUB = 5;
-
 function shouldGrowShrub({ shrubs }: Context, _: GrowShrubEvent) {
   return shrubs.length < MAX_SHRUB;
 }
@@ -226,8 +226,6 @@ const growShrub = assign<Context, GrowShrubEvent>(
     };
   }
 );
-
-const MAX_LARVAE = 4;
 
 function shouldSpawnLarva({ blobLarvae }: Context, _: SpawnLarvaEvent) {
   return blobLarvae.length < MAX_LARVAE;
