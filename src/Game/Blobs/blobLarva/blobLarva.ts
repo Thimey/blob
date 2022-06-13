@@ -28,8 +28,8 @@ const stepToDestination = assign<Context, UpdateEvent>(
 
 const setNewDestination = assign<Context, UpdateEvent>(() => ({
   destination: {
-    x: QUEEN_POSITION.x + makeRandNumber(100),
-    y: QUEEN_POSITION.y + makeRandNumber(100),
+    x: QUEEN_POSITION.x + makeRandNumber(-100, 100),
+    y: QUEEN_POSITION.y + makeRandNumber(-100, 100),
   },
 }));
 

@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { interpret } from 'xstate';
 
 import { persistGameState, restoreGameState } from './persist';
+import { roundTo } from './utils';
 import {
   WORLD_HEIGHT,
   WORLD_WIDTH,
@@ -44,7 +45,7 @@ function gameLoop(
 
     gameOptionsMachine.send('DRAW', {
       ctx: optionsCtx,
-      mass: blobQueen.state.context.mass,
+      mass: roundTo(blobQueen.state.context.mass, 2),
     });
   }
 

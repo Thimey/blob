@@ -65,3 +65,7 @@ export type BlobHatchedEvent = {
   position: Coordinates;
   larvaId: string;
 };
+
+export type GrowShrubEvent = {
+  type: 'GROW_SHRUB';
+};

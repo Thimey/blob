@@ -1,6 +1,7 @@
 import { createMachine, assign } from 'xstate';
 import { send, sendParent, pure } from 'xstate/lib/actions';
 
+import { roundTo } from 'game/utils';
 import { drawShrub, drawGrowingShrub } from './actions/draw';
 import { Context, State, DrawEvent, HarvestEvent, DepleteEvent } from './types';
 
@@ -10,7 +11,7 @@ function makeHarvestAmount(harvestRate: number, totalAmount: number) {
 
 const harvest = pure(({ harvestRate, amount }: Context, _: HarvestEvent) => {
   const harvestAmount = makeHarvestAmount(harvestRate, amount);
-  const newAmount = amount - harvestAmount;
+  const newAmount = roundTo(amount - harvestAmount, 2);
 
   return [
     assign<Context, HarvestEvent>({

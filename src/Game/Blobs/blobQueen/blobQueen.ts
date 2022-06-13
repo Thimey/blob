@@ -1,7 +1,7 @@
 import { createMachine, assign, spawn, Interpreter } from 'xstate';
 import { pure } from 'xstate/lib/actions';
 
-import { generateId, makeRandNumber } from 'game/utils';
+import { generateId, makeRandNumber, roundTo } from 'game/utils';
 import { blobQueenColor } from 'game/colors';
 import {
   BLOBLET_RADIUS,
@@ -10,6 +10,11 @@ import {
   BLOB_LARVA_BODY_RADIUS_Y,
   LARVA_SPAWN_TIME_MS,
   BLOBLET_SPAWN_TIME_MS,
+  SHRUB_GROW_TIME_MS,
+  MIN_SHRUB_AMOUNT,
+  MAX_SHRUB_AMOUNT,
+  MIN_HARVEST_RATE,
+  MAX_HARVEST_RATE,
 } from 'game/paramaters';
 import {
   makeShrub,
@@ -42,6 +47,7 @@ import {
   SpawnLarvaEvent,
   ShowSpawnSelectionEvent,
   BlobHatchedEvent,
+  GrowShrubEvent,
 } from './types';
 
 export type PersistedGameState = {
@@ -65,7 +71,8 @@ type Event =
   | ShrubDepletedEvent
   | SpawnLarvaEvent
   | ShowSpawnSelectionEvent
-  | BlobHatchedEvent;
+  | BlobHatchedEvent
+  | GrowShrubEvent;
 
 export type BlobQueenService = Interpreter<Context, any, Event, State>;
 
@@ -93,7 +100,7 @@ function initialisingShrubs(persistedShrub: PersistedShrubActor[]) {
               leafPositions: makeLeafPositions(position),
               harvestRate,
               initialAmount: 100,
-              amount: 50,
+              amount: 0,
             })
           )
         ),
@@ -188,6 +195,38 @@ const spawnBlob = assign(
   }
 );
 
+const MAX_SHRUB = 5;
+
+function shouldGrowShrub({ shrubs }: Context, _: GrowShrubEvent) {
+  return shrubs.length < MAX_SHRUB;
+}
+
+const growShrub = assign<Context, GrowShrubEvent>(
+  ({ shrubs }: Context, _: GrowShrubEvent) => {
+    const harvestRate = roundTo(
+      makeRandNumber(MIN_HARVEST_RATE, MAX_HARVEST_RATE),
+      2
+    );
+    const position = makeShrubPosition(harvestRate);
+
+    const machine = makeShrub({
+      id: generateId(),
+      position,
+      leafPositions: makeLeafPositions(position),
+      harvestRate,
+      initialAmount: roundTo(
+        makeRandNumber(MIN_SHRUB_AMOUNT, MAX_SHRUB_AMOUNT),
+        0
+      ),
+      amount: 0,
+    });
+
+    return {
+      shrubs: [...shrubs, spawn(machine)],
+    };
+  }
+);
+
 const MAX_LARVAE = 4;
 
 function shouldSpawnLarva({ blobLarvae }: Context, _: SpawnLarvaEvent) {
@@ -198,8 +237,8 @@ const spawnBlobLarva = assign<Context, SpawnLarvaEvent>(
   ({ blobLarvae, position: { x, y }, mass }: Context, _: SpawnLarvaEvent) => {
     const { radiusY, radiusX } = makeRadius(mass);
     const position = {
-      x: x + radiusX + makeRandNumber(80),
-      y: y + radiusY + makeRandNumber(80),
+      x: x + radiusX + makeRandNumber(-80, 80),
+      y: y + radiusY + makeRandNumber(-80, 80),
     };
 
     const machine = makeBlobLarva({
@@ -278,6 +317,10 @@ export function makeBlobQueen({
               actions: [propagateMapClicked],
             },
           ],
+          GROW_SHRUB: {
+            actions: [growShrub],
+            cond: shouldGrowShrub,
+          },
           SPAWN_LARVA: {
             actions: [spawnBlobLarva],
             cond: shouldSpawnLarva,
@@ -305,11 +348,18 @@ export function makeBlobQueen({
         },
         invoke: {
           src: () => (cb) => {
-            const intervalId = setInterval(() => {
+            const spawnLarvaeInterval = setInterval(() => {
               cb('SPAWN_LARVA');
             }, LARVA_SPAWN_TIME_MS);
 
-            return () => clearInterval(intervalId);
+            const growShrubInterval = setInterval(() => {
+              cb('GROW_SHRUB');
+            }, SHRUB_GROW_TIME_MS);
+
+            return () => {
+              clearInterval(spawnLarvaeInterval);
+              clearInterval(growShrubInterval);
+            };
           },
         },
       },

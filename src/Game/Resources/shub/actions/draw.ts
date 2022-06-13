@@ -26,8 +26,8 @@ function makeShrubRow(length: number, x: number, y: number, offset: number) {
         x +
         LEAF_WIDTH * 0.75 * Math.ceil(i / 2) * d +
         offset +
-        makeRandNumber(1),
-      y: y + makeRandNumber(2),
+        makeRandNumber(0, 1),
+      y: y + makeRandNumber(0, 2),
     };
   });
 }
@@ -44,9 +44,9 @@ export function drawShrub(
   { leafPositions, amount, initialAmount, position }: Context,
   { ctx }: DrawEvent
 ) {
-  ctx.font = '12px Arial';
+  ctx.font = '10px Arial';
   ctx.fillStyle = shrubColor;
-  ctx.fillText(`${amount}/${initialAmount}`, position.x - 20, position.y - 40);
+  ctx.fillText(`${amount}/${initialAmount}`, position.x - 10, position.y - 30);
   leafPositions.forEach(({ x, y }) => {
     drawDiamond(ctx, x, y, LEAF_WIDTH, LEAF_HEIGHT, shrubColor, 'black');
   });
@@ -58,9 +58,15 @@ export function drawGrowingShrub(
 ) {
   const percentGrown = amount / initialAmount;
 
-  ctx.font = '12px Arial';
-  ctx.fillStyle = shrubColor;
-  ctx.fillText(`${amount}/${initialAmount}`, position.x - 20, position.y - 40);
+  if (percentGrown > 0.3) {
+    ctx.font = '10px Arial';
+    ctx.fillStyle = 'grey';
+    ctx.fillText(
+      `${amount}/${initialAmount}`,
+      position.x - 10,
+      position.y - 30
+    );
+  }
   ctx.globalAlpha = percentGrown;
   leafPositions.forEach(({ x, y }) => {
     drawDiamond(
