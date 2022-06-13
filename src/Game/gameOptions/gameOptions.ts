@@ -1,6 +1,6 @@
 import { createMachine, interpret } from 'xstate';
 
-import { blobQueenColor } from 'game/colors';
+import { optionsTextColor } from 'game/colors';
 import {} from 'game/blobs/blobQueen';
 
 type Context = any;
@@ -20,7 +20,7 @@ type Event = DrawEvent;
 
 function drawPlayingViewPort(_: Context, { ctx, mass }: DrawEvent) {
   ctx.font = '20px Arial';
-  ctx.fillStyle = blobQueenColor;
+  ctx.fillStyle = optionsTextColor;
   ctx.fillText(`Mass: ${mass}`, 10, 30);
 }
 
