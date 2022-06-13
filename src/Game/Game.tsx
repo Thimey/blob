@@ -2,6 +2,8 @@ import React, { useRef, useEffect } from 'react';
 import { interpret } from 'xstate';
 
 import { persistGameState, restoreGameState } from './persist';
+import { roundTo } from './utils';
+import { sandColor } from './colors';
 import {
   WORLD_HEIGHT,
   WORLD_WIDTH,
@@ -38,13 +40,17 @@ function gameLoop(
   gameCtx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
   optionsCtx.clearRect(0, 0, GAME_OPTIONS_WIDTH, GAME_OPTIONS_HEIGHT);
 
+  // eslint-disable-next-line no-param-reassign
+  gameCtx.fillStyle = sandColor;
+  gameCtx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
   if (blobQueen) {
     blobQueen.send('DRAW', { ctx: gameCtx });
     blobQueen.send('UPDATE', { ctx: gameCtx });
 
     gameOptionsMachine.send('DRAW', {
       ctx: optionsCtx,
-      mass: blobQueen.state.context.mass,
+      mass: roundTo(blobQueen.state.context.mass, 2),
     });
   }
 

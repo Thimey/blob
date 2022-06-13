@@ -6,14 +6,18 @@ export function generateId() {
   return Date.now().toString();
 }
 
+export function roundTo(number: number, decimalPlaces: number) {
+  return decimalPlaces < 1
+    ? Math.round(number)
+    : Math.round(number * 10 * decimalPlaces) / (10 * decimalPlaces);
+}
+
 export function getDistance([x1, y1]: Point, [x2, y2]: Point) {
   return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
 
-export function makeRandNumber(max = 1) {
-  const randNumber = Math.random() * max;
-
-  return Math.random() > 0.5 ? randNumber : randNumber * -1;
+export function makeRandNumber(min = 0, max = 1) {
+  return Math.random() * (max - min + 1) + min;
 }
 
 export type RGB = { r: number; g: number; b: number };

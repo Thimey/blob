@@ -1,5 +1,5 @@
 import { Coordinates } from 'src/types';
-import { ShrubActor } from 'game/resources';
+import { ShrubActor } from 'game/resources/shub';
 import { BlobletActor } from '../bloblet';
 import { BlobLarvaActor } from '../blobLarva';
 
@@ -64,4 +64,8 @@ export type BlobHatchedEvent = {
   blob: 'bloblet';
   position: Coordinates;
   larvaId: string;
+};
+
+export type GrowShrubEvent = {
+  type: 'GROW_SHRUB';
 };
