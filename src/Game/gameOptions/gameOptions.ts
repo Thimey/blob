@@ -1,37 +1,41 @@
 import { createMachine, interpret } from 'xstate';
 
-import { optionsTextColor } from 'game/colors';
-import {} from 'game/blobs/blobQueen';
+import { send } from 'xstate/lib/actions';
 
-type Context = any;
-
-type State = {
-  value: 'playing';
-  context: Context;
-};
-
-type DrawEvent = {
-  type: 'DRAW';
-  ctx: CanvasRenderingContext2D;
-  mass: number;
-};
-
-type Event = DrawEvent;
-
-function drawPlayingViewPort(_: Context, { ctx, mass }: DrawEvent) {
-  ctx.font = '20px Arial';
-  ctx.fillStyle = optionsTextColor;
-  ctx.fillText(`Mass: ${mass}`, 10, 30);
-}
+import { Context, State, Event } from './types';
+import { drawPlayingViewPort, drawSpawnSelection } from './draw';
 
 const machine = createMachine<Context, Event, State>({
   initial: 'playing',
   context: {},
   states: {
     playing: {
+      initial: 'idle',
       on: {
         DRAW: {
-          actions: [drawPlayingViewPort],
+          actions: [
+            drawPlayingViewPort,
+            send((_, { ctx }) => ({ type: 'DRAW_SPAWN_SELECTION', ctx })),
+          ],
+        },
+      },
+      states: {
+        idle: {
+          on: {
+            SHOW_SPAWN_SELECTION: {
+              target: 'spawnSelection',
+            },
+          },
+        },
+        spawnSelection: {
+          on: {
+            DRAW_SPAWN_SELECTION: {
+              actions: [drawSpawnSelection],
+            },
+            // HIDE_SPAWN_SELECTION: {
+            //   target: 'idle',
+            // },
+          },
         },
       },
     },

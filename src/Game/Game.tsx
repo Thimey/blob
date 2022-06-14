@@ -52,6 +52,12 @@ function gameLoop(
       ctx: optionsCtx,
       mass: roundTo(blobQueen.state.context.mass, 2),
     });
+
+    gameCtx.fillText(
+      `state: ${JSON.stringify(gameOptionsMachine.getSnapshot().value)}`,
+      100,
+      100
+    );
   }
 
   animationMachine.send('DRAW', { ctx: gameCtx });
@@ -73,6 +79,8 @@ export const Game = () => {
     const optionsCtx = viewPortCanvas.getContext(
       '2d'
     ) as CanvasRenderingContext2D;
+    viewPortCanvas.width = 150;
+    viewPortCanvas.height = 200;
 
     const onMouseUp = (e: MouseEvent) => {
       const mouseX = e.offsetX;

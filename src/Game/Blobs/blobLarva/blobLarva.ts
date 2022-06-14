@@ -117,11 +117,11 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
               deselected: {
                 on: {
                   LARVA_CLICKED: {
-                    // actions: sendParent(({ id, position }: Context) => ({
-                    //   type: 'LARVA_SELECTED',
-                    //   position,
-                    //   larvaId: id,
-                    // })),
+                    actions: sendParent(({ id, position }: Context) => ({
+                      type: 'LARVA_SELECTED',
+                      position,
+                      larvaId: id,
+                    })),
                     target: 'selected',
                     cond: didClickOnLarva,
                   },

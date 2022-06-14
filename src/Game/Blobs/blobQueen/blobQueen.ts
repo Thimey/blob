@@ -21,10 +21,10 @@ import {
 import {
   makeShrub,
   makePosition as makeShrubPosition,
-  makeLeafPositions,
   PersistedShrubActor,
 } from 'game/resources/shub';
 import { animationMachine } from 'game/animations/animationMachine';
+import { gameOptionsMachine } from 'game/gameOptions/gameOptions';
 import { makeBloblet, PersistedBlobletActor } from '../bloblet';
 import { makeBlobLarva } from '../blobLarva';
 
@@ -323,19 +323,22 @@ export function makeBlobQueen({
           },
           LARVA_SELECTED: {
             actions: ({ blobLarvae }, { larvaId }) => {
-              // For now just auto select bloblet
-              const larvaToGrow = blobLarvae.find(
-                (larva) => larva.getSnapshot()?.context?.id === larvaId
-              );
+              console.log('larva selected');
+              gameOptionsMachine.send({ type: 'SHOW_SPAWN_SELECTION' });
 
-              if (larvaToGrow) {
-                larvaToGrow.send({
-                  type: 'LARVA_SPAWN_SELECTED',
-                  selectedBlob: 'bloblet',
-                  spawnTime: BLOBLET_SPAWN_TIME_MS,
-                  hatchAt: Date.now() + BLOBLET_SPAWN_TIME_MS,
-                });
-              }
+              // For now just auto select bloblet
+              // const larvaToGrow = blobLarvae.find(
+              //   (larva) => larva.getSnapshot()?.context?.id === larvaId
+              // );
+
+              // if (larvaToGrow) {
+              //   larvaToGrow.send({
+              //     type: 'LARVA_SPAWN_SELECTED',
+              //     selectedBlob: 'bloblet',
+              //     spawnTime: BLOBLET_SPAWN_TIME_MS,
+              //     hatchAt: Date.now() + BLOBLET_SPAWN_TIME_MS,
+              //   });
+              // }
             },
           },
           BLOB_HATCHED: {
