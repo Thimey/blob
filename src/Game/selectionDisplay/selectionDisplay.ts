@@ -15,7 +15,8 @@ const machine = createMachine<Context, Event, State>({
         DRAW: {
           actions: [
             drawSelectionContainer,
-            send((_, { ctx }) => ({ type: 'DRAW_SPAWN_SELECTION', ctx })),
+            drawSpawnSelection,
+            // send((_, { ctx }) => ({ type: 'DRAW_SPAWN_SELECTION', ctx })),
           ],
         },
       },

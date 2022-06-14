@@ -5,7 +5,7 @@ export const GAME_OPTIONS_HEIGHT = 80;
 export const GAME_OPTIONS_WIDTH = 150;
 
 export const GAME_SELECTION_DISPLAY_HEIGHT = 200;
-export const GAME_SELECTION_DISPLAY_WIDTH = 200;
+export const GAME_SELECTION_DISPLAY_WIDTH = 300;
 
 // Queen
 export const QUEEN_POSITION = {

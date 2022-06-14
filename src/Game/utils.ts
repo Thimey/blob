@@ -63,3 +63,19 @@ export function isPointWithinCircle(
 
   return distanceFromClick <= radius;
 }
+
+interface Rectangle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export function isPointWithinRectangle(rect: Rectangle, { x, y }: Coordinates) {
+  return (
+    x > rect.x &&
+    x < rect.x + rect.width &&
+    y > rect.y &&
+    y < rect.y + rect.height
+  );
+}
