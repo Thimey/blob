@@ -9,6 +9,7 @@ import {
   State,
   PersistedLarvaActor,
   UpdateEvent,
+  LarvaClickEvent,
 } from './types';
 import { drawLarva, drawPupa, drawProgressBar } from './draw';
 
@@ -43,6 +44,13 @@ function hasReachedDestination(
   );
 }
 
+function didClickOnLarva(
+  { id }: Context,
+  { id: clickedLarvaId }: LarvaClickEvent
+) {
+  return id === clickedLarvaId;
+}
+
 export function makeBlobLarva({ context }: PersistedLarvaActor) {
   return createMachine<Context, Events, State>({
     initial: 'initialising',
@@ -57,17 +65,10 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
         initial: 'larva',
         states: {
           larva: {
+            initial: 'deselected',
             on: {
               DRAW: {
                 actions: [drawLarva],
-              },
-              LARVA_CLICKED: {
-                actions: sendParent(({ id, position }: Context) => ({
-                  type: 'SHOW_SPAWN_SELECTION',
-                  position,
-                  larvaId: id,
-                })),
-                cond: ({ id }, { id: clickedLarvaId }) => id === clickedLarvaId,
               },
               LARVA_SPAWN_SELECTED: {
                 target: 'pupa',
@@ -88,6 +89,34 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                   actions: [stepToDestination],
                 },
               ],
+            },
+            states: {
+              selected: {
+                on: {
+                  LARVA_CLICKED: {
+                    actions: sendParent(({ id }: Context) => ({
+                      type: 'LARVA_DESELECTED',
+                      larvaId: id,
+                    })),
+                    cond: didClickOnLarva,
+                  },
+                  // DRAW_SELECTED: {
+                  //   actions: [drawSelectedOutline],
+                  // },
+                },
+              },
+              deselected: {
+                on: {
+                  LARVA_CLICKED: {
+                    actions: sendParent(({ id, position }: Context) => ({
+                      type: 'LARVA_SELECTED',
+                      position,
+                      larvaId: id,
+                    })),
+                    cond: didClickOnLarva,
+                  },
+                },
+              },
             },
           },
           pupa: {

@@ -1,5 +1,6 @@
 import { blobletColor, shrubColor } from 'game/colors';
-import { drawCircle, drawDiamond, isPointWithinCircle } from 'game/utils';
+import { isPointWithinCircle } from 'game/utils';
+import { drawCircle, drawDiamond } from 'game/draw';
 import { Coordinates } from 'src/types';
 
 import {

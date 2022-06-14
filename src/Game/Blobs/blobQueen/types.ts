@@ -53,9 +53,14 @@ export type SpawnLarvaEvent = {
   type: 'SPAWN_LARVA';
 };
 
-export type ShowSpawnSelectionEvent = {
-  type: 'SHOW_SPAWN_SELECTION';
+export type LarvaSelectionEvent = {
+  type: 'LARVA_SELECTED';
   postion: Coordinates;
+  larvaId: string;
+};
+
+export type LarvaDeSelectionEvent = {
+  type: 'LARVA_DESELECTED';
   larvaId: string;
 };
 

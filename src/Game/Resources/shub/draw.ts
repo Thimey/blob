@@ -4,7 +4,9 @@ import {
   MAX_SHRUB_AMOUNT,
   MIN_SHRUB_AMOUNT,
 } from 'game/paramaters';
-import { drawDiamond, makeRandNumber } from 'game/utils';
+import { makeRandNumber } from 'game/utils';
+import { drawDiamond } from 'game/draw';
+
 import { shrubColor } from 'game/colors';
 import { Context, DrawEvent } from './types';
 

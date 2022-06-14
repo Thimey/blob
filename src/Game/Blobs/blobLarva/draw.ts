@@ -1,9 +1,6 @@
 import { Coordinates } from 'src/types';
-import {
-  drawCircle,
-  isPointWithinCircle,
-  isPointWithinEllipse,
-} from 'game/utils';
+import { isPointWithinCircle, isPointWithinEllipse } from 'game/utils';
+import { drawCircle } from 'game/draw';
 import { blobLarvaColor, blobPupaColor, progressBarColor } from 'game/colors';
 import { Context, DrawEvent, BlobLarvaActor } from './types';
 

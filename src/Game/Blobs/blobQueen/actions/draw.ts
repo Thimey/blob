@@ -1,4 +1,4 @@
-import { drawCircle } from 'game/utils';
+import { drawCircle } from 'game/draw';
 import { blobQueenColor } from 'game/colors';
 import { Context, DrawEvent, SpawnType } from '../types';
 

@@ -321,7 +321,7 @@ export function makeBlobQueen({
             actions: [spawnBlobLarva],
             cond: shouldSpawnLarva,
           },
-          SHOW_SPAWN_SELECTION: {
+          LARVA_SELECTED: {
             actions: ({ blobLarvae }, { larvaId }) => {
               // For now just auto select bloblet
               const larvaToGrow = blobLarvae.find(
