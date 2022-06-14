@@ -7,3 +7,7 @@ export type PersistedActor<T, U> = {
   context: T;
   value: U;
 };
+
+export interface DrawEventCtx {
+  ctx: CanvasRenderingContext2D;
+}

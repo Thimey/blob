@@ -11,16 +11,4 @@ export type DrawEvent = {
   mass: number;
 };
 
-export type DrawSpawnSelectionEvent = {
-  type: 'DRAW_SPAWN_SELECTION';
-  ctx: CanvasRenderingContext2D;
-};
-
-export type ShowSpawnSelectionEvent = {
-  type: 'SHOW_SPAWN_SELECTION';
-};
-
-export type Event =
-  | DrawEvent
-  | DrawSpawnSelectionEvent
-  | ShowSpawnSelectionEvent;
+export type Event = DrawEvent;

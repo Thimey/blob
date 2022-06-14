@@ -1,15 +1,18 @@
-import { Coordinates } from 'src/types';
+import { Coordinates, DrawEventCtx } from 'src/types';
 import { isPointWithinCircle, isPointWithinEllipse } from 'game/utils';
 import { drawCircle, drawSelectedOutline } from 'game/draw';
 import { blobLarvaColor, blobPupaColor, progressBarColor } from 'game/colors';
-import {
-  Context,
-  DrawEvent,
-  BlobLarvaActor,
-  DrawLarvaSelectedEvent,
-} from './types';
+import { Context, BlobLarvaActor } from './types';
 
 type Direction = 'right' | 'left';
+type LarvaDrawContext = Pick<
+  Context,
+  | 'position'
+  | 'destination'
+  | 'larvaHeadRadius'
+  | 'larvaBodyRadiusX'
+  | 'larvaBodyRadiusY'
+>;
 
 const HEAD_OFFSET_X = 12;
 const HEAD_OFFSET_Y = 2;
@@ -43,8 +46,8 @@ export function drawLarva(
     larvaHeadRadius,
     larvaBodyRadiusX,
     larvaBodyRadiusY,
-  }: Context,
-  { ctx }: DrawEvent
+  }: LarvaDrawContext,
+  { ctx }: DrawEventCtx
 ) {
   const direction = makeDirection(x, destination.x);
   const headX = makeLarvaHeadX(x, direction);
@@ -84,8 +87,8 @@ export function drawLarvaSelectedOutline(
     destination,
     larvaHeadRadius,
     larvaBodyRadiusX,
-  }: Context,
-  { ctx }: DrawLarvaSelectedEvent
+  }: LarvaDrawContext,
+  { ctx }: DrawEventCtx
 ) {
   drawSelectedOutline(
     {
@@ -105,8 +108,8 @@ export function drawPupa(
     larvaHeadRadius,
     larvaBodyRadiusX,
     larvaBodyRadiusY,
-  }: Context,
-  { ctx }: DrawEvent
+  }: LarvaDrawContext,
+  { ctx }: DrawEventCtx
 ) {
   // Base
   ctx.beginPath();
@@ -127,7 +130,7 @@ export function drawPupa(
 
 export function drawProgressBar(
   { position: { x, y }, larvaBodyRadiusX, larvaBodyRadiusY, pupa }: Context,
-  { ctx }: DrawEvent
+  { ctx }: DrawEventCtx
 ) {
   if (!pupa) return;
 

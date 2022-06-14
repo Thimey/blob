@@ -25,6 +25,7 @@ import {
 } from 'game/resources/shub';
 import { animationMachine } from 'game/animations/animationMachine';
 import { gameOptionsMachine } from 'game/gameOptions/gameOptions';
+import { selectionDisplayMachine } from 'game/selectionDisplay';
 import { makeBloblet, PersistedBlobletActor } from '../bloblet';
 import { makeBlobLarva } from '../blobLarva';
 
@@ -324,7 +325,7 @@ export function makeBlobQueen({
           LARVA_SELECTED: {
             actions: ({ blobLarvae }, { larvaId }) => {
               console.log('larva selected');
-              gameOptionsMachine.send({ type: 'SHOW_SPAWN_SELECTION' });
+              selectionDisplayMachine.send({ type: 'SHOW_SPAWN_SELECTION' });
 
               // For now just auto select bloblet
               // const larvaToGrow = blobLarvae.find(

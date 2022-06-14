@@ -10,10 +10,13 @@ import {
   QUEEN_POSITION,
   GAME_OPTIONS_HEIGHT,
   GAME_OPTIONS_WIDTH,
+  GAME_SELECTION_DISPLAY_HEIGHT,
+  GAME_SELECTION_DISPLAY_WIDTH,
 } from './paramaters';
 import { makeBlobQueen, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
 import { gameOptionsMachine } from './gameOptions';
+import { selectionDisplayMachine } from './selectionDisplay';
 
 export const INITIAL_GAME_STATE: PersistedGameState = {
   mass: 50,
@@ -35,10 +38,17 @@ let blobQueen: any = null;
 
 function gameLoop(
   gameCtx: CanvasRenderingContext2D,
-  optionsCtx: CanvasRenderingContext2D
+  optionsCtx: CanvasRenderingContext2D,
+  selectionDisplayCtx: CanvasRenderingContext2D
 ) {
   gameCtx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
   optionsCtx.clearRect(0, 0, GAME_OPTIONS_WIDTH, GAME_OPTIONS_HEIGHT);
+  selectionDisplayCtx.clearRect(
+    0,
+    0,
+    GAME_SELECTION_DISPLAY_WIDTH,
+    GAME_SELECTION_DISPLAY_HEIGHT
+  );
 
   // eslint-disable-next-line no-param-reassign
   gameCtx.fillStyle = sandColor;
@@ -53,21 +63,23 @@ function gameLoop(
       mass: roundTo(blobQueen.state.context.mass, 2),
     });
 
-    gameCtx.fillText(
-      `state: ${JSON.stringify(gameOptionsMachine.getSnapshot().value)}`,
-      100,
-      100
-    );
+    selectionDisplayMachine.send('DRAW', {
+      ctx: selectionDisplayCtx,
+    });
   }
 
   animationMachine.send('DRAW', { ctx: gameCtx });
 
-  window.requestAnimationFrame(() => gameLoop(gameCtx, optionsCtx));
+  window.requestAnimationFrame(() =>
+    gameLoop(gameCtx, optionsCtx, selectionDisplayCtx)
+  );
 }
 
 export const Game = () => {
+  // TODO: Consider moving each canvas into it's own hook with it's own game loop.
   const gameCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const optionsCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const selectionDisplayCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const gameCanvas = gameCanvasRef.current as HTMLCanvasElement;
@@ -75,12 +87,20 @@ export const Game = () => {
     gameCanvas.width = WORLD_WIDTH;
     gameCanvas.height = WORLD_HEIGHT;
 
-    const viewPortCanvas = optionsCanvasRef.current as HTMLCanvasElement;
-    const optionsCtx = viewPortCanvas.getContext(
+    const optionsCanvas = optionsCanvasRef.current as HTMLCanvasElement;
+    const optionsCtx = optionsCanvas.getContext(
       '2d'
     ) as CanvasRenderingContext2D;
-    viewPortCanvas.width = 150;
-    viewPortCanvas.height = 200;
+    optionsCanvas.width = GAME_OPTIONS_WIDTH;
+    optionsCanvas.height = GAME_OPTIONS_HEIGHT;
+
+    const selctionDisplayCanvas =
+      selectionDisplayCanvasRef.current as HTMLCanvasElement;
+    const selectionDisplayCtx = selctionDisplayCanvas.getContext(
+      '2d'
+    ) as CanvasRenderingContext2D;
+    selctionDisplayCanvas.width = GAME_SELECTION_DISPLAY_WIDTH;
+    selctionDisplayCanvas.height = GAME_SELECTION_DISPLAY_HEIGHT;
 
     const onMouseUp = (e: MouseEvent) => {
       const mouseX = e.offsetX;
@@ -92,7 +112,7 @@ export const Game = () => {
     };
 
     window.addEventListener('mouseup', onMouseUp);
-    gameLoop(gameCtx, optionsCtx);
+    gameLoop(gameCtx, optionsCtx, selectionDisplayCtx);
 
     const retoredGameState = restoreGameState();
 
@@ -111,10 +131,33 @@ export const Game = () => {
 
   return (
     <>
-      <div id="game-options">
-        <canvas id="game-options-canvas" ref={optionsCanvasRef} />
-      </div>
-      <canvas id="game-canvas" ref={gameCanvasRef} />
+      <canvas
+        id="game-options-canvas"
+        ref={optionsCanvasRef}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          height: GAME_OPTIONS_HEIGHT,
+          width: GAME_OPTIONS_WIDTH,
+        }}
+      />
+      <canvas
+        id="game-selection-display-canvas"
+        ref={selectionDisplayCanvasRef}
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          height: GAME_SELECTION_DISPLAY_HEIGHT,
+          width: GAME_SELECTION_DISPLAY_WIDTH,
+        }}
+      />
+      <canvas
+        id="game-canvas"
+        ref={gameCanvasRef}
+        style={{ height: WORLD_HEIGHT, width: WORLD_WIDTH }}
+      />
     </>
   );
 };

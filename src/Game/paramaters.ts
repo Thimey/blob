@@ -1,8 +1,11 @@
 export const WORLD_HEIGHT = 1250;
 export const WORLD_WIDTH = 2000;
 
-export const GAME_OPTIONS_HEIGHT = 50;
+export const GAME_OPTIONS_HEIGHT = 80;
 export const GAME_OPTIONS_WIDTH = 150;
+
+export const GAME_SELECTION_DISPLAY_HEIGHT = 200;
+export const GAME_SELECTION_DISPLAY_WIDTH = 200;
 
 // Queen
 export const QUEEN_POSITION = {

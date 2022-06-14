@@ -3,7 +3,7 @@ import { send } from 'xstate/lib/actions';
 
 import { QUEEN_POSITION } from 'game/paramaters';
 import { drawSelectedOutline } from 'game/draw';
-import { drawBody, drawCarryingShrub } from './draw';
+import { drawBloblet, drawCarryingShrub } from './draw';
 import {
   Context,
   MapClickEvent,
@@ -86,7 +86,7 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
         on: {
           DRAW: {
             actions: [
-              drawBody,
+              drawBloblet,
               send((_, { ctx }) => ({ type: 'DRAW_SELECTED', ctx })),
               send((_, { ctx }) => ({ type: 'DRAW_SHRUB', ctx })),
             ],

@@ -1,13 +1,15 @@
 import { blobletColor, shrubColor } from 'game/colors';
 import { isPointWithinCircle } from 'game/utils';
 import { drawCircle, drawDiamond } from 'game/draw';
-import { Coordinates } from 'src/types';
+import { Coordinates, DrawEventCtx } from 'src/types';
 
-import { Context, DrawEvent, DrawSrubEvent, BlobletActor } from './types';
+import { Context, BlobletActor } from './types';
 
-export function drawBody(
-  { position: { x, y }, radius }: Context,
-  { ctx }: DrawEvent
+type BlobletDrawContext = Pick<Context, 'position' | 'radius'>;
+
+export function drawBloblet(
+  { position: { x, y }, radius }: BlobletDrawContext,
+  { ctx }: DrawEventCtx
 ) {
   // Body
   ctx.beginPath();
@@ -28,8 +30,8 @@ export function drawBody(
 }
 
 export function drawCarryingShrub(
-  { position: { x, y } }: Context,
-  { ctx }: DrawSrubEvent
+  { position: { x, y } }: BlobletDrawContext,
+  { ctx }: DrawEventCtx
 ) {
   // Mini shrub
   drawDiamond(ctx, x, y + 4, 7, 10, shrubColor, 'black');
