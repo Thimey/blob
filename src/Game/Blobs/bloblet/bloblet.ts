@@ -2,7 +2,8 @@ import { createMachine, assign, sendParent } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { QUEEN_POSITION } from 'game/paramaters';
-import { drawSelectedOutline, drawBody, drawCarryingShrub } from './draw';
+import { drawSelectedOutline } from 'game/draw';
+import { drawBody, drawCarryingShrub } from './draw';
 import {
   Context,
   MapClickEvent,

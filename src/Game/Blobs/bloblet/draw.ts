@@ -3,13 +3,7 @@ import { isPointWithinCircle } from 'game/utils';
 import { drawCircle, drawDiamond } from 'game/draw';
 import { Coordinates } from 'src/types';
 
-import {
-  Context,
-  DrawEvent,
-  DrawSelectedEvent,
-  DrawSrubEvent,
-  BlobletActor,
-} from './types';
+import { Context, DrawEvent, DrawSrubEvent, BlobletActor } from './types';
 
 export function drawBody(
   { position: { x, y }, radius }: Context,
@@ -30,17 +24,6 @@ export function drawBody(
   // Right eye
   ctx.beginPath();
   drawCircle(ctx, x + 2, y - 5, 1, 'black');
-  ctx.closePath();
-}
-
-export function drawSelectedOutline(
-  { position: { x, y }, radius }: Context,
-  { ctx }: DrawSelectedEvent
-) {
-  ctx.beginPath();
-  drawCircle(ctx, x, y, radius + 2, 'transparent');
-  ctx.strokeStyle = 'red';
-  ctx.stroke();
   ctx.closePath();
 }
 

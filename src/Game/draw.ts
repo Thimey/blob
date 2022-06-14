@@ -1,4 +1,5 @@
 import { Coordinates } from '../types';
+import { selectionOutlineColor } from './colors';
 
 interface DrawEvent {
   ctx: CanvasRenderingContext2D;
@@ -52,8 +53,10 @@ export function drawSelectedOutline(
   { ctx }: DrawEvent
 ) {
   ctx.beginPath();
-  drawCircle(ctx, x, y, radius + 2, 'transparent');
-  ctx.strokeStyle = 'red';
+  drawCircle(ctx, x, y, radius + 1.5, 'transparent');
+  ctx.setLineDash([5, 8]);
+  ctx.strokeStyle = selectionOutlineColor;
   ctx.stroke();
   ctx.closePath();
+  ctx.setLineDash([]);
 }

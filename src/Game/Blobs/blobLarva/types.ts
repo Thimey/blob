@@ -20,6 +20,11 @@ export type DrawEvent = {
   ctx: CanvasRenderingContext2D;
 };
 
+export type DrawLarvaSelectedEvent = {
+  type: 'DRAW_LARVA_SELECTED';
+  ctx: CanvasRenderingContext2D;
+};
+
 export type UpdateEvent = {
   type: 'UPDATE';
 };
@@ -52,6 +57,7 @@ export type Events =
   | UpdateEvent
   | LarvaClickEvent
   | LarvaSpawnSelected
+  | DrawLarvaSelectedEvent
   | PupaHatch;
 
 export type BlobLarvaActor = ActorRefFrom<StateMachine<Context, any, Events>>;

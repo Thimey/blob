@@ -1,8 +1,13 @@
 import { Coordinates } from 'src/types';
 import { isPointWithinCircle, isPointWithinEllipse } from 'game/utils';
-import { drawCircle } from 'game/draw';
+import { drawCircle, drawSelectedOutline } from 'game/draw';
 import { blobLarvaColor, blobPupaColor, progressBarColor } from 'game/colors';
-import { Context, DrawEvent, BlobLarvaActor } from './types';
+import {
+  Context,
+  DrawEvent,
+  BlobLarvaActor,
+  DrawLarvaSelectedEvent,
+} from './types';
 
 type Direction = 'right' | 'left';
 
@@ -71,6 +76,27 @@ export function drawLarva(
     'black'
   );
   ctx.closePath();
+}
+
+export function drawLarvaSelectedOutline(
+  {
+    position: { x, y },
+    destination,
+    larvaHeadRadius,
+    larvaBodyRadiusX,
+  }: Context,
+  { ctx }: DrawLarvaSelectedEvent
+) {
+  drawSelectedOutline(
+    {
+      position: {
+        x: (x + makeLarvaHeadX(x, makeDirection(x, destination.x))) / 2,
+        y,
+      },
+      radius: larvaBodyRadiusX + larvaHeadRadius,
+    },
+    { ctx }
+  );
 }
 
 export function drawPupa(
