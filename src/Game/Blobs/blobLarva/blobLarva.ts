@@ -78,16 +78,7 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                   send((_, { ctx }) => ({ type: 'DRAW_LARVA_SELECTED', ctx })),
                 ],
               },
-              LARVA_SPAWN_SELECTED: {
-                target: 'pupa',
-                actions: assign((_, { blobToSpawn, hatchAt, spawnTime }) => ({
-                  pupa: {
-                    spawnTo: blobToSpawn,
-                    spawnTime,
-                    hatchAt,
-                  },
-                })),
-              },
+
               UPDATE: [
                 {
                   actions: setNewDestination,
@@ -112,6 +103,18 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                   DRAW_LARVA_SELECTED: {
                     actions: [drawLarvaSelectedOutline],
                   },
+                  LARVA_SPAWN_SELECTED: {
+                    target: '#pupa',
+                    actions: assign(
+                      (_, { blobToSpawn, hatchAt, spawnTime }) => ({
+                        pupa: {
+                          spawnTo: blobToSpawn,
+                          spawnTime,
+                          hatchAt,
+                        },
+                      })
+                    ),
+                  },
                 },
               },
               deselected: {
@@ -130,6 +133,7 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
             },
           },
           pupa: {
+            id: 'pupa',
             on: {
               DRAW: {
                 actions: [drawPupa, drawProgressBar],

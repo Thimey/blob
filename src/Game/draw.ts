@@ -53,8 +53,8 @@ export function drawSelectedOutline(
   { ctx }: DrawEvent
 ) {
   ctx.beginPath();
-  drawCircle(ctx, x, y, radius + 1.5, 'transparent');
-  ctx.setLineDash([5, 8]);
+  drawCircle(ctx, x, y, radius + 2, 'transparent');
+  ctx.setLineDash([5, 6]);
   ctx.strokeStyle = selectionOutlineColor;
   ctx.stroke();
   ctx.closePath();

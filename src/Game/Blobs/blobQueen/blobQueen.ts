@@ -46,6 +46,7 @@ import {
   HarvestShrubEvent,
   ShrubDepletedEvent,
   SpawnLarvaEvent,
+  LarvaDeSelectionEvent,
   BlobHatchedEvent,
   GrowShrubEvent,
   PersistedGameState,
@@ -168,6 +169,22 @@ const spawnBlob = assign(
     return {};
   }
 );
+
+function noOtherLarvaeSelected(
+  { blobLarvae }: Context,
+  { larvaId }: LarvaDeSelectionEvent
+) {
+  return (
+    blobLarvae.filter((larva) => {
+      const larvaSnapshot = larva.getSnapshot();
+
+      return (
+        larvaSnapshot?.context.id !== larvaId &&
+        larvaSnapshot?.matches({ ready: { larva: 'selected' } })
+      );
+    }).length === 0
+  );
+}
 
 function shouldGrowShrub({ shrubs }: Context, _: GrowShrubEvent) {
   return shrubs.length < MAX_SHRUB;
@@ -305,6 +322,10 @@ export function makeBlobQueen({
           },
           LARVA_SELECTED: {
             target: '.itemSelection.larvaSelected',
+          },
+          LARVA_DESELECTED: {
+            target: '.itemSelection.idle',
+            cond: noOtherLarvaeSelected,
           },
           BLOB_HATCHED: {
             actions: [spawnBlob],
