@@ -355,6 +355,7 @@ export function makeBlobQueen({
               larvaSelected: {
                 on: {
                   SPAWN_BLOB_SELECTED: {
+                    target: 'idle',
                     actions: ({ blobLarvae }, { blobToSpawn }) => {
                       blobLarvae.forEach((larva) =>
                         larva.send({
