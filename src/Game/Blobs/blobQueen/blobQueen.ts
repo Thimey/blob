@@ -304,7 +304,7 @@ export function makeBlobQueen({
             cond: shouldSpawnLarva,
           },
           LARVA_SELECTED: {
-            target: '.itemSelection.selected',
+            target: '.itemSelection.larvaSelected',
           },
           BLOB_HATCHED: {
             actions: [spawnBlob],
@@ -331,7 +331,7 @@ export function makeBlobQueen({
             initial: 'idle',
             states: {
               idle: {},
-              selected: {
+              larvaSelected: {
                 on: {
                   SPAWN_BLOB_SELECTED: {
                     actions: ({ blobLarvae }, { blobToSpawn }) => {
