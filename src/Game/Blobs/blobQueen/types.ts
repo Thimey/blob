@@ -1,6 +1,7 @@
-import { Coordinates } from 'src/types';
-import { ShrubActor } from 'game/resources/shub';
-import { BlobletActor } from '../bloblet';
+import { Interpreter } from 'xstate';
+import { Coordinates, BlobSpawn } from 'src/types';
+import { ShrubActor, PersistedShrubActor } from 'game/resources/shub';
+import { BlobletActor, PersistedBlobletActor } from '../bloblet';
 import { BlobLarvaActor } from '../blobLarva';
 
 export type SpawnType = 'bloblet';
@@ -64,6 +65,11 @@ export type LarvaDeSelectionEvent = {
   larvaId: string;
 };
 
+export type SpawnBlobSelectedEvent = {
+  type: 'SPAWN_BLOB_SELECTED';
+  blobToSpawn: BlobSpawn;
+};
+
 export type BlobHatchedEvent = {
   type: 'BLOB_HATCHED';
   blob: 'bloblet';
@@ -74,3 +80,31 @@ export type BlobHatchedEvent = {
 export type GrowShrubEvent = {
   type: 'GROW_SHRUB';
 };
+
+export type PersistedGameState = {
+  bloblets: PersistedBlobletActor[];
+  shrubs: PersistedShrubActor[];
+} & Omit<Context, 'bloblets' | ' shrubs'>;
+
+type StateValues = { selection: 'deselected' } | { selection: 'selected' };
+
+export type State = {
+  value: StateValues;
+  context: Context;
+};
+
+export type Event =
+  | DrawEvent
+  | UpdateEvent
+  | ClickedEvent
+  | FeedOnShrubEvent
+  | HarvestShrubEvent
+  | ShrubDepletedEvent
+  | SpawnLarvaEvent
+  | LarvaSelectionEvent
+  | LarvaDeSelectionEvent
+  | SpawnBlobSelectedEvent
+  | BlobHatchedEvent
+  | GrowShrubEvent;
+
+export type BlobQueenService = Interpreter<Context, any, Event, State>;

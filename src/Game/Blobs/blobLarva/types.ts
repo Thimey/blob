@@ -1,5 +1,5 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
-import { Coordinates, PersistedActor } from 'src/types';
+import { Coordinates, PersistedActor, BlobSpawn } from 'src/types';
 
 export interface Context {
   id: string;
@@ -36,7 +36,7 @@ export type LarvaClickEvent = {
 
 export type LarvaSpawnSelected = {
   type: 'LARVA_SPAWN_SELECTED';
-  selectedBlob: 'bloblet';
+  blobToSpawn: BlobSpawn;
   spawnTime: number;
   hatchAt: number;
 };

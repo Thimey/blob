@@ -16,7 +16,7 @@ import {
 import { makeBlobQueen, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
 import { gameOptionsMachine } from './gameOptions';
-import { selectionDisplayMachine } from './selectionDisplay';
+import { SelectionDisplay } from './SelectionDisplay';
 
 export const INITIAL_GAME_STATE: PersistedGameState = {
   mass: 50,
@@ -33,22 +33,19 @@ export const INITIAL_GAME_STATE: PersistedGameState = {
   blobLarvae: [],
 };
 
+// Move to react context
+const retoredGameState = restoreGameState();
 // TODO sort out typing
-let blobQueen: any = null;
+const blobQueen = retoredGameState
+  ? interpret(makeBlobQueen(retoredGameState as PersistedGameState)).start()
+  : interpret(makeBlobQueen(INITIAL_GAME_STATE)).start();
 
 function gameLoop(
   gameCtx: CanvasRenderingContext2D,
-  optionsCtx: CanvasRenderingContext2D,
-  selectionDisplayCtx: CanvasRenderingContext2D
+  optionsCtx: CanvasRenderingContext2D
 ) {
   gameCtx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
   optionsCtx.clearRect(0, 0, GAME_OPTIONS_WIDTH, GAME_OPTIONS_HEIGHT);
-  selectionDisplayCtx.clearRect(
-    0,
-    0,
-    GAME_SELECTION_DISPLAY_WIDTH,
-    GAME_SELECTION_DISPLAY_HEIGHT
-  );
 
   // eslint-disable-next-line no-param-reassign
   gameCtx.fillStyle = sandColor;
@@ -58,28 +55,25 @@ function gameLoop(
     blobQueen.send('DRAW', { ctx: gameCtx });
     blobQueen.send('UPDATE', { ctx: gameCtx });
 
+    // gameCtx.font = '20px Arial';
+    // gameCtx.fillStyle = 'black';
+    // gameCtx.fillText(JSON.stringify(blobQueen.state.value), 100, 100);
+
     gameOptionsMachine.send('DRAW', {
       ctx: optionsCtx,
       mass: roundTo(blobQueen.state.context.mass, 2),
-    });
-
-    selectionDisplayMachine.send('DRAW', {
-      ctx: selectionDisplayCtx,
     });
   }
 
   animationMachine.send('DRAW', { ctx: gameCtx });
 
-  window.requestAnimationFrame(() =>
-    gameLoop(gameCtx, optionsCtx, selectionDisplayCtx)
-  );
+  window.requestAnimationFrame(() => gameLoop(gameCtx, optionsCtx));
 }
 
 export const Game = () => {
   // TODO: Consider moving each canvas into it's own hook with it's own game loop.
   const gameCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const optionsCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const selectionDisplayCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const gameCanvas = gameCanvasRef.current as HTMLCanvasElement;
@@ -94,40 +88,23 @@ export const Game = () => {
     optionsCanvas.width = GAME_OPTIONS_WIDTH;
     optionsCanvas.height = GAME_OPTIONS_HEIGHT;
 
-    const selctionDisplayCanvas =
-      selectionDisplayCanvasRef.current as HTMLCanvasElement;
-    const selectionDisplayCtx = selctionDisplayCanvas.getContext(
-      '2d'
-    ) as CanvasRenderingContext2D;
-    selctionDisplayCanvas.width = GAME_SELECTION_DISPLAY_WIDTH;
-    selctionDisplayCanvas.height = GAME_SELECTION_DISPLAY_HEIGHT;
-
-    const onMouseUp = (e: MouseEvent) => {
-      const mouseX = e.offsetX;
-      const mouseY = e.offsetY;
-
-      if (blobQueen) {
-        blobQueen.send('CLICKED', { coordinates: { x: mouseX, y: mouseY } });
-      }
-    };
-
-    window.addEventListener('mouseup', onMouseUp);
-    gameLoop(gameCtx, optionsCtx, selectionDisplayCtx);
-
-    const retoredGameState = restoreGameState();
-
-    blobQueen = retoredGameState
-      ? interpret(makeBlobQueen(retoredGameState as PersistedGameState)).start()
-      : interpret(makeBlobQueen(INITIAL_GAME_STATE)).start();
+    gameLoop(gameCtx, optionsCtx);
 
     // window.addEventListener('beforeunload', () =>
     //   persistGameState(blobQueen as any)
     // );
-
-    return () => {
-      window.removeEventListener('mouseup', onMouseUp);
-    };
   }, []);
+
+  const handleMainGameClick = ({ clientX, clientY }: React.MouseEvent) => {
+    const geometry = gameCanvasRef.current?.getBoundingClientRect();
+
+    if (blobQueen && geometry) {
+      const { x, y } = geometry;
+      blobQueen.send('CLICKED', {
+        coordinates: { x: clientX - x, y: clientY - y },
+      });
+    }
+  };
 
   return (
     <>
@@ -143,21 +120,15 @@ export const Game = () => {
         }}
       />
       <canvas
-        id="game-selection-display-canvas"
-        ref={selectionDisplayCanvasRef}
+        id="game-canvas"
+        onClick={handleMainGameClick}
+        ref={gameCanvasRef}
         style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          height: GAME_SELECTION_DISPLAY_HEIGHT,
-          width: GAME_SELECTION_DISPLAY_WIDTH,
+          height: WORLD_HEIGHT,
+          width: WORLD_WIDTH,
         }}
       />
-      <canvas
-        id="game-canvas"
-        ref={gameCanvasRef}
-        style={{ height: WORLD_HEIGHT, width: WORLD_WIDTH }}
-      />
+      <SelectionDisplay blobQueenService={blobQueen as any} />
     </>
   );
 };

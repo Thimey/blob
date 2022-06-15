@@ -1,3 +1,5 @@
+export type BlobSpawn = 'bloblet';
+
 export type Coordinates = {
   x: number;
   y: number;

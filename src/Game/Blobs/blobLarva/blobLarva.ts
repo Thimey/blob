@@ -80,9 +80,9 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
               },
               LARVA_SPAWN_SELECTED: {
                 target: 'pupa',
-                actions: assign((_, { selectedBlob, hatchAt, spawnTime }) => ({
+                actions: assign((_, { blobToSpawn, hatchAt, spawnTime }) => ({
                   pupa: {
-                    spawnTo: selectedBlob,
+                    spawnTo: blobToSpawn,
                     spawnTime,
                     hatchAt,
                   },

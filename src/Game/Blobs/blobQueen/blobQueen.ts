@@ -1,4 +1,4 @@
-import { createMachine, assign, spawn, Interpreter } from 'xstate';
+import { createMachine, assign, spawn } from 'xstate';
 import { pure } from 'xstate/lib/actions';
 
 import { generateId, makeRandNumber, roundTo } from 'game/utils';
@@ -24,8 +24,6 @@ import {
   PersistedShrubActor,
 } from 'game/resources/shub';
 import { animationMachine } from 'game/animations/animationMachine';
-import { gameOptionsMachine } from 'game/gameOptions/gameOptions';
-import { selectionDisplayMachine } from 'game/selectionDisplay';
 import { makeBloblet, PersistedBlobletActor } from '../bloblet';
 import { makeBlobLarva } from '../blobLarva';
 
@@ -41,43 +39,17 @@ import {
 import { makeRadius, drawBody } from './actions/draw';
 import {
   Context,
+  Event,
+  State,
   DrawEvent,
-  UpdateEvent,
-  ClickedEvent,
   FeedOnShrubEvent,
   HarvestShrubEvent,
   ShrubDepletedEvent,
   SpawnLarvaEvent,
-  ShowSpawnSelectionEvent,
   BlobHatchedEvent,
   GrowShrubEvent,
+  PersistedGameState,
 } from './types';
-
-export type PersistedGameState = {
-  bloblets: PersistedBlobletActor[];
-  shrubs: PersistedShrubActor[];
-} & Omit<Context, 'bloblets' | ' shrubs'>;
-
-type StateValues = { selection: 'deselected' } | { selection: 'selected' };
-
-type State = {
-  value: StateValues;
-  context: Context;
-};
-
-type Event =
-  | DrawEvent
-  | UpdateEvent
-  | ClickedEvent
-  | FeedOnShrubEvent
-  | HarvestShrubEvent
-  | ShrubDepletedEvent
-  | SpawnLarvaEvent
-  | ShowSpawnSelectionEvent
-  | BlobHatchedEvent
-  | GrowShrubEvent;
-
-export type BlobQueenService = Interpreter<Context, any, Event, State>;
 
 function initialisingBloblets(persistedBloblet: PersistedBlobletActor[]) {
   return assign(() => ({
@@ -296,8 +268,17 @@ export function makeBlobQueen({
         always: { target: 'ready' },
       },
       ready: {
+        initial: 'itemSelection',
         on: {
           CLICKED: [
+            // {
+            //   actions: (_, x) =>
+            //     selectionDisplayMachine.send({
+            //       type: 'CLICKED',
+            //       coordinates: ,
+            //     }),
+            //   cond: didClickOnSelectionDisplay,
+            // },
             {
               actions: [propagateLarvaClicked],
               cond: didClickOnBlobLarva,
@@ -323,24 +304,7 @@ export function makeBlobQueen({
             cond: shouldSpawnLarva,
           },
           LARVA_SELECTED: {
-            actions: ({ blobLarvae }, { larvaId }) => {
-              console.log('larva selected');
-              selectionDisplayMachine.send({ type: 'SHOW_SPAWN_SELECTION' });
-
-              // For now just auto select bloblet
-              // const larvaToGrow = blobLarvae.find(
-              //   (larva) => larva.getSnapshot()?.context?.id === larvaId
-              // );
-
-              // if (larvaToGrow) {
-              //   larvaToGrow.send({
-              //     type: 'LARVA_SPAWN_SELECTED',
-              //     selectedBlob: 'bloblet',
-              //     spawnTime: BLOBLET_SPAWN_TIME_MS,
-              //     hatchAt: Date.now() + BLOBLET_SPAWN_TIME_MS,
-              //   });
-              // }
-            },
+            target: '.itemSelection.selected',
           },
           BLOB_HATCHED: {
             actions: [spawnBlob],
@@ -360,6 +324,30 @@ export function makeBlobQueen({
               clearInterval(spawnLarvaeInterval);
               clearInterval(growShrubInterval);
             };
+          },
+        },
+        states: {
+          itemSelection: {
+            initial: 'idle',
+            states: {
+              idle: {},
+              selected: {
+                on: {
+                  SPAWN_BLOB_SELECTED: {
+                    actions: ({ blobLarvae }, { blobToSpawn }) => {
+                      blobLarvae.forEach((larva) =>
+                        larva.send({
+                          type: 'LARVA_SPAWN_SELECTED',
+                          blobToSpawn,
+                          spawnTime: BLOBLET_SPAWN_TIME_MS,
+                          hatchAt: Date.now() + BLOBLET_SPAWN_TIME_MS,
+                        })
+                      );
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       },

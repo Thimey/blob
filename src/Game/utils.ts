@@ -73,9 +73,9 @@ interface Rectangle {
 
 export function isPointWithinRectangle(rect: Rectangle, { x, y }: Coordinates) {
   return (
-    x > rect.x &&
-    x < rect.x + rect.width &&
-    y > rect.y &&
-    y < rect.y + rect.height
+    x >= rect.x &&
+    x <= rect.x + rect.width &&
+    y >= rect.y &&
+    y <= rect.y + rect.height
   );
 }
