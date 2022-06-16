@@ -10,10 +10,13 @@ import {
   QUEEN_POSITION,
   GAME_OPTIONS_HEIGHT,
   GAME_OPTIONS_WIDTH,
+  GAME_SELECTION_DISPLAY_HEIGHT,
+  GAME_SELECTION_DISPLAY_WIDTH,
 } from './paramaters';
 import { makeBlobQueen, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
 import { gameOptionsMachine } from './gameOptions';
+import { SelectionDisplay } from './SelectionDisplay';
 
 export const INITIAL_GAME_STATE: PersistedGameState = {
   mass: 50,
@@ -30,8 +33,12 @@ export const INITIAL_GAME_STATE: PersistedGameState = {
   blobLarvae: [],
 };
 
+// Move to react context
+const retoredGameState = restoreGameState();
 // TODO sort out typing
-let blobQueen: any = null;
+const blobQueen = retoredGameState
+  ? interpret(makeBlobQueen(retoredGameState as PersistedGameState)).start()
+  : interpret(makeBlobQueen(INITIAL_GAME_STATE)).start();
 
 function gameLoop(
   gameCtx: CanvasRenderingContext2D,
@@ -48,6 +55,10 @@ function gameLoop(
     blobQueen.send('DRAW', { ctx: gameCtx });
     blobQueen.send('UPDATE', { ctx: gameCtx });
 
+    // gameCtx.font = '20px Arial';
+    // gameCtx.fillStyle = 'black';
+    // gameCtx.fillText(JSON.stringify(blobQueen.state.value), 100, 100);
+
     gameOptionsMachine.send('DRAW', {
       ctx: optionsCtx,
       mass: roundTo(blobQueen.state.context.mass, 2),
@@ -60,6 +71,7 @@ function gameLoop(
 }
 
 export const Game = () => {
+  // TODO: Consider moving each canvas into it's own hook with it's own game loop.
   const gameCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const optionsCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -69,44 +81,54 @@ export const Game = () => {
     gameCanvas.width = WORLD_WIDTH;
     gameCanvas.height = WORLD_HEIGHT;
 
-    const viewPortCanvas = optionsCanvasRef.current as HTMLCanvasElement;
-    const optionsCtx = viewPortCanvas.getContext(
+    const optionsCanvas = optionsCanvasRef.current as HTMLCanvasElement;
+    const optionsCtx = optionsCanvas.getContext(
       '2d'
     ) as CanvasRenderingContext2D;
+    optionsCanvas.width = GAME_OPTIONS_WIDTH;
+    optionsCanvas.height = GAME_OPTIONS_HEIGHT;
 
-    const onMouseUp = (e: MouseEvent) => {
-      const mouseX = e.offsetX;
-      const mouseY = e.offsetY;
-
-      if (blobQueen) {
-        blobQueen.send('CLICKED', { coordinates: { x: mouseX, y: mouseY } });
-      }
-    };
-
-    window.addEventListener('mouseup', onMouseUp);
     gameLoop(gameCtx, optionsCtx);
-
-    const retoredGameState = restoreGameState();
-
-    blobQueen = retoredGameState
-      ? interpret(makeBlobQueen(retoredGameState as PersistedGameState)).start()
-      : interpret(makeBlobQueen(INITIAL_GAME_STATE)).start();
 
     // window.addEventListener('beforeunload', () =>
     //   persistGameState(blobQueen as any)
     // );
-
-    return () => {
-      window.removeEventListener('mouseup', onMouseUp);
-    };
   }, []);
+
+  const handleMainGameClick = ({ clientX, clientY }: React.MouseEvent) => {
+    const geometry = gameCanvasRef.current?.getBoundingClientRect();
+
+    if (blobQueen && geometry) {
+      const { x, y } = geometry;
+      blobQueen.send('CLICKED', {
+        coordinates: { x: clientX - x, y: clientY - y },
+      });
+    }
+  };
 
   return (
     <>
-      <div id="game-options">
-        <canvas id="game-options-canvas" ref={optionsCanvasRef} />
-      </div>
-      <canvas id="game-canvas" ref={gameCanvasRef} />
+      <canvas
+        id="game-options-canvas"
+        ref={optionsCanvasRef}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          height: GAME_OPTIONS_HEIGHT,
+          width: GAME_OPTIONS_WIDTH,
+        }}
+      />
+      <canvas
+        id="game-canvas"
+        onClick={handleMainGameClick}
+        ref={gameCanvasRef}
+        style={{
+          height: WORLD_HEIGHT,
+          width: WORLD_WIDTH,
+        }}
+      />
+      <SelectionDisplay blobQueenService={blobQueen as any} />
     </>
   );
 };

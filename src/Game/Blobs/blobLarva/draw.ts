@@ -1,38 +1,88 @@
-import { Coordinates } from 'src/types';
-import {
-  drawCircle,
-  isPointWithinCircle,
-  isPointWithinEllipse,
-} from 'game/utils';
+import memoize from 'fast-memoize';
+import { Coordinates, DrawEventCtx } from 'src/types';
+import { isPointWithinCircle, isPointWithinEllipse } from 'game/utils';
+import { drawCircle, drawSelectedOutline } from 'game/draw';
 import { blobLarvaColor, blobPupaColor, progressBarColor } from 'game/colors';
-import { Context, DrawEvent, BlobLarvaActor } from './types';
+import { Context, BlobLarvaActor } from './types';
 
 type Direction = 'right' | 'left';
+type LarvaDrawContext = Pick<
+  Context,
+  | 'position'
+  | 'destination'
+  | 'larvaHeadRadius'
+  | 'larvaBodyRadiusX'
+  | 'larvaBodyRadiusY'
+>;
 
-const HEAD_OFFSET_X = 12;
-const HEAD_OFFSET_Y = 2;
-const EYE_OFFSET = 2;
+const PROGRESS_BAR_HEIGHT = 8;
+const PROGRESS_BAR_BORDER_WIDTH = 1;
 
 function makeDirection(currentX: number, destinationX: number): Direction {
   return destinationX > currentX ? 'right' : 'left';
 }
 
-function makeLarvaHeadX(x: number, dir: Direction) {
-  return dir === 'right' ? x + HEAD_OFFSET_X : x - HEAD_OFFSET_X;
+function makeLarvaHeadX(x: number, bodyRadiusX: number, dir: Direction) {
+  const offset = bodyRadiusX * 1.3;
+  return dir === 'right' ? x + offset : x - offset;
 }
 
-function makeLarvaHeadY(y: number) {
-  return y - HEAD_OFFSET_Y;
-}
-function makeLarvaEyeX(headX: number, dir: Direction) {
-  return dir === 'right' ? headX + EYE_OFFSET : headX - EYE_OFFSET;
-}
-function makeLarvaEyeY(headY: number) {
-  return headY - EYE_OFFSET;
+function makeLarvaHeadY(y: number, headRadius: number) {
+  return y - headRadius * 0.3;
 }
 
-const PROGRESS_BAR_HEIGHT = 8;
-const PROGRESS_BAR_BORDER_WIDTH = 1;
+function makeLarvaEyeX(headX: number, headRadius: number, dir: Direction) {
+  const offset = headRadius * 0.3;
+  return dir === 'right' ? headX + offset : headX - offset;
+}
+
+function makeLarvaEyeY(headY: number, headRadius: number) {
+  return headY - headRadius * 0.3;
+}
+
+function makeLarvaEyeRadius(headRadius: number) {
+  return Math.ceil(headRadius / 10);
+}
+
+function makeLarvaHeadPosition(
+  x: number,
+  y: number,
+  bodyRadiusX: number,
+  bodyRadiusY: number,
+  direction: Direction
+) {
+  return {
+    headX: makeLarvaHeadX(x, bodyRadiusX, direction),
+    headY: makeLarvaHeadY(y, bodyRadiusY),
+  };
+}
+
+const memoizedMakeLarvaHeadPosition = memoize(makeLarvaHeadPosition);
+
+function makeLarvaEye(
+  x: number,
+  y: number,
+  headRadius: number,
+  bodyRadiusX: number,
+  bodyRadiusY: number,
+  direction: Direction
+) {
+  const { headX, headY } = memoizedMakeLarvaHeadPosition(
+    x,
+    y,
+    bodyRadiusX,
+    bodyRadiusY,
+    direction
+  );
+
+  return {
+    eyeX: makeLarvaEyeX(headX, headRadius, direction),
+    eyeY: makeLarvaEyeY(headY, headRadius),
+    eyeRadius: makeLarvaEyeRadius(headRadius),
+  };
+}
+
+const memoizedMakeLarvaEye = memoize(makeLarvaEye);
 
 export function drawLarva(
   {
@@ -41,12 +91,25 @@ export function drawLarva(
     larvaHeadRadius,
     larvaBodyRadiusX,
     larvaBodyRadiusY,
-  }: Context,
-  { ctx }: DrawEvent
+  }: LarvaDrawContext,
+  { ctx }: DrawEventCtx
 ) {
   const direction = makeDirection(x, destination.x);
-  const headX = makeLarvaHeadX(x, direction);
-  const headY = makeLarvaHeadY(y);
+  const { eyeRadius, eyeX, eyeY } = memoizedMakeLarvaEye(
+    x,
+    y,
+    larvaHeadRadius,
+    larvaBodyRadiusX,
+    larvaBodyRadiusY,
+    direction
+  );
+  const { headX, headY } = memoizedMakeLarvaHeadPosition(
+    x,
+    y,
+    larvaBodyRadiusX,
+    larvaBodyRadiusY,
+    direction
+  );
 
   // Draw body
   ctx.beginPath();
@@ -66,14 +129,37 @@ export function drawLarva(
 
   // Draw eye
   ctx.beginPath();
-  drawCircle(
-    ctx,
-    makeLarvaEyeX(headX, direction),
-    makeLarvaEyeY(headY),
-    1,
-    'black'
-  );
+  drawCircle(ctx, eyeX, eyeY, eyeRadius, 'black');
   ctx.closePath();
+}
+
+export function drawLarvaSelectedOutline(
+  {
+    position: { x, y },
+    destination,
+    larvaHeadRadius,
+    larvaBodyRadiusX,
+    larvaBodyRadiusY,
+  }: LarvaDrawContext,
+  { ctx }: DrawEventCtx
+) {
+  const { headX } = memoizedMakeLarvaHeadPosition(
+    x,
+    y,
+    larvaBodyRadiusX,
+    larvaBodyRadiusY,
+    makeDirection(x, destination.x)
+  );
+  drawSelectedOutline(
+    {
+      position: {
+        x: (x + headX) / 2,
+        y,
+      },
+      radius: larvaBodyRadiusX + larvaHeadRadius,
+    },
+    { ctx }
+  );
 }
 
 export function drawPupa(
@@ -82,8 +168,8 @@ export function drawPupa(
     larvaHeadRadius,
     larvaBodyRadiusX,
     larvaBodyRadiusY,
-  }: Context,
-  { ctx }: DrawEvent
+  }: LarvaDrawContext,
+  { ctx }: DrawEventCtx
 ) {
   // Base
   ctx.beginPath();
@@ -104,7 +190,7 @@ export function drawPupa(
 
 export function drawProgressBar(
   { position: { x, y }, larvaBodyRadiusX, larvaBodyRadiusY, pupa }: Context,
-  { ctx }: DrawEvent
+  { ctx }: DrawEventCtx
 ) {
   if (!pupa) return;
 
@@ -143,24 +229,28 @@ export function blobLarvaClicked(
 
   if (!larvaContext) return false;
   const {
-    position,
+    position: { x, y },
     destination,
     larvaBodyRadiusX,
     larvaBodyRadiusY,
     larvaHeadRadius,
   } = larvaContext;
 
-  const direction = makeDirection(position.x, destination.x);
-  const headPostion = {
-    x: makeLarvaHeadX(position.x, direction),
-    y: makeLarvaHeadY(position.y),
-  };
+  const direction = makeDirection(x, destination.x);
+  const { headX, headY } = memoizedMakeLarvaHeadPosition(
+    x,
+    y,
+    larvaBodyRadiusX,
+    larvaBodyRadiusY,
+    direction
+  );
 
   return (
-    isPointWithinCircle(headPostion, larvaHeadRadius, coordinates) ||
+    isPointWithinCircle({ x: headX, y: headY }, larvaHeadRadius, coordinates) ||
     isPointWithinEllipse(
       {
-        ...position,
+        x,
+        y,
         radiusX: larvaBodyRadiusX,
         radiusY: larvaBodyRadiusY,
       },

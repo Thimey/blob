@@ -41,7 +41,7 @@ function drawAmount(
 
 const raise = assign(
   ({ position: { x, y }, opacity }: Context, _: DrawAmountEvent) => ({
-    position: { x, y: y - 0.1 },
+    position: { x, y: y - 0.2 },
     opacity: opacity - 0.005,
   })
 );

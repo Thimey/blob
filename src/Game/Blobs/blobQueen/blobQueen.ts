@@ -1,4 +1,4 @@
-import { createMachine, assign, spawn, Interpreter } from 'xstate';
+import { createMachine, assign, spawn } from 'xstate';
 import { pure } from 'xstate/lib/actions';
 
 import { generateId, makeRandNumber, roundTo } from 'game/utils';
@@ -21,7 +21,6 @@ import {
 import {
   makeShrub,
   makePosition as makeShrubPosition,
-  makeLeafPositions,
   PersistedShrubActor,
 } from 'game/resources/shub';
 import { animationMachine } from 'game/animations/animationMachine';
@@ -40,43 +39,18 @@ import {
 import { makeRadius, drawBody } from './actions/draw';
 import {
   Context,
+  Event,
+  State,
   DrawEvent,
-  UpdateEvent,
-  ClickedEvent,
   FeedOnShrubEvent,
   HarvestShrubEvent,
   ShrubDepletedEvent,
   SpawnLarvaEvent,
-  ShowSpawnSelectionEvent,
+  LarvaDeSelectionEvent,
   BlobHatchedEvent,
   GrowShrubEvent,
+  PersistedGameState,
 } from './types';
-
-export type PersistedGameState = {
-  bloblets: PersistedBlobletActor[];
-  shrubs: PersistedShrubActor[];
-} & Omit<Context, 'bloblets' | ' shrubs'>;
-
-type StateValues = { selection: 'deselected' } | { selection: 'selected' };
-
-type State = {
-  value: StateValues;
-  context: Context;
-};
-
-type Event =
-  | DrawEvent
-  | UpdateEvent
-  | ClickedEvent
-  | FeedOnShrubEvent
-  | HarvestShrubEvent
-  | ShrubDepletedEvent
-  | SpawnLarvaEvent
-  | ShowSpawnSelectionEvent
-  | BlobHatchedEvent
-  | GrowShrubEvent;
-
-export type BlobQueenService = Interpreter<Context, any, Event, State>;
 
 function initialisingBloblets(persistedBloblet: PersistedBlobletActor[]) {
   return assign(() => ({
@@ -196,6 +170,22 @@ const spawnBlob = assign(
   }
 );
 
+function noOtherLarvaeSelected(
+  { blobLarvae }: Context,
+  { larvaId }: LarvaDeSelectionEvent
+) {
+  return (
+    blobLarvae.filter((larva) => {
+      const larvaSnapshot = larva.getSnapshot();
+
+      return (
+        larvaSnapshot?.context.id !== larvaId &&
+        larvaSnapshot?.matches({ ready: { larva: 'selected' } })
+      );
+    }).length === 0
+  );
+}
+
 function shouldGrowShrub({ shrubs }: Context, _: GrowShrubEvent) {
   return shrubs.length < MAX_SHRUB;
 }
@@ -295,6 +285,7 @@ export function makeBlobQueen({
         always: { target: 'ready' },
       },
       ready: {
+        initial: 'itemSelection',
         on: {
           CLICKED: [
             {
@@ -321,22 +312,12 @@ export function makeBlobQueen({
             actions: [spawnBlobLarva],
             cond: shouldSpawnLarva,
           },
-          SHOW_SPAWN_SELECTION: {
-            actions: ({ blobLarvae }, { larvaId }) => {
-              // For now just auto select bloblet
-              const larvaToGrow = blobLarvae.find(
-                (larva) => larva.getSnapshot()?.context?.id === larvaId
-              );
-
-              if (larvaToGrow) {
-                larvaToGrow.send({
-                  type: 'LARVA_SPAWN_SELECTED',
-                  selectedBlob: 'bloblet',
-                  spawnTime: BLOBLET_SPAWN_TIME_MS,
-                  hatchAt: Date.now() + BLOBLET_SPAWN_TIME_MS,
-                });
-              }
-            },
+          LARVA_SELECTED: {
+            target: '.itemSelection.larvaSelected',
+          },
+          LARVA_DESELECTED: {
+            target: '.itemSelection.idle',
+            cond: noOtherLarvaeSelected,
           },
           BLOB_HATCHED: {
             actions: [spawnBlob],
@@ -356,6 +337,31 @@ export function makeBlobQueen({
               clearInterval(spawnLarvaeInterval);
               clearInterval(growShrubInterval);
             };
+          },
+        },
+        states: {
+          itemSelection: {
+            initial: 'idle',
+            states: {
+              idle: {},
+              larvaSelected: {
+                on: {
+                  SPAWN_BLOB_SELECTED: {
+                    target: 'idle',
+                    actions: ({ blobLarvae }, { blobToSpawn }) => {
+                      blobLarvae.forEach((larva) =>
+                        larva.send({
+                          type: 'LARVA_SPAWN_SELECTED',
+                          blobToSpawn,
+                          spawnTime: BLOBLET_SPAWN_TIME_MS,
+                          hatchAt: Date.now() + BLOBLET_SPAWN_TIME_MS,
+                        })
+                      );
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       },

@@ -1,5 +1,5 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
-import { Coordinates, PersistedActor } from 'src/types';
+import { Coordinates, PersistedActor, BlobSpawn } from 'src/types';
 
 export interface Context {
   id: string;
@@ -20,6 +20,11 @@ export type DrawEvent = {
   ctx: CanvasRenderingContext2D;
 };
 
+export type DrawLarvaSelectedEvent = {
+  type: 'DRAW_LARVA_SELECTED';
+  ctx: CanvasRenderingContext2D;
+};
+
 export type UpdateEvent = {
   type: 'UPDATE';
 };
@@ -31,7 +36,7 @@ export type LarvaClickEvent = {
 
 export type LarvaSpawnSelected = {
   type: 'LARVA_SPAWN_SELECTED';
-  selectedBlob: 'bloblet';
+  blobToSpawn: BlobSpawn;
   spawnTime: number;
   hatchAt: number;
 };
@@ -52,6 +57,7 @@ export type Events =
   | UpdateEvent
   | LarvaClickEvent
   | LarvaSpawnSelected
+  | DrawLarvaSelectedEvent
   | PupaHatch;
 
 export type BlobLarvaActor = ActorRefFrom<StateMachine<Context, any, Events>>;

@@ -7,3 +7,4 @@ export const blobPupaColor = '#8d9fba';
 export const blobletColor = '#82c91e';
 export const shrubColor = '#18782a';
 export const progressBarColor = '#eb994d';
+export const selectionOutlineColor = '#f20202';

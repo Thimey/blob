@@ -1,5 +1,5 @@
 import { assign, createMachine } from 'xstate';
-import { sendParent } from 'xstate/lib/actions';
+import { sendParent, send } from 'xstate/lib/actions';
 
 import { makeRandNumber } from 'game/utils';
 import { QUEEN_POSITION } from 'game/paramaters';
@@ -9,8 +9,14 @@ import {
   State,
   PersistedLarvaActor,
   UpdateEvent,
+  LarvaClickEvent,
 } from './types';
-import { drawLarva, drawPupa, drawProgressBar } from './draw';
+import {
+  drawLarva,
+  drawPupa,
+  drawProgressBar,
+  drawLarvaSelectedOutline,
+} from './draw';
 
 const stepToDestination = assign<Context, UpdateEvent>(
   ({ position, destination }) => {
@@ -43,6 +49,13 @@ function hasReachedDestination(
   );
 }
 
+function didClickOnLarva(
+  { id }: Context,
+  { id: clickedLarvaId }: LarvaClickEvent
+) {
+  return id === clickedLarvaId;
+}
+
 export function makeBlobLarva({ context }: PersistedLarvaActor) {
   return createMachine<Context, Events, State>({
     initial: 'initialising',
@@ -57,28 +70,15 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
         initial: 'larva',
         states: {
           larva: {
+            initial: 'deselected',
             on: {
               DRAW: {
-                actions: [drawLarva],
+                actions: [
+                  drawLarva,
+                  send((_, { ctx }) => ({ type: 'DRAW_LARVA_SELECTED', ctx })),
+                ],
               },
-              LARVA_CLICKED: {
-                actions: sendParent(({ id, position }: Context) => ({
-                  type: 'SHOW_SPAWN_SELECTION',
-                  position,
-                  larvaId: id,
-                })),
-                cond: ({ id }, { id: clickedLarvaId }) => id === clickedLarvaId,
-              },
-              LARVA_SPAWN_SELECTED: {
-                target: 'pupa',
-                actions: assign((_, { selectedBlob, hatchAt, spawnTime }) => ({
-                  pupa: {
-                    spawnTo: selectedBlob,
-                    spawnTime,
-                    hatchAt,
-                  },
-                })),
-              },
+
               UPDATE: [
                 {
                   actions: setNewDestination,
@@ -89,8 +89,51 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                 },
               ],
             },
+            states: {
+              selected: {
+                on: {
+                  LARVA_CLICKED: {
+                    actions: sendParent(({ id }: Context) => ({
+                      type: 'LARVA_DESELECTED',
+                      larvaId: id,
+                    })),
+                    target: 'deselected',
+                    cond: didClickOnLarva,
+                  },
+                  DRAW_LARVA_SELECTED: {
+                    actions: [drawLarvaSelectedOutline],
+                  },
+                  LARVA_SPAWN_SELECTED: {
+                    target: '#pupa',
+                    actions: assign(
+                      (_, { blobToSpawn, hatchAt, spawnTime }) => ({
+                        pupa: {
+                          spawnTo: blobToSpawn,
+                          spawnTime,
+                          hatchAt,
+                        },
+                      })
+                    ),
+                  },
+                },
+              },
+              deselected: {
+                on: {
+                  LARVA_CLICKED: {
+                    actions: sendParent(({ id, position }: Context) => ({
+                      type: 'LARVA_SELECTED',
+                      position,
+                      larvaId: id,
+                    })),
+                    target: 'selected',
+                    cond: didClickOnLarva,
+                  },
+                },
+              },
+            },
           },
           pupa: {
+            id: 'pupa',
             on: {
               DRAW: {
                 actions: [drawPupa, drawProgressBar],
