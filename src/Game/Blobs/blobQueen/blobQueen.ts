@@ -288,14 +288,6 @@ export function makeBlobQueen({
         initial: 'itemSelection',
         on: {
           CLICKED: [
-            // {
-            //   actions: (_, x) =>
-            //     selectionDisplayMachine.send({
-            //       type: 'CLICKED',
-            //       coordinates: ,
-            //     }),
-            //   cond: didClickOnSelectionDisplay,
-            // },
             {
               actions: [propagateLarvaClicked],
               cond: didClickOnBlobLarva,

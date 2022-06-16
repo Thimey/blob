@@ -103,7 +103,7 @@ export const LarvaDisplay = ({ blobQueenService }: Props) => {
         {spawnSelection.map(({ type, draw }, i) => (
           <div
             key={i}
-            className=" h-10 m-1 flex items-center"
+            className="h-10 m-1 flex items-center cursor-pointer"
             onClick={() => {
               if (type !== 'unknown') handleBlobSelect(type);
             }}
