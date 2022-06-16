@@ -1,6 +1,4 @@
 import React from 'react';
-import { State } from 'xstate';
-import { useSelector } from '@xstate/react';
 
 import { drawLarva } from 'game/blobs/blobLarva/draw';
 import { drawBloblet } from 'game/blobs/bloblet/draw';
@@ -12,21 +10,15 @@ import {
 
 import { BlobSpawn } from 'src/types';
 import { Canvas, DrawOptions } from 'src/components/Canvas';
-import {
-  BlobQueenService,
-  Context as BlobQueenContext,
-} from 'game/blobs/blobQueen/types';
-
-function showLarvaSelected(state: State<BlobQueenContext>) {
-  return state.matches({ ready: { itemSelection: 'larvaSelected' } });
-}
+import { BlobQueenService } from 'game/blobs/blobQueen/types';
+import { drawCircle } from 'game/draw';
 
 const PROFILE_CANVAS_HEIGHT = 100;
 const PROFILE_CANVAS_WIDTH = 100;
 
 const SPAWN_ITEM_HEIGHT = 25;
 const SPAWN_ITEM_WIDTH = 25;
-const LARVA_SCALE_FACTOR = 2;
+const LARVA_SCALE_FACTOR = 2.5;
 
 interface BlobSpawnItem {
   type: BlobSpawn | 'unknown';
@@ -36,15 +28,15 @@ interface BlobSpawnItem {
 const larvaBodyRadiusX = BLOB_LARVA_BODY_RADIUS_X * LARVA_SCALE_FACTOR;
 const larvaBodyRadiusY = BLOB_LARVA_BODY_RADIUS_Y * LARVA_SCALE_FACTOR;
 const larvaHeadRadius = BLOB_LARVA_HEAD_RADIUS * LARVA_SCALE_FACTOR;
-const larvaX = larvaBodyRadiusX + larvaHeadRadius;
-const larvaY = 2 * larvaHeadRadius;
 
-function drawLarvaProfile({ ctx }: DrawOptions) {
+function drawLarvaProfile({ ctx, canvasHeight, canvasWidth }: DrawOptions) {
+  const x = canvasWidth / 2 - larvaBodyRadiusX / 2;
+  const y = canvasHeight / 2;
   ctx.beginPath();
   drawLarva(
     {
-      position: { x: larvaX, y: larvaY },
-      destination: { x: larvaX + 1, y: larvaY },
+      position: { x, y },
+      destination: { x: x + 1, y },
       larvaBodyRadiusX,
       larvaBodyRadiusY,
       larvaHeadRadius,
@@ -68,14 +60,20 @@ function drawBlobletSpawn({ ctx, canvasHeight, canvasWidth }: DrawOptions) {
 
 function drawUnknown({ ctx, canvasHeight, canvasWidth }: DrawOptions) {
   ctx.beginPath();
-  ctx.font = '20px Arial';
-  ctx.fillStyle = 'black';
-  ctx.fillText('?', canvasWidth / 2, canvasHeight);
+  drawCircle(
+    ctx,
+    canvasWidth / 2,
+    canvasHeight / 2,
+    canvasWidth / 2 - 2,
+    'grey'
+  );
+  ctx.stroke();
   ctx.closePath();
 }
 
 const spawnSelection: BlobSpawnItem[] = [
   { type: 'bloblet', draw: drawBlobletSpawn },
+  { type: 'unknown', draw: drawUnknown },
   { type: 'unknown', draw: drawUnknown },
   { type: 'unknown', draw: drawUnknown },
   { type: 'unknown', draw: drawUnknown },
@@ -85,47 +83,49 @@ export interface Props {
   blobQueenService: BlobQueenService;
 }
 
-export const SelectionDisplay = ({ blobQueenService }: Props) => {
-  const showLarva = useSelector(blobQueenService, showLarvaSelected);
-
+export const LarvaDisplay = ({ blobQueenService }: Props) => {
   const handleBlobSelect = (blobToSpawn: BlobSpawn) => {
     blobQueenService.send({ type: 'SPAWN_BLOB_SELECTED', blobToSpawn });
   };
 
-  // if (showLarva) {
-  if (true) {
-    return (
-      <div className="fixed bottom-0 left-0">
-        <h3>Larva</h3>
-
-        <div className="flex">
-          <Canvas
-            height={PROFILE_CANVAS_HEIGHT}
-            width={PROFILE_CANVAS_WIDTH}
-            draw={drawLarvaProfile}
-          />
-
-          <div className="flex flex-wrap h-fit w-1/2">
-            {spawnSelection.map(({ type, draw }, i) => (
-              <div
-                key={i}
-                className="border border-black border-solid w-10 h-10 m-1"
-                onClick={() => {
-                  if (type !== 'unknown') handleBlobSelect(type);
-                }}
-              >
-                <Canvas
-                  height={SPAWN_ITEM_HEIGHT}
-                  width={SPAWN_ITEM_WIDTH}
-                  draw={draw}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+  return (
+    <div className="fixed border border-black bottom-0 left-0 m-1 flex items-center rounded bg-emerald-500">
+      <div className="flex flex-col items-center">
+        <h3 className="mt-1">Blob Larva</h3>
+        <Canvas
+          height={PROFILE_CANVAS_HEIGHT}
+          width={PROFILE_CANVAS_WIDTH}
+          draw={drawLarvaProfile}
+        />
       </div>
-    );
-  }
 
-  return null;
+      <div className="flex flex-wrap h-fit w-1/2">
+        {spawnSelection.map(({ type, draw }, i) => (
+          <div
+            key={i}
+            className=" h-10 m-1 flex items-center"
+            onClick={() => {
+              if (type !== 'unknown') handleBlobSelect(type);
+            }}
+          >
+            <Canvas
+              height={SPAWN_ITEM_HEIGHT}
+              width={SPAWN_ITEM_WIDTH}
+              draw={draw}
+            />
+            <div>
+              {type === 'unknown' ? (
+                <p className="text-sm">?</p>
+              ) : (
+                <>
+                  <p className="text-xs">10bm</p>
+                  <p className="text-xs">30s</p>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
