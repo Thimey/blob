@@ -162,16 +162,6 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                 },
                 states: {
                   feedingQueen: {
-                    // invoke: {
-                    //   src: () => (cb) => {
-                    //     const intervalId = setInterval(
-                    //       () => cb('FEED_QUEEN'),
-                    //       5000
-                    //     );
-
-                    //     return () => clearInterval(intervalId);
-                    //   },
-                    // },
                     on: {
                       UPDATE: {
                         cond: (
@@ -180,14 +170,14 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                         ) => {
                           if (!harvestingShrub) return false;
 
-                          const count = elapsedIntervals({
-                            startAt: harvestingShrub.startAt,
-                            interval: 5000,
-                            from: lastUpdateAt,
-                            to: currentUpdateAt,
-                          });
-
-                          return count > 0;
+                          return (
+                            elapsedIntervals({
+                              startAt: harvestingShrub.startAt,
+                              interval: 5000,
+                              from: lastUpdateAt,
+                              to: currentUpdateAt,
+                            }) > 0
+                          );
                         },
                         actions: [
                           sendParent(
@@ -207,14 +197,6 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                                 : 0,
                             })
                           ),
-                        ],
-                      },
-                      FEED_QUEEN: {
-                        actions: [
-                          sendParent(({ harvestingShrub }) => ({
-                            type: 'HARVEST_SHRUB',
-                            shrubId: harvestingShrub?.shrubId,
-                          })),
                         ],
                       },
                     },

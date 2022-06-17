@@ -38,7 +38,7 @@ const blobQueen = retoredGameState
   ? interpret(makeBlobQueen(retoredGameState as PersistedGameState)).start()
   : interpret(makeBlobQueen(INITIAL_GAME_STATE)).start();
 
-const TICKS_PER_SECOND = 60;
+const TICKS_PER_SECOND = 100;
 const SKIP_TICKS = 1000 / TICKS_PER_SECOND;
 const MAX_FRAMESKIP = 20;
 let nextGameTick = Date.now();

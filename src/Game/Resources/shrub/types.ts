@@ -1,5 +1,5 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
-import { Coordinates, PersistedActor } from 'src/types';
+import { Coordinates, PersistedActor, DrawEvent } from 'game/types';
 
 export type Context = {
   id: string;
@@ -18,11 +18,6 @@ export type StateValues =
 export type State = {
   value: StateValues;
   context: Context;
-};
-
-export type DrawEvent = {
-  type: 'DRAW';
-  ctx: CanvasRenderingContext2D;
 };
 
 export type HarvestEvent = {
