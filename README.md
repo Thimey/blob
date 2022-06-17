@@ -2,7 +2,7 @@
 
 The aim of the game is simple - accumulate the mass of your blob queen! The mass of the blob queen will serve as token for the game.
 
-The queen uses her mass to spawn other blobs via larvae. Each blob possess special traits that enable the blob to generate mass for the queen in a particular way.
+The queen uses her mass to spawn other blobs via larvae. Each blob possesses special traits that enable the blob to generate mass for the queen in a particular way.
 
 #### Blob Queen
 
@@ -18,13 +18,13 @@ Can transform into different types of blobs. Transformation requires feeding fro
 
 #### Bloblet
 
-Bloblets are the simplest form of blobs. They are primarily used to gather shrubs to feed queen.
+Bloblets are the simplest form of blob. They are primarily used to gather shrubs to feed the Blob Queen.
 
 <img width="38" alt="image" src="https://user-images.githubusercontent.com/14039116/173329534-0fdb9db5-6380-47f8-81d4-0ed48ac4d9cc.png">
 
 #### Shrub
 
-Food source for queen and bloblets.
+Food source for the Blob Queen and Bloblets.
 
 <img width="78" alt="image" src="https://user-images.githubusercontent.com/14039116/173342211-07b94382-fe18-4a4a-8620-0e2c2c7ff5ad.png">
 
