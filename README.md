@@ -1,8 +1,7 @@
-# blob
+# Blob
+The aim of the game is simple - accumulate the mass of your blob queen! The mass of the Blob Queen will serve as the token for the game.
 
-The aim of the game is simple - accumulate the mass of your blob queen! The mass of the blob queen will serve as token for the game.
-
-The queen uses her mass to spawn other blobs via larvae. Each blob possesses special traits that enable the blob to generate mass for the queen in a particular way.
+The Blob Queen uses her mass to spawn other blobs via larvae. Each blob possesses special traits that enable the blob to generate mass for the queen in a particular way.
 
 #### Blob Queen
 
