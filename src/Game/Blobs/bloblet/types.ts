@@ -7,6 +7,7 @@ export type Context = {
   radius: number;
   destination: Coordinates;
   harvestingShrub?: {
+    startAt: number;
     shrubId: string;
     harvestRate: number;
     position: Coordinates;
@@ -51,6 +52,8 @@ export type DrawSelectedEvent = {
 
 export type UpdateEvent = {
   type: 'UPDATE';
+  lastUpdateAt: number;
+  currentUpdateAt: number;
 };
 
 export type ShrubDepletedEvent = {

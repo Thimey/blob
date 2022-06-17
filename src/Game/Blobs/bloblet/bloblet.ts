@@ -1,6 +1,7 @@
 import { createMachine, assign, sendParent } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
+import { elapsedIntervals } from 'game/lib/time';
 import { QUEEN_POSITION } from 'game/paramaters';
 import { drawSelectedOutline } from 'game/draw';
 import { drawBloblet, drawCarryingShrub } from './draw';
@@ -28,6 +29,7 @@ const setHarvestingShrub = assign(
   ) => ({
     destination: { x, y },
     harvestingShrub: {
+      startAt: Date.now(),
       shrubId,
       harvestRate,
       position: { x, y },
@@ -160,17 +162,53 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                 },
                 states: {
                   feedingQueen: {
-                    invoke: {
-                      src: () => (cb) => {
-                        const intervalId = setInterval(
-                          () => cb('FEED_QUEEN'),
-                          5000
-                        );
+                    // invoke: {
+                    //   src: () => (cb) => {
+                    //     const intervalId = setInterval(
+                    //       () => cb('FEED_QUEEN'),
+                    //       5000
+                    //     );
 
-                        return () => clearInterval(intervalId);
-                      },
-                    },
+                    //     return () => clearInterval(intervalId);
+                    //   },
+                    // },
                     on: {
+                      UPDATE: {
+                        cond: (
+                          { harvestingShrub },
+                          { currentUpdateAt, lastUpdateAt }
+                        ) => {
+                          if (!harvestingShrub) return false;
+
+                          const count = elapsedIntervals({
+                            startAt: harvestingShrub.startAt,
+                            interval: 5000,
+                            from: lastUpdateAt,
+                            to: currentUpdateAt,
+                          });
+
+                          return count > 0;
+                        },
+                        actions: [
+                          sendParent(
+                            (
+                              { harvestingShrub },
+                              { currentUpdateAt, lastUpdateAt }
+                            ) => ({
+                              type: 'HARVEST_SHRUB',
+                              shrubId: harvestingShrub?.shrubId,
+                              harvestCount: harvestingShrub
+                                ? elapsedIntervals({
+                                    startAt: harvestingShrub.startAt,
+                                    interval: 5000,
+                                    from: lastUpdateAt,
+                                    to: currentUpdateAt,
+                                  })
+                                : 0,
+                            })
+                          ),
+                        ],
+                      },
                       FEED_QUEEN: {
                         actions: [
                           sendParent(({ harvestingShrub }) => ({

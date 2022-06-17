@@ -10,8 +10,6 @@ import {
   QUEEN_POSITION,
   GAME_OPTIONS_HEIGHT,
   GAME_OPTIONS_WIDTH,
-  GAME_SELECTION_DISPLAY_HEIGHT,
-  GAME_SELECTION_DISPLAY_WIDTH,
 } from './paramaters';
 import { makeBlobQueen, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
@@ -40,6 +38,14 @@ const blobQueen = retoredGameState
   ? interpret(makeBlobQueen(retoredGameState as PersistedGameState)).start()
   : interpret(makeBlobQueen(INITIAL_GAME_STATE)).start();
 
+const TICKS_PER_SECOND = 60;
+const SKIP_TICKS = 1000 / TICKS_PER_SECOND;
+const MAX_FRAMESKIP = 20;
+let nextGameTick = Date.now();
+let loop: number;
+let currentUpdateAt = Date.now();
+let lastUpdateAt: number;
+
 function gameLoop(
   gameCtx: CanvasRenderingContext2D,
   optionsCtx: CanvasRenderingContext2D
@@ -51,19 +57,29 @@ function gameLoop(
   gameCtx.fillStyle = sandColor;
   gameCtx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  if (blobQueen) {
-    blobQueen.send('DRAW', { ctx: gameCtx });
-    blobQueen.send('UPDATE', { ctx: gameCtx });
+  loop = 0;
 
-    // gameCtx.font = '20px Arial';
-    // gameCtx.fillStyle = 'black';
-    // gameCtx.fillText(JSON.stringify(blobQueen.state.value), 100, 100);
+  while (Date.now() > nextGameTick && loop < MAX_FRAMESKIP) {
+    lastUpdateAt = currentUpdateAt;
+    currentUpdateAt = Date.now();
 
-    gameOptionsMachine.send('DRAW', {
-      ctx: optionsCtx,
-      mass: roundTo(blobQueen.state.context.mass, 2),
+    blobQueen.send('UPDATE', {
+      ctx: gameCtx,
+      lastUpdateAt,
+      currentUpdateAt,
     });
+
+    nextGameTick += SKIP_TICKS;
+    loop += 1;
   }
+
+  // Draw
+  blobQueen.send('DRAW', { ctx: gameCtx });
+
+  gameOptionsMachine.send('DRAW', {
+    ctx: optionsCtx,
+    mass: roundTo(blobQueen.state.context.mass, 2),
+  });
 
   animationMachine.send('DRAW', { ctx: gameCtx });
 
