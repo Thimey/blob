@@ -2,7 +2,7 @@ import { createMachine, assign, sendParent } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
-import { QUEEN_POSITION } from 'game/paramaters';
+import { QUEEN_POSITION, BLOBLET_HARVEST_INTERVAL } from 'game/paramaters';
 import { drawSelectedOutline } from 'game/draw';
 import { drawBloblet, drawCarryingShrub } from './draw';
 import {
@@ -173,7 +173,7 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                           return (
                             elapsedIntervals({
                               startAt: harvestingShrub.startAt,
-                              interval: 5000,
+                              interval: BLOBLET_HARVEST_INTERVAL,
                               from: lastUpdateAt,
                               to: currentUpdateAt,
                             }) > 0
@@ -190,7 +190,7 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                               harvestCount: harvestingShrub
                                 ? elapsedIntervals({
                                     startAt: harvestingShrub.startAt,
-                                    interval: 5000,
+                                    interval: BLOBLET_HARVEST_INTERVAL,
                                     from: lastUpdateAt,
                                     to: currentUpdateAt,
                                   })
