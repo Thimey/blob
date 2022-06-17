@@ -1,6 +1,6 @@
 import { Interpreter } from 'xstate';
 import { Coordinates, BlobSpawn } from 'src/types';
-import { ShrubActor, PersistedShrubActor } from 'game/resources/shub';
+import { ShrubActor, PersistedShrubActor } from 'game/resources/shrub';
 import { BlobletActor, PersistedBlobletActor } from '../bloblet';
 import { BlobLarvaActor } from '../blobLarva';
 
@@ -33,11 +33,14 @@ export type DrawEvent = {
 
 export type UpdateEvent = {
   type: 'UPDATE';
+  lastUpdateAt: number;
+  currentUpdateAt: number;
 };
 
 export type HarvestShrubEvent = {
   type: 'HARVEST_SHRUB';
   shrubId: string;
+  harvestCount: number;
 };
 
 export type FeedOnShrubEvent = {

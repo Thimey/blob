@@ -22,9 +22,9 @@ import {
   makeShrub,
   makePosition as makeShrubPosition,
   PersistedShrubActor,
-} from 'game/resources/shub';
+} from 'game/resources/shrub';
 import { animationMachine } from 'game/animations/animationMachine';
-import { makeBloblet, PersistedBlobletActor } from '../bloblet';
+import { makeBloblet, PersistedBlobletActor, UpdateEvent } from '../bloblet';
 import { makeBlobLarva } from '../blobLarva';
 
 import {
@@ -94,20 +94,23 @@ function drawShrubs({ shrubs }: Context, { ctx }: DrawEvent) {
   shrubs.forEach((shrub) => shrub.send({ type: 'DRAW', ctx }));
 }
 
-function updateBlobs({ bloblets, blobLarvae }: Context) {
+function updateBlobs({ bloblets, blobLarvae }: Context, event: UpdateEvent) {
   bloblets.forEach((blob) => {
-    blob.send('UPDATE');
+    blob.send(event);
   });
   blobLarvae.forEach((larva) => {
-    larva.send('UPDATE');
+    larva.send(event);
   });
 }
 
-function harvestShrub({ shrubs }: Context, { shrubId }: HarvestShrubEvent) {
+function harvestShrub(
+  { shrubs }: Context,
+  { shrubId, harvestCount }: HarvestShrubEvent
+) {
   const shrub = shrubs.find((s) => s.getSnapshot()?.context?.id === shrubId);
 
   if (shrub) {
-    shrub.send('HARVEST');
+    shrub.send({ type: 'HARVEST', count: harvestCount });
   }
 }
 
