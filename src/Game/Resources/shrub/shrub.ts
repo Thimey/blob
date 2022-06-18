@@ -5,8 +5,8 @@ import { roundTo } from 'game/utils';
 import { drawShrub, drawGrowingShrub } from './draw';
 import { Context, State, Event, HarvestEvent, DepleteEvent } from './types';
 
-function makeHarvestAmount(harvestRate: number, totalAmount: number) {
-  return Math.min(harvestRate, totalAmount);
+function makeHarvestAmount(harvestAmount: number, totalAmount: number) {
+  return Math.min(harvestAmount, totalAmount);
 }
 
 const harvest = pure(
