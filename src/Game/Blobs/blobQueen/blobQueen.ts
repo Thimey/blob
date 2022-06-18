@@ -18,6 +18,7 @@ import {
   MIN_HARVEST_RATE,
   MAX_HARVEST_RATE,
 } from 'game/paramaters';
+import { DrawEvent } from 'game/types'
 import {
   makeShrub,
   makePosition as makeShrubPosition,
@@ -41,7 +42,6 @@ import {
   Context,
   Event,
   State,
-  DrawEvent,
   FeedOnShrubEvent,
   HarvestShrubEvent,
   ShrubDepletedEvent,
