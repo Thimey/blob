@@ -1,4 +1,4 @@
-import { createMachine, assign, sendParent } from 'xstate';
+import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
@@ -15,6 +15,8 @@ import {
   State,
   PersistedBlobletActor,
 } from './types';
+
+const { pure } = actions;
 
 const setDestination = assign(
   (_: Context, { coordinates: { x, y } }: MapClickEvent) => ({
@@ -65,6 +67,29 @@ const stepToDestination = assign<Context, UpdateEvent>(
         y: position.y + dy / 100,
       },
     };
+  }
+);
+
+const harvestShrub = pure<Context, UpdateEvent>(
+  ({ harvestingShrub }, { currentUpdateAt, lastUpdateAt }) => {
+    if (!harvestingShrub) return undefined;
+
+    const intervalCount = elapsedIntervals({
+      startAt: harvestingShrub.startAt,
+      interval: BLOBLET_HARVEST_INTERVAL,
+      from: lastUpdateAt,
+      to: currentUpdateAt,
+    });
+
+    if (intervalCount > 0) {
+      return sendParent({
+        type: 'HARVEST_SHRUB',
+        shrubId: harvestingShrub?.shrubId,
+        harvestCount: harvestingShrub ? intervalCount : 0,
+      });
+    }
+
+    return undefined;
   }
 );
 
@@ -164,40 +189,7 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                   feedingQueen: {
                     on: {
                       UPDATE: {
-                        cond: (
-                          { harvestingShrub },
-                          { currentUpdateAt, lastUpdateAt }
-                        ) => {
-                          if (!harvestingShrub) return false;
-
-                          return (
-                            elapsedIntervals({
-                              startAt: harvestingShrub.startAt,
-                              interval: BLOBLET_HARVEST_INTERVAL,
-                              from: lastUpdateAt,
-                              to: currentUpdateAt,
-                            }) > 0
-                          );
-                        },
-                        actions: [
-                          sendParent(
-                            (
-                              { harvestingShrub },
-                              { currentUpdateAt, lastUpdateAt }
-                            ) => ({
-                              type: 'HARVEST_SHRUB',
-                              shrubId: harvestingShrub?.shrubId,
-                              harvestCount: harvestingShrub
-                                ? elapsedIntervals({
-                                    startAt: harvestingShrub.startAt,
-                                    interval: BLOBLET_HARVEST_INTERVAL,
-                                    from: lastUpdateAt,
-                                    to: currentUpdateAt,
-                                  })
-                                : 0,
-                            })
-                          ),
-                        ],
+                        actions: [harvestShrub],
                       },
                     },
                   },
