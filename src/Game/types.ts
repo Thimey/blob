@@ -1,4 +1,4 @@
-export type BlobSpawn = 'bloblet';
+export type BlobType = 'bloblet';
 
 export type Coordinates = {
   x: number;

@@ -6,9 +6,11 @@ import {
   BLOB_LARVA_HEAD_RADIUS,
   BLOB_LARVA_BODY_RADIUS_X,
   BLOB_LARVA_BODY_RADIUS_Y,
+  BLOBLET_MASS_COST,
+  BLOBLET_SPAWN_TIME_MS,
 } from 'game/paramaters';
 
-import { BlobSpawn } from 'src/types';
+import { BlobType } from 'game/types';
 import { Canvas, DrawOptions } from 'src/components/Canvas';
 import { BlobQueenService } from 'game/blobs/blobQueen/types';
 import { drawCircle } from 'game/draw';
@@ -20,8 +22,15 @@ const SPAWN_ITEM_HEIGHT = 25;
 const SPAWN_ITEM_WIDTH = 25;
 const LARVA_SCALE_FACTOR = 2.5;
 
-interface BlobSpawnItem {
-  type: BlobSpawn | 'unknown';
+interface BlobSpawn {
+  type: BlobType;
+  massCost: number;
+  durationMs: number;
+  draw: (opts: DrawOptions) => void;
+}
+
+interface UnknownSpawn {
+  type: 'unknown';
   draw: (opts: DrawOptions) => void;
 }
 
@@ -71,8 +80,13 @@ function drawUnknown({ ctx, canvasHeight, canvasWidth }: DrawOptions) {
   ctx.closePath();
 }
 
-const spawnSelection: BlobSpawnItem[] = [
-  { type: 'bloblet', draw: drawBlobletSpawn },
+const spawnSelection: (BlobSpawn | UnknownSpawn)[] = [
+  {
+    type: 'bloblet',
+    massCost: BLOBLET_MASS_COST,
+    durationMs: BLOBLET_SPAWN_TIME_MS,
+    draw: drawBlobletSpawn,
+  },
   { type: 'unknown', draw: drawUnknown },
   { type: 'unknown', draw: drawUnknown },
   { type: 'unknown', draw: drawUnknown },
@@ -84,8 +98,13 @@ export interface Props {
 }
 
 export const LarvaDisplay = ({ blobQueenService }: Props) => {
-  const handleBlobSelect = (blobToSpawn: BlobSpawn) => {
-    blobQueenService.send({ type: 'SPAWN_BLOB_SELECTED', blobToSpawn });
+  const handleBlobSelect = ({ type, massCost, durationMs }: BlobSpawn) => {
+    blobQueenService.send({
+      type: 'SPAWN_BLOB_SELECTED',
+      blobToSpawn: type,
+      massCost,
+      durationMs,
+    });
   };
 
   return (
@@ -100,31 +119,34 @@ export const LarvaDisplay = ({ blobQueenService }: Props) => {
       </div>
 
       <div className="flex flex-wrap h-fit w-1/2">
-        {spawnSelection.map(({ type, draw }, i) => (
-          <div
-            key={i}
-            className="h-10 m-1 flex items-center cursor-pointer"
-            onClick={() => {
-              if (type !== 'unknown') handleBlobSelect(type);
-            }}
-          >
-            <Canvas
-              height={SPAWN_ITEM_HEIGHT}
-              width={SPAWN_ITEM_WIDTH}
-              draw={draw}
-            />
-            <div>
-              {type === 'unknown' ? (
-                <p className="text-sm">?</p>
-              ) : (
-                <>
-                  <p className="text-xs">10bm</p>
-                  <p className="text-xs">30s</p>
-                </>
-              )}
+        {spawnSelection.map((spawn, i) => {
+          const { type, draw } = spawn;
+          return (
+            <div
+              key={i}
+              className="h-10 m-1 flex items-center cursor-pointer"
+              onClick={() => {
+                if (type !== 'unknown') handleBlobSelect(spawn);
+              }}
+            >
+              <Canvas
+                height={SPAWN_ITEM_HEIGHT}
+                width={SPAWN_ITEM_WIDTH}
+                draw={draw}
+              />
+              <div>
+                {type === 'unknown' ? (
+                  <p className="text-sm">?</p>
+                ) : (
+                  <>
+                    <p className="text-xs">{`${spawn.massCost}bm`}</p>
+                    <p className="text-xs">{`${spawn.durationMs / 1000}s`}</p>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

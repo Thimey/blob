@@ -9,16 +9,15 @@ function makeHarvestAmount(harvestAmount: number, totalAmount: number) {
   return Math.min(harvestAmount, totalAmount);
 }
 
-const harvest = pure(
-  ({ harvestRate, amount }: Context, { count }: HarvestEvent) => {
+const harvest = pure<Context, HarvestEvent>(({ harvestRate, amount }, { count }) => {
     const harvestAmount = makeHarvestAmount(harvestRate * count, amount);
     const newAmount = roundTo(amount - harvestAmount, 2);
 
     return [
-      assign<Context, HarvestEvent>({
+      assign({
         amount: newAmount,
       }),
-      sendParent<Context, HarvestEvent>({
+      sendParent({
         type: 'FEED_SHRUB',
         amount: harvestAmount,
       }),
