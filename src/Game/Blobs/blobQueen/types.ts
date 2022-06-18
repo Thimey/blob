@@ -1,6 +1,12 @@
 import { Interpreter } from 'xstate';
-import { Coordinates, BlobSpawn } from 'src/types';
-import { ShrubActor, PersistedShrubActor } from 'game/resources/shub';
+import {
+  Coordinates,
+  BlobSpawn,
+  UpdateEvent,
+  DrawEvent,
+  ClickedEvent,
+} from 'game/types';
+import { ShrubActor, PersistedShrubActor } from 'game/resources/shrub';
 import { BlobletActor, PersistedBlobletActor } from '../bloblet';
 import { BlobLarvaActor } from '../blobLarva';
 
@@ -21,23 +27,10 @@ export interface Context {
   shrubs: ShrubActor[];
 }
 
-export type ClickedEvent = {
-  type: 'CLICKED';
-  coordinates: Coordinates;
-};
-
-export type DrawEvent = {
-  type: 'DRAW';
-  ctx: CanvasRenderingContext2D;
-};
-
-export type UpdateEvent = {
-  type: 'UPDATE';
-};
-
 export type HarvestShrubEvent = {
   type: 'HARVEST_SHRUB';
   shrubId: string;
+  harvestCount: number;
 };
 
 export type FeedOnShrubEvent = {

@@ -1,7 +1,8 @@
-import { createMachine, assign, sendParent } from 'xstate';
+import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
-import { QUEEN_POSITION } from 'game/paramaters';
+import { elapsedIntervals } from 'game/lib/time';
+import { QUEEN_POSITION, BLOBLET_HARVEST_INTERVAL } from 'game/paramaters';
 import { drawSelectedOutline } from 'game/draw';
 import { drawBloblet, drawCarryingShrub } from './draw';
 import {
@@ -14,6 +15,8 @@ import {
   State,
   PersistedBlobletActor,
 } from './types';
+
+const { pure } = actions;
 
 const setDestination = assign(
   (_: Context, { coordinates: { x, y } }: MapClickEvent) => ({
@@ -28,6 +31,7 @@ const setHarvestingShrub = assign(
   ) => ({
     destination: { x, y },
     harvestingShrub: {
+      startAt: Date.now(),
       shrubId,
       harvestRate,
       position: { x, y },
@@ -63,6 +67,29 @@ const stepToDestination = assign<Context, UpdateEvent>(
         y: position.y + dy / 100,
       },
     };
+  }
+);
+
+const harvestShrub = pure<Context, UpdateEvent>(
+  ({ harvestingShrub }, { currentUpdateAt, lastUpdateAt }) => {
+    if (!harvestingShrub) return undefined;
+
+    const intervalCount = elapsedIntervals({
+      startAt: harvestingShrub.startAt,
+      interval: BLOBLET_HARVEST_INTERVAL,
+      from: lastUpdateAt,
+      to: currentUpdateAt,
+    });
+
+    if (intervalCount > 0) {
+      return sendParent({
+        type: 'HARVEST_SHRUB',
+        shrubId: harvestingShrub?.shrubId,
+        harvestCount: harvestingShrub ? intervalCount : 0,
+      });
+    }
+
+    return undefined;
   }
 );
 
@@ -160,24 +187,9 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                 },
                 states: {
                   feedingQueen: {
-                    invoke: {
-                      src: () => (cb) => {
-                        const intervalId = setInterval(
-                          () => cb('FEED_QUEEN'),
-                          5000
-                        );
-
-                        return () => clearInterval(intervalId);
-                      },
-                    },
                     on: {
-                      FEED_QUEEN: {
-                        actions: [
-                          sendParent(({ harvestingShrub }) => ({
-                            type: 'HARVEST_SHRUB',
-                            shrubId: harvestingShrub?.shrubId,
-                          })),
-                        ],
+                      UPDATE: {
+                        actions: [harvestShrub],
                       },
                     },
                   },

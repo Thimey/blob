@@ -1,5 +1,13 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
-import { Coordinates, PersistedActor, BlobSpawn } from 'src/types';
+import {
+  Coordinates,
+  PersistedActor,
+  BlobSpawn,
+  DrawEvent,
+  UpdateEvent,
+} from 'game/types';
+
+export type { DrawEvent };
 
 export interface Context {
   id: string;
@@ -15,18 +23,9 @@ export interface Context {
   };
 }
 
-export type DrawEvent = {
-  type: 'DRAW';
-  ctx: CanvasRenderingContext2D;
-};
-
 export type DrawLarvaSelectedEvent = {
   type: 'DRAW_LARVA_SELECTED';
   ctx: CanvasRenderingContext2D;
-};
-
-export type UpdateEvent = {
-  type: 'UPDATE';
 };
 
 export type LarvaClickEvent = {

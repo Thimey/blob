@@ -3,27 +3,29 @@ import { send, sendParent, pure } from 'xstate/lib/actions';
 
 import { roundTo } from 'game/utils';
 import { drawShrub, drawGrowingShrub } from './draw';
-import { Context, State, HarvestEvent, DepleteEvent } from './types';
+import { Context, State, Event, HarvestEvent, DepleteEvent } from './types';
 
-function makeHarvestAmount(harvestRate: number, totalAmount: number) {
-  return Math.min(harvestRate, totalAmount);
+function makeHarvestAmount(harvestAmount: number, totalAmount: number) {
+  return Math.min(harvestAmount, totalAmount);
 }
 
-const harvest = pure(({ harvestRate, amount }: Context, _: HarvestEvent) => {
-  const harvestAmount = makeHarvestAmount(harvestRate, amount);
-  const newAmount = roundTo(amount - harvestAmount, 2);
+const harvest = pure(
+  ({ harvestRate, amount }: Context, { count }: HarvestEvent) => {
+    const harvestAmount = makeHarvestAmount(harvestRate * count, amount);
+    const newAmount = roundTo(amount - harvestAmount, 2);
 
-  return [
-    assign<Context, HarvestEvent>({
-      amount: newAmount,
-    }),
-    sendParent<Context, HarvestEvent>({
-      type: 'FEED_SHRUB',
-      amount: harvestAmount,
-    }),
-    ...(newAmount <= 0 ? [send('DEPLETE')] : []),
-  ];
-});
+    return [
+      assign<Context, HarvestEvent>({
+        amount: newAmount,
+      }),
+      sendParent<Context, HarvestEvent>({
+        type: 'FEED_SHRUB',
+        amount: harvestAmount,
+      }),
+      ...(newAmount <= 0 ? [send('DEPLETE')] : []),
+    ];
+  }
+);
 
 export function makeShrub(context: Context) {
   return createMachine<Context, Event, State>({
@@ -60,7 +62,7 @@ export function makeShrub(context: Context) {
           src: () => (cb) => {
             const growthInterval = setInterval(() => {
               cb('GROW');
-            }, 500);
+            }, 50);
 
             return () => clearInterval(growthInterval);
           },

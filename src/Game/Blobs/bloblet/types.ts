@@ -1,5 +1,12 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
-import { Coordinates, PersistedActor } from 'src/types';
+import {
+  Coordinates,
+  PersistedActor,
+  DrawEvent,
+  UpdateEvent,
+} from 'game/types';
+
+export type { UpdateEvent, DrawEvent };
 
 export type Context = {
   id: string;
@@ -7,6 +14,7 @@ export type Context = {
   radius: number;
   destination: Coordinates;
   harvestingShrub?: {
+    startAt: number;
     shrubId: string;
     harvestRate: number;
     position: Coordinates;
@@ -30,15 +38,6 @@ export type ShrubClickEvent = {
   harvestRate: number;
 };
 
-export type FeedQueenEvent = {
-  type: 'FEED_QUEEN';
-};
-
-export type DrawEvent = {
-  type: 'DRAW';
-  ctx: CanvasRenderingContext2D;
-};
-
 export type DrawSrubEvent = {
   type: 'DRAW_SHRUB';
   ctx: CanvasRenderingContext2D;
@@ -47,10 +46,6 @@ export type DrawSrubEvent = {
 export type DrawSelectedEvent = {
   type: 'DRAW_SELECTED';
   ctx: CanvasRenderingContext2D;
-};
-
-export type UpdateEvent = {
-  type: 'UPDATE';
 };
 
 export type ShrubDepletedEvent = {
@@ -79,7 +74,6 @@ export type Event =
   | DrawEvent
   | UpdateEvent
   | ShrubClickEvent
-  | FeedQueenEvent
   | ShrubDepletedEvent
   | DrawSelectedEvent
   | DrawSrubEvent;

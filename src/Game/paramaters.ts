@@ -24,6 +24,7 @@ export const LARVA_SPAWN_TIME_MS = 5_000;
 // Bloblet
 export const BLOBLET_RADIUS = 10;
 export const BLOBLET_SPAWN_TIME_MS = 10_000;
+export const BLOBLET_HARVEST_INTERVAL = 5_000;
 
 // Shrubs
 export const MAX_SHRUB = 5;
