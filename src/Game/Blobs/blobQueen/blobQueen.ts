@@ -249,33 +249,35 @@ const spawnBlobLarva = assign<Context, SpawnLarvaEvent>(
   }
 );
 
-function hasMassToSpawn(
-  { mass }: Context,
-  { massCost }: SpawnBlobSelectedEvent
-) {
-  return mass >= massCost;
-}
+const transformLarvae = pure<Context, SpawnBlobSelectedEvent>(
+  ({ mass, blobLarvae }, { blobToSpawn, massCost, durationMs }) => {
+    let availableMass = mass;
+    let spentMass = 0;
+    const selectedLarvae = blobLarvae.filter((larva) =>
+      larva.getSnapshot()?.matches({ ready: { larva: 'selected' } })
+    );
 
-const takeMassFromQueen = assign<Context, SpawnBlobSelectedEvent>(
-  ({ mass: queenMass }, { massCost }) => ({
-    mass: queenMass - massCost,
-  })
+    selectedLarvae.forEach((larva) => {
+      if (availableMass >= massCost) {
+        larva.send({
+          type: 'LARVA_SPAWN_SELECTED',
+          blobToSpawn,
+          massCost,
+          spawnTime: durationMs,
+          hatchAt: Date.now() + durationMs,
+        });
+        availableMass -= massCost;
+        spentMass += massCost;
+      }
+    });
+
+    return [
+      assign(({ mass: queenMass }) => ({
+        mass: queenMass - spentMass,
+      })),
+    ];
+  }
 );
-
-function transformLarvae(
-  { blobLarvae }: Context,
-  { blobToSpawn, massCost, durationMs }: SpawnBlobSelectedEvent
-) {
-  blobLarvae.forEach((larva) =>
-    larva.send({
-      type: 'LARVA_SPAWN_SELECTED',
-      blobToSpawn,
-      massCost,
-      spawnTime: durationMs,
-      hatchAt: Date.now() + durationMs,
-    })
-  );
-}
 
 export function makeBlobQueen({
   mass,
@@ -380,8 +382,7 @@ export function makeBlobQueen({
                 on: {
                   SPAWN_BLOB_SELECTED: {
                     target: 'idle',
-                    cond: hasMassToSpawn,
-                    actions: [takeMassFromQueen, transformLarvae],
+                    actions: [transformLarvae],
                   },
                 },
               },
