@@ -8,6 +8,8 @@ export const GAME_SELECTION_DISPLAY_HEIGHT = 200;
 export const GAME_SELECTION_DISPLAY_WIDTH = 300;
 
 // Queen
+export const QUEEN_RADIUS_X = 60;
+export const QUEEN_RADIUS_Y = 40;
 export const QUEEN_POSITION = {
   x: WORLD_WIDTH / 2,
   y: WORLD_HEIGHT / 2,
