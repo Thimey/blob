@@ -1,7 +1,7 @@
 import { Interpreter } from 'xstate';
 import {
   Coordinates,
-  BlobSpawn,
+  BlobType,
   UpdateEvent,
   DrawEvent,
   ClickedEvent,
@@ -60,7 +60,9 @@ export type LarvaDeSelectionEvent = {
 
 export type SpawnBlobSelectedEvent = {
   type: 'SPAWN_BLOB_SELECTED';
-  blobToSpawn: BlobSpawn;
+  blobToSpawn: BlobType;
+  massCost: number;
+  durationMs: number;
 };
 
 export type BlobHatchedEvent = {

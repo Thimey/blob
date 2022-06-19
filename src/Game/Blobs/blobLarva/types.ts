@@ -2,7 +2,7 @@ import { ActorRefFrom, StateMachine } from 'xstate';
 import {
   Coordinates,
   PersistedActor,
-  BlobSpawn,
+  BlobType,
   DrawEvent,
   UpdateEvent,
 } from 'game/types';
@@ -35,7 +35,8 @@ export type LarvaClickEvent = {
 
 export type LarvaSpawnSelected = {
   type: 'LARVA_SPAWN_SELECTED';
-  blobToSpawn: BlobSpawn;
+  blobToSpawn: BlobType;
+  massCost: number;
   spawnTime: number;
   hatchAt: number;
 };

@@ -18,6 +18,7 @@ import {
   MIN_HARVEST_RATE,
   MAX_HARVEST_RATE,
 } from 'game/paramaters';
+import { DrawEvent } from 'game/types';
 import {
   makeShrub,
   makePosition as makeShrubPosition,
@@ -41,7 +42,6 @@ import {
   Context,
   Event,
   State,
-  DrawEvent,
   FeedOnShrubEvent,
   HarvestShrubEvent,
   ShrubDepletedEvent,
@@ -49,6 +49,7 @@ import {
   LarvaDeSelectionEvent,
   BlobHatchedEvent,
   GrowShrubEvent,
+  SpawnBlobSelectedEvent,
   PersistedGameState,
 } from './types';
 
@@ -248,6 +249,34 @@ const spawnBlobLarva = assign<Context, SpawnLarvaEvent>(
   }
 );
 
+function hasMassToSpawn(
+  { mass }: Context,
+  { massCost }: SpawnBlobSelectedEvent
+) {
+  return mass >= massCost;
+}
+
+const takeMassFromQueen = assign<Context, SpawnBlobSelectedEvent>(
+  ({ mass: queenMass }, { massCost }) => ({
+    mass: queenMass - massCost,
+  })
+);
+
+function transformLarvae(
+  { blobLarvae }: Context,
+  { blobToSpawn, massCost, durationMs }: SpawnBlobSelectedEvent
+) {
+  blobLarvae.forEach((larva) =>
+    larva.send({
+      type: 'LARVA_SPAWN_SELECTED',
+      blobToSpawn,
+      massCost,
+      spawnTime: durationMs,
+      hatchAt: Date.now() + durationMs,
+    })
+  );
+}
+
 export function makeBlobQueen({
   mass,
   position,
@@ -351,16 +380,8 @@ export function makeBlobQueen({
                 on: {
                   SPAWN_BLOB_SELECTED: {
                     target: 'idle',
-                    actions: ({ blobLarvae }, { blobToSpawn }) => {
-                      blobLarvae.forEach((larva) =>
-                        larva.send({
-                          type: 'LARVA_SPAWN_SELECTED',
-                          blobToSpawn,
-                          spawnTime: BLOBLET_SPAWN_TIME_MS,
-                          hatchAt: Date.now() + BLOBLET_SPAWN_TIME_MS,
-                        })
-                      );
-                    },
+                    cond: hasMassToSpawn,
+                    actions: [takeMassFromQueen, transformLarvae],
                   },
                 },
               },

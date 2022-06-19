@@ -3,12 +3,12 @@ import { sendParent, send } from 'xstate/lib/actions';
 
 import { makeRandNumber } from 'game/utils';
 import { QUEEN_POSITION } from 'game/paramaters';
+import { UpdateEvent } from 'game/types';
 import {
   Context,
   Events,
   State,
   PersistedLarvaActor,
-  UpdateEvent,
   LarvaClickEvent,
 } from './types';
 import {
