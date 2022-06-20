@@ -1,7 +1,7 @@
 import { blobletColor, shrubColor } from 'game/colors';
 import { isPointWithinCircle } from 'game/utils';
 import { drawCircle, drawDiamond } from 'game/draw';
-import { Coordinates, DrawEventCtx } from 'src/types';
+import { Coordinates, DrawEventCtx } from 'game/types';
 
 import { Context, BlobletActor } from './types';
 

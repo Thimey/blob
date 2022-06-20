@@ -1,4 +1,4 @@
-import { Coordinates } from 'src/types';
+import { Coordinates, DrawEvent } from 'game/types';
 import {
   QUEEN_POSITION,
   MAX_SHRUB_AMOUNT,
@@ -8,7 +8,7 @@ import { makeRandNumber } from 'game/utils';
 import { drawDiamond } from 'game/draw';
 
 import { shrubColor } from 'game/colors';
-import { Context, DrawEvent } from './types';
+import { Context } from './types';
 
 const LEAF_HEIGHT = 25;
 const LEAF_WIDTH = 19;

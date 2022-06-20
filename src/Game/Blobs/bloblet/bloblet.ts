@@ -2,7 +2,11 @@ import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
-import { QUEEN_POSITION, BLOBLET_HARVEST_INTERVAL } from 'game/paramaters';
+import {
+  QUEEN_POSITION,
+  BLOBLET_HARVEST_INTERVAL,
+  BLOBLET_DRIFT_DISTANCE,
+} from 'game/paramaters';
 import { drawSelectedOutline } from 'game/draw';
 import { drawBloblet, drawCarryingShrub } from './draw';
 import {
@@ -48,6 +52,17 @@ const setDestinationAsShrub = assign<Context, Event>(
     destination: harvestingShrub?.position,
   })
 );
+
+const drift = assign<Context, Event>(({ position: { x, y } }: Context) => {
+  const angle = Math.random() * 2 * Math.PI;
+
+  return {
+    destination: {
+      x: x + BLOBLET_DRIFT_DISTANCE * Math.cos(angle),
+      y: y + BLOBLET_DRIFT_DISTANCE * Math.sin(angle),
+    },
+  };
+});
 
 function hasReachedDestination({ position, destination }: Context) {
   return (
@@ -158,7 +173,17 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
           movement: {
             initial: 'stationary',
             states: {
-              stationary: {},
+              stationary: {
+                entry: [drift],
+                on: {
+                  UPDATE: [
+                    {
+                      actions: [stepToDestination],
+                      cond: (ctx) => !hasReachedDestination(ctx),
+                    },
+                  ],
+                },
+              },
               mapMoving: {
                 id: 'mapMoving',
                 on: {
