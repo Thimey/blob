@@ -5,7 +5,7 @@ import { useSelector } from '@xstate/react';
 import {
   BlobQueenService,
   Context as BlobQueenContext,
-} from 'game/blobs/blobQueen/types';
+} from 'game/gameMachine/types';
 
 import { LarvaDisplay } from './LarvaDisplay';
 

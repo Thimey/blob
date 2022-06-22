@@ -5,7 +5,7 @@ import {
   ActorRefFrom,
   StateMachine,
 } from 'xstate';
-import { Coordinates } from 'src/types';
+import { Coordinates } from 'game/types';
 import { hexToRGB, RGB, generateId } from '../utils';
 
 const FLOAT_TIME_MS = 1500;
