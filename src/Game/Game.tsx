@@ -11,7 +11,7 @@ import {
   GAME_OPTIONS_HEIGHT,
   GAME_OPTIONS_WIDTH,
 } from './paramaters';
-import { makeBlobQueen, PersistedGameState } from './blobs';
+import { makeGameMachine, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
 import { gameOptionsMachine } from './gameOptions';
 import { SelectionDisplay } from './SelectionDisplay';
@@ -35,8 +35,8 @@ export const INITIAL_GAME_STATE: PersistedGameState = {
 const retoredGameState = restoreGameState();
 // TODO sort out typing
 const blobQueen = retoredGameState
-  ? interpret(makeBlobQueen(retoredGameState as PersistedGameState)).start()
-  : interpret(makeBlobQueen(INITIAL_GAME_STATE)).start();
+  ? interpret(makeGameMachine(retoredGameState as PersistedGameState)).start()
+  : interpret(makeGameMachine(INITIAL_GAME_STATE)).start();
 
 const TICKS_PER_SECOND = 100;
 const SKIP_TICKS = 1000 / TICKS_PER_SECOND;

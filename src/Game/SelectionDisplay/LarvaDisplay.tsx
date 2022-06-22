@@ -12,7 +12,7 @@ import {
 
 import { BlobType } from 'game/types';
 import { Canvas, DrawOptions } from 'src/components/Canvas';
-import { BlobQueenService } from 'game/blobs/blobQueen/types';
+import { BlobQueenService } from 'game/gameMachine/types';
 import { drawCircle } from 'game/draw';
 
 const PROFILE_CANVAS_HEIGHT = 100;
