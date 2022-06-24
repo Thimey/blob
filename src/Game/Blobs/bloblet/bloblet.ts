@@ -2,11 +2,15 @@ import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
+import { getDistance, closestToZero, makeRandNumber } from 'game/utils';
 import {
   QUEEN_POSITION,
   BLOBLET_HARVEST_INTERVAL,
   BLOBLET_DRIFT_DISTANCE,
+  SHRUB_HARVEST_DWELL_TIME_MS,
+  SHRUB_HARVEST_DROP_DWELL_TIME_MS,
 } from 'game/paramaters';
+import { Coordinates } from 'game/types';
 import { drawSelectedOutline } from 'game/draw';
 import { drawBloblet, drawCarryingShrub } from './draw';
 import {
@@ -18,70 +22,114 @@ import {
   Event,
   State,
   PersistedBlobletActor,
+  Movement,
 } from './types';
 
 const { pure } = actions;
 
+const DEFAULT_SPEED = 2;
+
+function makeMovement({
+  position,
+  destination,
+  speed = DEFAULT_SPEED,
+}: {
+  position: Coordinates;
+  destination: Coordinates;
+  speed?: number;
+}): Movement {
+  const dxTotal = destination.x - position.x;
+  const dyTotal = destination.y - position.y;
+  const totalDistance = getDistance(position, destination);
+
+  return {
+    destination,
+    stepX: (dxTotal / totalDistance) * speed,
+    stepY: (dyTotal / totalDistance) * speed,
+    speed,
+  };
+}
+
 const setDestination = assign(
-  (_: Context, { coordinates: { x, y } }: MapClickEvent) => ({
-    destination: { x, y },
+  ({ position }: Context, { coordinates }: MapClickEvent) => ({
+    movement: makeMovement({ position, destination: coordinates }),
   })
 );
 
 const setHarvestingShrub = assign(
   (
-    _: Context,
-    { shrubId, harvestRate, coordinates: { x, y } }: ShrubClickEvent
+    { position }: Context,
+    { shrubId, harvestRate, coordinates: shrubPosition }: ShrubClickEvent
   ) => ({
-    destination: { x, y },
+    movement: makeMovement({ position, destination: shrubPosition }),
     harvestingShrub: {
       startAt: Date.now(),
       shrubId,
       harvestRate,
-      position: { x, y },
+      position: shrubPosition,
     },
   })
 );
 
-const setDestinationAsQueen = assign<Context, Event>(() => ({
-  destination: QUEEN_POSITION,
+const setDestinationAsQueen = assign<Context, Event>(({ position }) => ({
+  movement: makeMovement({ position, destination: QUEEN_POSITION }),
 }));
 
 const setDestinationAsShrub = assign<Context, Event>(
-  ({ harvestingShrub }: Context) => ({
-    destination: harvestingShrub?.position,
-  })
+  ({ position, harvestingShrub }: Context) => {
+    const { x: shrubX, y: shrubY } = harvestingShrub?.position as Coordinates;
+
+    return {
+      movement: makeMovement({
+        position,
+        destination: {
+          x: shrubX + makeRandNumber(-6, 6),
+          y: shrubY + makeRandNumber(-6, 6),
+        },
+      }),
+    };
+  }
 );
 
 const drift = assign<Context, Event>(({ position: { x, y } }: Context) => {
   const angle = Math.random() * 2 * Math.PI;
 
   return {
-    destination: {
-      x: x + BLOBLET_DRIFT_DISTANCE * Math.cos(angle),
-      y: y + BLOBLET_DRIFT_DISTANCE * Math.sin(angle),
-    },
+    movement: makeMovement({
+      position: { x, y },
+      destination: {
+        x: x + BLOBLET_DRIFT_DISTANCE * Math.cos(angle),
+        y: y + BLOBLET_DRIFT_DISTANCE * Math.sin(angle),
+      },
+      speed: 0.05,
+    }),
   };
 });
 
-function hasReachedDestination({ position, destination }: Context) {
+function hasReachedDestination({ position, movement }: Context) {
+  if (!movement) return true;
+
   return (
-    Math.abs(position.x - destination.x) <= 1 &&
-    Math.abs(position.y - destination.y) <= 1
+    Math.abs(position.x - movement.destination.x) <= 1 &&
+    Math.abs(position.y - movement.destination.y) <= 1
   );
 }
 
 const stepToDestination = assign<Context, UpdateEvent>(
-  ({ position, destination }: Context) => {
-    const dx = destination.x - position.x;
-    const dy = destination.y - position.y;
+  ({ position, movement }: Context) => {
+    if (movement) {
+      const remainingX = movement.destination.x - position.x;
+      const remainingY = movement.destination.y - position.y;
 
-    return {
-      position: {
-        x: position.x + dx / 100,
-        y: position.y + dy / 100,
-      },
-    };
+      return {
+        position: {
+          x: position.x + closestToZero(movement.stepX, remainingX),
+          y: position.y + closestToZero(movement.stepY, remainingY),
+        },
+      };
+    }
+
+    return { position };
   }
 );
 
@@ -119,7 +167,7 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
             target: '#harvestingShrub',
             cond: () => !!context.harvestingShrub,
           },
-          { target: '#mapMoving', cond: () => !!context.destination },
+          { target: '#mapMoving', cond: () => !!context.movement },
           { target: 'ready' },
         ],
       },
@@ -237,7 +285,7 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                       atShrub: {
                         after: [
                           {
-                            delay: 1000,
+                            delay: SHRUB_HARVEST_DWELL_TIME_MS,
                             target: 'movingToQueen',
                             actions: [setDestinationAsQueen],
                           },
@@ -262,7 +310,7 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                       atQueen: {
                         after: [
                           {
-                            delay: 1000,
+                            delay: SHRUB_HARVEST_DROP_DWELL_TIME_MS,
                             target: 'movingToShrub',
                             actions: [setDestinationAsShrub],
                           },
