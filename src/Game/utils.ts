@@ -1,7 +1,5 @@
 import { Coordinates } from './types';
 
-export type Point = [number, number];
-
 export function generateId() {
   return Date.now().toString();
 }
@@ -12,7 +10,14 @@ export function roundTo(number: number, decimalPlaces: number) {
     : Math.round(number * 10 * decimalPlaces) / (10 * decimalPlaces);
 }
 
-export function getDistance([x1, y1]: Point, [x2, y2]: Point) {
+export function closestToZero(x1: number, x2: number) {
+  return Math.abs(x1) < Math.abs(x2) ? x1 : x2;
+}
+
+export function getDistance(
+  { x: x1, y: y1 }: Coordinates,
+  { x: x2, y: y2 }: Coordinates
+) {
   return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
 
@@ -52,14 +57,11 @@ export function isPointWithinEllipse(ellipse: Ellipse, { x, y }: Coordinates) {
 }
 
 export function isPointWithinCircle(
-  { x: positionX, y: positionY }: Coordinates,
+  position: Coordinates,
   radius: number,
-  { x: mouseX, y: mouseY }: Coordinates
+  mousePosition: Coordinates
 ) {
-  const distanceFromClick = getDistance(
-    [mouseX, mouseY],
-    [positionX, positionY]
-  );
+  const distanceFromClick = getDistance(position, mousePosition);
 
   return distanceFromClick <= radius;
 }

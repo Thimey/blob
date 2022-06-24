@@ -8,11 +8,18 @@ import {
 
 export type { UpdateEvent, DrawEvent };
 
+export interface Movement {
+  destination: Coordinates;
+  stepX: number;
+  stepY: number;
+  speed: number;
+}
+
 export type Context = {
   id: string;
   position: Coordinates;
   radius: number;
-  destination: Coordinates;
+  movement?: Movement;
   harvestingShrub?: {
     startAt: number;
     shrubId: string;

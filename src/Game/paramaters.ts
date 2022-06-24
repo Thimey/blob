@@ -26,7 +26,7 @@ export const LARVA_SPAWN_TIME_MS = 5_000;
 // Bloblet
 export const BLOBLET_RADIUS = 10;
 export const BLOBLET_MASS_COST = 10;
-export const BLOBLET_SPAWN_TIME_MS = 10_000;
+export const BLOBLET_SPAWN_TIME_MS = 10_00;
 export const BLOBLET_HARVEST_INTERVAL = 5_000;
 export const BLOBLET_DRIFT_DISTANCE = 10;
 
@@ -37,3 +37,5 @@ export const MAX_SHRUB_AMOUNT = 300;
 export const MIN_HARVEST_RATE = 0.5;
 export const MAX_HARVEST_RATE = 2;
 export const SHRUB_GROW_TIME_MS = 20_000;
+export const SHRUB_HARVEST_DWELL_TIME_MS = 1_000;
+export const SHRUB_HARVEST_DROP_DWELL_TIME_MS = 300;
