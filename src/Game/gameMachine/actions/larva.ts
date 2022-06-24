@@ -77,7 +77,6 @@ export const spawnBlob = assign(
         context: {
           id: generateId(),
           position,
-          destination: position,
           radius: BLOBLET_RADIUS,
         },
         value: ['deselected'],
@@ -94,22 +93,6 @@ export const spawnBlob = assign(
     return {};
   }
 );
-
-export function noOtherLarvaeSelected(
-  { blobLarvae }: Context,
-  { larvaId }: LarvaDeSelectionEvent
-) {
-  return (
-    blobLarvae.filter((larva) => {
-      const larvaSnapshot = larva.getSnapshot();
-
-      return (
-        larvaSnapshot?.context.id !== larvaId &&
-        larvaSnapshot?.matches({ ready: { larva: 'selected' } })
-      );
-    }).length === 0
-  );
-}
 
 export const transformLarvae = pure<Context, SpawnBlobSelectedEvent>(
   ({ mass, blobLarvae }, { blobToSpawn, massCost, durationMs }) => {
@@ -141,8 +124,6 @@ export const transformLarvae = pure<Context, SpawnBlobSelectedEvent>(
   }
 );
 
-// GUARDS
-
 export function didClickOnBlobLarva(
   { blobLarvae }: Context,
   event: ClickedEvent
@@ -152,4 +133,20 @@ export function didClickOnBlobLarva(
 
 export function shouldSpawnLarva({ blobLarvae }: Context, _: SpawnLarvaEvent) {
   return blobLarvae.length < MAX_LARVAE;
+}
+
+export function noOtherLarvaeSelected(
+  { blobLarvae }: Context,
+  { larvaId }: LarvaDeSelectionEvent
+) {
+  return (
+    blobLarvae.filter((larva) => {
+      const larvaSnapshot = larva.getSnapshot();
+
+      return (
+        larvaSnapshot?.context.id !== larvaId &&
+        larvaSnapshot?.matches({ ready: { larva: 'selected' } })
+      );
+    }).length === 0
+  );
 }
