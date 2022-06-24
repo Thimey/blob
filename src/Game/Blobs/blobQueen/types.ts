@@ -5,6 +5,7 @@ export type { DrawEvent };
 
 export interface Context {
   position: Coordinates;
+  eyeRadiusY: number;
 }
 
 type StateValues = 'idle';
@@ -14,6 +15,11 @@ export type State = {
   context: Context;
 };
 
-export type Event = DrawEvent;
+export type DrawEyesEvent = {
+  type: 'DRAW_EYES';
+  ctx: CanvasRenderingContext2D;
+};
+
+export type Event = DrawEvent | DrawEyesEvent;
 
 export type BlobQueenActor = ActorRefFrom<StateMachine<Context, any, Event>>;

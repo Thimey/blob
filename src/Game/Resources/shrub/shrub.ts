@@ -9,7 +9,8 @@ function makeHarvestAmount(harvestAmount: number, totalAmount: number) {
   return Math.min(harvestAmount, totalAmount);
 }
 
-const harvest = pure<Context, HarvestEvent>(({ harvestRate, amount }, { count }) => {
+const harvest = pure<Context, HarvestEvent>(
+  ({ harvestRate, amount }, { count }) => {
     const harvestAmount = makeHarvestAmount(harvestRate * count, amount);
     const newAmount = roundTo(amount - harvestAmount, 2);
 

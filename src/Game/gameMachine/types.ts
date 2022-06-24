@@ -22,7 +22,6 @@ type SpawnOptionDetails = {
 type SpawnOptions = Record<SpawnType, SpawnOptionDetails>;
 
 export interface Context {
-  position: Coordinates;
   mass: number;
   spawnOptions: SpawnOptions;
   blobQueen: BlobQueenActor | null;
