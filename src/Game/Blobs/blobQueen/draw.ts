@@ -1,13 +1,16 @@
-import { drawCircle } from 'game/draw';
+import { assign } from 'xstate';
+
 import { blobQueenColor } from 'game/colors';
 import { QUEEN_RADIUS_X, QUEEN_RADIUS_Y } from 'game/paramaters';
 
-import { Context, DrawEvent } from './types';
+import { Context, DrawEvent, UpdateEvent } from './types';
+
+export const EYE_RADIUS = 2;
+export const BLINK_FREQUENCY_MS = 10000;
+export const BLINK_DURATION_MS = 600;
+const BLINK_SPEED = 0.15;
 
 export function drawBody({ position: { x, y } }: Context, { ctx }: DrawEvent) {
-  const eyeYOffset = QUEEN_RADIUS_Y - 20;
-  const eyeXOffset = -4;
-
   // Body
   ctx.beginPath();
   ctx.ellipse(x, y, QUEEN_RADIUS_X, QUEEN_RADIUS_Y, 0, Math.PI * 2, 0);
@@ -16,14 +19,57 @@ export function drawBody({ position: { x, y } }: Context, { ctx }: DrawEvent) {
   ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
+}
+
+export function drawEyes(
+  { position: { x, y }, eyeRadiusY }: Context,
+  { ctx }: DrawEvent
+) {
+  const eyeYOffset = QUEEN_RADIUS_Y - 20;
+  const eyeXOffset = -4;
 
   // Left eye
   ctx.beginPath();
-  drawCircle(ctx, x - eyeXOffset, y - eyeYOffset, 2, 'black');
+  ctx.ellipse(
+    x - eyeXOffset,
+    y - eyeYOffset,
+    EYE_RADIUS,
+    eyeRadiusY,
+    0,
+    Math.PI * 2,
+    0
+  );
+  ctx.fillStyle = 'black';
+  ctx.fill();
+  ctx.strokeStyle = 'black';
+  ctx.stroke();
   ctx.closePath();
 
   // Right eye
   ctx.beginPath();
-  drawCircle(ctx, x + eyeXOffset, y - eyeYOffset, 2, 'black');
+  ctx.ellipse(
+    x + eyeXOffset,
+    y - eyeYOffset,
+    EYE_RADIUS,
+    eyeRadiusY,
+    0,
+    Math.PI * 2,
+    0
+  );
+  ctx.fillStyle = 'black';
+  ctx.fill();
+  ctx.strokeStyle = 'black';
+  ctx.stroke();
   ctx.closePath();
 }
+
+export const blinkClose = assign<Context, UpdateEvent>(({ eyeRadiusY }) => ({
+  eyeRadiusY: eyeRadiusY - BLINK_SPEED <= 0 ? 0 : eyeRadiusY - BLINK_SPEED,
+}));
+
+export const blinkOpen = assign<Context, UpdateEvent>(({ eyeRadiusY }) => ({
+  eyeRadiusY:
+    eyeRadiusY + BLINK_SPEED >= EYE_RADIUS
+      ? EYE_RADIUS
+      : eyeRadiusY + BLINK_SPEED,
+}));

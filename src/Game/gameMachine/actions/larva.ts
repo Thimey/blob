@@ -1,6 +1,7 @@
 import { assign, spawn, actions } from 'xstate';
 
 import {
+  QUEEN_POSITION,
   QUEEN_RADIUS_X,
   QUEEN_RADIUS_Y,
   BLOBLET_RADIUS,
@@ -32,10 +33,10 @@ export function drawLarvae({ blobLarvae }: Context, { ctx }: DrawEvent) {
 }
 
 export const spawnBlobLarva = assign<Context, SpawnLarvaEvent>(
-  ({ blobLarvae, position: { x, y } }: Context, _: SpawnLarvaEvent) => {
+  ({ blobLarvae }: Context, _: SpawnLarvaEvent) => {
     const position = {
-      x: x + QUEEN_RADIUS_X + makeRandNumber(-80, 80),
-      y: y + QUEEN_RADIUS_Y + makeRandNumber(-80, 80),
+      x: QUEEN_POSITION.x + QUEEN_RADIUS_X + makeRandNumber(-80, 80),
+      y: QUEEN_POSITION.y + QUEEN_RADIUS_Y + makeRandNumber(-80, 80),
     };
 
     const machine = makeBlobLarva({

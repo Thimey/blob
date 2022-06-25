@@ -2,6 +2,7 @@ import { assign, spawn, actions } from 'xstate';
 
 import { blobQueenColor } from 'game/colors';
 import {
+  QUEEN_POSITION,
   QUEEN_RADIUS_Y,
   MIN_SHRUB_AMOUNT,
   MAX_SHRUB_AMOUNT,
@@ -117,11 +118,11 @@ export const shrubDepleted = pure(
 );
 
 export const feedOnShrub = assign(
-  ({ mass, position: { x, y } }: Context, { amount }: FeedOnShrubEvent) => {
+  ({ mass }: Context, { amount }: FeedOnShrubEvent) => {
     const newMass = mass + amount;
 
     animationMachine.send('SHOW_NUMBER', {
-      position: { x, y: y - QUEEN_RADIUS_Y },
+      position: { x: QUEEN_POSITION.x, y: QUEEN_POSITION.y - QUEEN_RADIUS_Y },
       amount,
       colorHex: blobQueenColor,
     });

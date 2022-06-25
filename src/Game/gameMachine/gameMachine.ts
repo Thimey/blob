@@ -32,7 +32,6 @@ import {
 
 export function makeGameMachine({
   mass,
-  position,
   spawnOptions,
   bloblets,
   shrubs,
@@ -40,7 +39,6 @@ export function makeGameMachine({
   const machine = createMachine<Context, Event, State>({
     initial: 'initialising',
     context: {
-      position,
       mass,
       spawnOptions,
       blobQueen: null,
@@ -50,7 +48,7 @@ export function makeGameMachine({
     },
     on: {
       DRAW: {
-        actions: [drawQueen, drawLarvae, drawBloblets, drawShrubs],
+        actions: [drawQueen, drawLarvae, drawShrubs, drawBloblets],
       },
       UPDATE: {
         actions: [updateBlobs],
