@@ -2,9 +2,10 @@ import { UpdateEvent } from 'game/types';
 import { Context, ClickedEvent } from '../types';
 
 export function updateBlobs(
-  { bloblets, blobLarvae }: Context,
+  { blobQueen, bloblets, blobLarvae }: Context,
   event: UpdateEvent
 ) {
+  blobQueen?.send(event);
   bloblets.forEach((blob) => {
     blob.send(event);
   });

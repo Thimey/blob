@@ -1,8 +1,16 @@
-import { createMachine, send } from 'xstate';
+import { createMachine } from 'xstate';
 
 import { QUEEN_POSITION } from 'game/paramaters';
 import { Context, State, Event } from './types';
-import { drawBody, drawEyes, blinkClose, blinkOpen, EYE_RADIUS } from './draw';
+import {
+  drawBody,
+  drawEyes,
+  blinkClose,
+  blinkOpen,
+  EYE_RADIUS,
+  BLINK_FREQUENCY_MS,
+  BLINK_DURATION_MS,
+} from './draw';
 
 export function makeBlobQueen() {
   return createMachine<Context, Event, State>({
@@ -10,37 +18,32 @@ export function makeBlobQueen() {
     context: { position: QUEEN_POSITION, eyeRadiusY: EYE_RADIUS },
     on: {
       DRAW: {
-        actions: [drawBody, send((_, { ctx }) => ({ type: 'DRAW_EYES', ctx }))],
+        actions: [drawBody, drawEyes],
       },
     },
     states: {
       idle: {
-        on: {
-          DRAW_EYES: {
-            actions: [drawEyes],
-          },
-        },
         after: {
-          10000: 'blinkingClose',
+          [BLINK_FREQUENCY_MS]: 'blinkingClose',
         },
       },
       blinkingClose: {
         on: {
-          DRAW_EYES: {
-            actions: [drawEyes, blinkClose],
+          UPDATE: {
+            actions: [blinkClose],
           },
         },
         after: {
-          1000: 'blinkingOpen',
+          [BLINK_DURATION_MS]: 'blinkingOpen',
         },
       },
       blinkingOpen: {
         on: {
-          DRAW_EYES: {
-            actions: [drawEyes, blinkOpen],
+          UPDATE: {
+            actions: [blinkOpen],
           },
         },
-        after: { 1000: 'idle' },
+        after: { [BLINK_DURATION_MS]: 'idle' },
       },
     },
   });
