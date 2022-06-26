@@ -1,6 +1,8 @@
 import { createMachine } from 'xstate';
 
 import { LARVA_SPAWN_TIME_MS, SHRUB_GROW_TIME_MS } from 'game/paramaters';
+import { animationMachine } from 'game/animations/animationMachine';
+
 import { Context, Event, State, PersistedGameState } from './types';
 import {
   initialiseQueen,
@@ -48,10 +50,16 @@ export function makeGameMachine({
     },
     on: {
       DRAW: {
-        actions: [drawQueen, drawLarvae, drawShrubs, drawBloblets],
+        actions: [
+          (_, e) => animationMachine.send(e),
+          drawQueen,
+          drawLarvae,
+          drawShrubs,
+          drawBloblets,
+        ],
       },
       UPDATE: {
-        actions: [updateBlobs],
+        actions: [(_, e) => animationMachine.send(e), updateBlobs],
       },
       HARVEST_SHRUB: {
         actions: [harvestShrub],

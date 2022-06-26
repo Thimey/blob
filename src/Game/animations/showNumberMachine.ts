@@ -5,7 +5,7 @@ import {
   ActorRefFrom,
   StateMachine,
 } from 'xstate';
-import { Coordinates } from 'game/types';
+import { Coordinates, DrawEvent, UpdateEvent } from 'game/types';
 import { hexToRGB, RGB, generateId } from '../utils';
 
 const FLOAT_TIME_MS = 1500;
@@ -24,15 +24,13 @@ type State = {
   context: Context;
 };
 
-type DrawAmountEvent = { type: 'DRAW'; ctx: CanvasRenderingContext2D };
-
-type Event = DrawAmountEvent;
+type Event = DrawEvent | UpdateEvent;
 
 export type ShowNumberActor = ActorRefFrom<StateMachine<Context, State, Event>>;
 
 function drawAmount(
   { amount, position: { x, y }, opacity, colorRGB: { r, g, b } }: Context,
-  { ctx }: DrawAmountEvent
+  { ctx }: DrawEvent
 ) {
   ctx.font = '12px Arial';
   ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
@@ -40,7 +38,7 @@ function drawAmount(
 }
 
 const raise = assign(
-  ({ position: { x, y }, opacity }: Context, _: DrawAmountEvent) => ({
+  ({ position: { x, y }, opacity }: Context, _: UpdateEvent) => ({
     position: { x, y: y - 0.2 },
     opacity: opacity - 0.005,
   })
@@ -62,7 +60,10 @@ export function makeShowNumber({ amount, position, colorHex = '#000' }: Args) {
       animate: {
         on: {
           DRAW: {
-            actions: [drawAmount, raise],
+            actions: [drawAmount],
+          },
+          UPDATE: {
+            actions: [raise],
           },
         },
         after: {

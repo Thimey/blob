@@ -1,12 +1,7 @@
 import { createMachine, interpret, assign, spawn } from 'xstate';
-import { Coordinates } from 'game/types';
+import { Coordinates, UpdateEvent, DrawEvent } from 'game/types';
 
-import { makeShowNumber, ShowNumberActor } from './showNumber';
-
-type DrawEvent = {
-  type: 'DRAW';
-  ctx: CanvasRenderingContext2D;
-};
+import { makeShowNumber, ShowNumberActor } from './showNumberMachine';
 
 type AnimationActor = ShowNumberActor;
 
@@ -33,7 +28,11 @@ type RemoveAnimationEvent = {
   id: string;
 };
 
-type Event = DrawEvent | ShowNumberAnimationEvent | RemoveAnimationEvent;
+type Event =
+  | DrawEvent
+  | UpdateEvent
+  | ShowNumberAnimationEvent
+  | RemoveAnimationEvent;
 
 const addNumberAnimation = assign(
   (context: any, { position, amount, colorHex }: ShowNumberAnimationEvent) => {
@@ -45,16 +44,25 @@ const addNumberAnimation = assign(
   }
 );
 
-function drawAnimations({ animations }: Context, { ctx }: DrawEvent) {
-  animations.forEach((animation) => animation.send({ type: 'DRAW', ctx }));
+function propagateEvent(
+  { animations }: Context,
+  event: DrawEvent | UpdateEvent
+) {
+  animations.forEach((animation) => animation.send(event));
 }
 
 const removeAnimation = assign<Context, RemoveAnimationEvent>(
-  ({ animations }, { id }) => ({
-    animations: animations.filter(
-      (animation) => animation.getSnapshot()?.context.id !== id
-    ),
-  })
+  ({ animations }, { id }) => {
+    if (animations.length > 0) {
+      const [nextAnimation, ...remaining] = animations;
+      return {
+        nextAnimation,
+        animations: remaining || [],
+      };
+    }
+
+    return {};
+  }
 );
 
 const machine = createMachine<Context, Event, State>({
@@ -67,7 +75,10 @@ const machine = createMachine<Context, Event, State>({
           actions: [addNumberAnimation],
         },
         DRAW: {
-          actions: [drawAnimations],
+          actions: [propagateEvent],
+        },
+        UPDATE: {
+          actions: [propagateEvent],
         },
         REMOVE_ANIMATION: {
           actions: [removeAnimation],
