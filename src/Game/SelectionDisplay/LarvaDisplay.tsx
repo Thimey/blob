@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 
+import { GameContext } from 'game/GameProvider';
 import { drawLarva } from 'game/blobs/blobLarva/draw';
 import { drawBloblet } from 'game/blobs/bloblet/draw';
 import {
@@ -93,13 +94,11 @@ const spawnSelection: (BlobSpawn | UnknownSpawn)[] = [
   { type: 'unknown', draw: drawUnknown },
 ];
 
-export interface Props {
-  gameService: GameService;
-}
+export const LarvaDisplay = () => {
+  const gameServices = useContext(GameContext);
 
-export const LarvaDisplay = ({ gameService }: Props) => {
   const handleBlobSelect = ({ type, massCost, durationMs }: BlobSpawn) => {
-    gameService.send({
+    gameServices.gameService.send({
       type: 'SPAWN_BLOB_SELECTED',
       blobToSpawn: type,
       massCost,
