@@ -3,7 +3,6 @@ import React, { useRef, useEffect, useContext } from 'react';
 import { GameContext } from './GameProvider';
 import { sandColor } from './colors';
 import { WORLD_HEIGHT, WORLD_WIDTH } from './paramaters';
-import { animationMachine } from './animations/animationMachine';
 import { SelectionDisplay } from './SelectionDisplay';
 
 const TICKS_PER_SECOND = 100;
@@ -38,7 +37,6 @@ function gameLoop(gameService: any, gameCtx: CanvasRenderingContext2D) {
   }
 
   gameService.send('DRAW', { ctx: gameCtx });
-  animationMachine.send('DRAW', { ctx: gameCtx });
 
   window.requestAnimationFrame(() => gameLoop(gameService, gameCtx));
 }
