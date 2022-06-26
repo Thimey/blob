@@ -44,7 +44,10 @@ const addNumberAnimation = assign(
   }
 );
 
-function propateEvent({ animations }: Context, event: DrawEvent | UpdateEvent) {
+function propagateEvent(
+  { animations }: Context,
+  event: DrawEvent | UpdateEvent
+) {
   animations.forEach((animation) => animation.send(event));
 }
 
@@ -72,7 +75,7 @@ const machine = createMachine<Context, Event, State>({
           actions: [addNumberAnimation],
         },
         DRAW: {
-          actions: [propateEvent],
+          actions: [propagateEvent],
         },
         UPDATE: {
           actions: [propateEvent],
