@@ -105,4 +105,4 @@ export type Event =
   | BlobHatchedEvent
   | GrowShrubEvent;
 
-export type BlobQueenService = Interpreter<Context, any, Event, State>;
+export type GameService = Interpreter<Context, any, Event, State>;

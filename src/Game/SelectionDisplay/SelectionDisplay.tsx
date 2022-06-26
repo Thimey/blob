@@ -3,7 +3,7 @@ import { State } from 'xstate';
 import { useSelector } from '@xstate/react';
 
 import {
-  BlobQueenService,
+  GameService,
   Context as BlobQueenContext,
 } from 'game/gameMachine/types';
 
@@ -13,14 +13,14 @@ function showLarvaSelected(state: State<BlobQueenContext>) {
   return state.matches({ ready: { itemSelection: 'larvaSelected' } });
 }
 export interface Props {
-  blobQueenService: BlobQueenService;
+  gameService: GameService;
 }
 
-export const SelectionDisplay = ({ blobQueenService }: Props) => {
-  const showLarva = useSelector(blobQueenService, showLarvaSelected);
+export const SelectionDisplay = ({ gameService }: Props) => {
+  const showLarva = useSelector(gameService, showLarvaSelected);
 
   if (showLarva) {
-    return <LarvaDisplay blobQueenService={blobQueenService} />;
+    return <LarvaDisplay gameService={gameService} />;
   }
 
   return null;

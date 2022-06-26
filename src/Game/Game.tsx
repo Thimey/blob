@@ -13,12 +13,10 @@ import {
 } from './paramaters';
 import { makeGameMachine, PersistedGameState } from './blobs';
 import { animationMachine } from './animations/animationMachine';
-import { gameOptionsMachine } from './gameOptions';
 import { SelectionDisplay } from './SelectionDisplay';
 
 export const INITIAL_GAME_STATE: PersistedGameState = {
   mass: 50,
-  position: QUEEN_POSITION,
   spawnOptions: {
     bloblet: {
       color: '#268645',
@@ -26,6 +24,7 @@ export const INITIAL_GAME_STATE: PersistedGameState = {
       radius: 10,
     },
   },
+  blobQueen: null,
   shrubs: [],
   bloblets: [],
   blobLarvae: [],
@@ -34,7 +33,7 @@ export const INITIAL_GAME_STATE: PersistedGameState = {
 // Move to react context
 const retoredGameState = restoreGameState();
 // TODO sort out typing
-const blobQueen = retoredGameState
+const gameService = retoredGameState
   ? interpret(makeGameMachine(retoredGameState as PersistedGameState)).start()
   : interpret(makeGameMachine(INITIAL_GAME_STATE)).start();
 
@@ -46,12 +45,8 @@ let loop: number;
 let currentUpdateAt = Date.now();
 let lastUpdateAt: number;
 
-function gameLoop(
-  gameCtx: CanvasRenderingContext2D,
-  optionsCtx: CanvasRenderingContext2D
-) {
+function gameLoop(gameCtx: CanvasRenderingContext2D) {
   gameCtx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-  optionsCtx.clearRect(0, 0, GAME_OPTIONS_WIDTH, GAME_OPTIONS_HEIGHT);
 
   // eslint-disable-next-line no-param-reassign
   gameCtx.fillStyle = sandColor;
@@ -63,7 +58,7 @@ function gameLoop(
     lastUpdateAt = currentUpdateAt;
     currentUpdateAt = Date.now();
 
-    blobQueen.send('UPDATE', {
+    gameService.send('UPDATE', {
       ctx: gameCtx,
       lastUpdateAt,
       currentUpdateAt,
@@ -73,23 +68,15 @@ function gameLoop(
     loop += 1;
   }
 
-  // Draw
-  blobQueen.send('DRAW', { ctx: gameCtx });
-
-  gameOptionsMachine.send('DRAW', {
-    ctx: optionsCtx,
-    mass: roundTo(blobQueen.state.context.mass, 2),
-  });
-
+  gameService.send('DRAW', { ctx: gameCtx });
   animationMachine.send('DRAW', { ctx: gameCtx });
 
-  window.requestAnimationFrame(() => gameLoop(gameCtx, optionsCtx));
+  window.requestAnimationFrame(() => gameLoop(gameCtx));
 }
 
 export const Game = () => {
   // TODO: Consider moving each canvas into it's own hook with it's own game loop.
   const gameCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const optionsCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const gameCanvas = gameCanvasRef.current as HTMLCanvasElement;
@@ -97,26 +84,19 @@ export const Game = () => {
     gameCanvas.width = WORLD_WIDTH;
     gameCanvas.height = WORLD_HEIGHT;
 
-    const optionsCanvas = optionsCanvasRef.current as HTMLCanvasElement;
-    const optionsCtx = optionsCanvas.getContext(
-      '2d'
-    ) as CanvasRenderingContext2D;
-    optionsCanvas.width = GAME_OPTIONS_WIDTH;
-    optionsCanvas.height = GAME_OPTIONS_HEIGHT;
-
-    gameLoop(gameCtx, optionsCtx);
+    gameLoop(gameCtx);
 
     // window.addEventListener('beforeunload', () =>
-    //   persistGameState(blobQueen as any)
+    //   persistGameState(gameService as any)
     // );
   }, []);
 
   const handleMainGameClick = ({ clientX, clientY }: React.MouseEvent) => {
     const geometry = gameCanvasRef.current?.getBoundingClientRect();
 
-    if (blobQueen && geometry) {
+    if (gameService && geometry) {
       const { x, y } = geometry;
-      blobQueen.send('CLICKED', {
+      gameService.send('CLICKED', {
         coordinates: { x: clientX - x, y: clientY - y },
       });
     }
@@ -124,17 +104,6 @@ export const Game = () => {
 
   return (
     <>
-      <canvas
-        id="game-options-canvas"
-        ref={optionsCanvasRef}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          height: GAME_OPTIONS_HEIGHT,
-          width: GAME_OPTIONS_WIDTH,
-        }}
-      />
       <canvas
         id="game-canvas"
         onClick={handleMainGameClick}
@@ -144,7 +113,7 @@ export const Game = () => {
           width: WORLD_WIDTH,
         }}
       />
-      <SelectionDisplay blobQueenService={blobQueen as any} />
+      <SelectionDisplay gameService={gameService as any} />
     </>
   );
 };

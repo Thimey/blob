@@ -12,7 +12,7 @@ import {
 
 import { BlobType } from 'game/types';
 import { Canvas, DrawOptions } from 'src/components/Canvas';
-import { BlobQueenService } from 'game/gameMachine/types';
+import { GameService } from 'game/gameMachine/types';
 import { drawCircle } from 'game/draw';
 
 const PROFILE_CANVAS_HEIGHT = 100;
@@ -94,12 +94,12 @@ const spawnSelection: (BlobSpawn | UnknownSpawn)[] = [
 ];
 
 export interface Props {
-  blobQueenService: BlobQueenService;
+  gameService: GameService;
 }
 
-export const LarvaDisplay = ({ blobQueenService }: Props) => {
+export const LarvaDisplay = ({ gameService }: Props) => {
   const handleBlobSelect = ({ type, massCost, durationMs }: BlobSpawn) => {
-    blobQueenService.send({
+    gameService.send({
       type: 'SPAWN_BLOB_SELECTED',
       blobToSpawn: type,
       massCost,

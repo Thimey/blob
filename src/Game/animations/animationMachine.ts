@@ -1,5 +1,5 @@
 import { createMachine, interpret, assign, spawn } from 'xstate';
-import { Coordinates } from 'src/types';
+import { Coordinates } from 'game/types';
 
 import { makeShowNumber, ShowNumberActor } from './showNumber';
 
