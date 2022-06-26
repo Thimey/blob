@@ -78,7 +78,7 @@ const machine = createMachine<Context, Event, State>({
           actions: [propagateEvent],
         },
         UPDATE: {
-          actions: [propateEvent],
+          actions: [propagateEvent],
         },
         REMOVE_ANIMATION: {
           actions: [removeAnimation],
