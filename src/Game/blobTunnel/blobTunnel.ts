@@ -1,23 +1,38 @@
-import { createMachine } from 'xstate';
+import { assign, createMachine, ActorRefFrom, StateMachine } from 'xstate';
 
 import { blobQueenColor } from 'game/colors';
-import { Point, DrawEvent } from 'game/types';
+import { Point, DrawEvent, UpdateEvent } from 'game/types';
+import { QUEEN_POSITION, QUEEN_RADIUS_X } from 'game/paramaters';
+import { drawBloblet } from 'game/blobs/bloblet/draw';
 import {
-  QUEEN_POSITION,
-  QUEEN_RADIUS_X,
-  QUEEN_RADIUS_Y,
-} from 'game/paramaters';
-import { makeCubicBezierPoints, makeRandNumber } from 'game/lib/math';
+  makeCubicBezierPoints,
+  makeRandNumber,
+  isPointWithinEllipse,
+  generateId,
+} from 'game/lib/math';
 import { drawCircle } from 'game/lib/draw';
 
+interface TunnellingObject {
+  draw: (ctx: CanvasRenderingContext2D, point: Point) => void;
+  pointIndex: number;
+  direction: 'startToEnd' | 'endToStart';
+}
+
 interface Context {
+  id: string;
   thickness: number;
   points: Point[];
   start: Point;
   end: Point;
   cp1: Point;
   cp2: Point;
+  tunellingOjects: TunnellingObject[];
 }
+
+type TunnelClickEvent = {
+  type: 'TUNNEL_CLICKED';
+  id: string;
+};
 
 type StateValues = 'idle';
 
@@ -26,13 +41,36 @@ export type State = {
   context: Context;
 };
 
-type Event = DrawEvent;
+type Event = DrawEvent | UpdateEvent | TunnelClickEvent;
+type TunnelActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 
 const TUNNEL_WALL_WIDTH = 3;
 const TUNNEL_WIDTH = 20;
+const ENTRANCE_RADIUS_X = 20;
+const ENTRANCE_RADIUS_Y = 20;
+
+export function tunnelClicked(
+  tunnel: TunnelActor,
+  { coordinates }: { coordinates: Point }
+) {
+  const tunnelContext = tunnel.getSnapshot()?.context;
+
+  return (
+    tunnelContext &&
+    isPointWithinEllipse(
+      {
+        x: tunnelContext.start.x,
+        y: tunnelContext.start.y,
+        radiusX: ENTRANCE_RADIUS_X,
+        radiusY: ENTRANCE_RADIUS_Y,
+      },
+      coordinates
+    )
+  );
+}
 
 function drawTunnel(
-  { thickness, points, start, end, cp1, cp2 }: Context,
+  { thickness, points, start, end, cp1, cp2, tunellingOjects }: Context,
   { ctx }: DrawEvent
 ) {
   ctx.save();
@@ -40,7 +78,15 @@ function drawTunnel(
   // Entrance
   ctx.globalCompositeOperation = 'source-over';
   ctx.beginPath();
-  ctx.ellipse(start.x, start.y, 20, 15, 0, 0, 2 * Math.PI);
+  ctx.ellipse(
+    start.x,
+    start.y,
+    ENTRANCE_RADIUS_X,
+    ENTRANCE_RADIUS_Y,
+    0,
+    0,
+    2 * Math.PI
+  );
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5';
   ctx.fill();
   ctx.stroke();
@@ -48,7 +94,15 @@ function drawTunnel(
 
   // Exit
   ctx.beginPath();
-  ctx.ellipse(end.x, end.y, 20, 15, 0, 0, 2 * Math.PI);
+  ctx.ellipse(
+    end.x,
+    end.y,
+    ENTRANCE_RADIUS_X,
+    ENTRANCE_RADIUS_Y,
+    0,
+    0,
+    2 * Math.PI
+  );
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5';
   ctx.fill();
   ctx.stroke();
@@ -73,6 +127,11 @@ function drawTunnel(
   ctx.closePath();
   ctx.restore();
 
+  // Tunnelling objects
+  tunellingOjects.forEach(({ draw, pointIndex }) => {
+    draw(ctx, points[pointIndex]);
+  });
+
   // Points
   // points.forEach(({ x, y }) => {
   //   ctx.beginPath();
@@ -80,6 +139,27 @@ function drawTunnel(
   //   ctx.closePath();
   // });
 }
+
+const updateTunnelling = assign(
+  ({ tunellingOjects, points }: Context, _: UpdateEvent) => ({
+    tunellingOjects: tunellingOjects.reduce<TunnellingObject[]>(
+      (acc, { pointIndex, ...rest }) => {
+        const nextIndex = pointIndex + 1;
+
+        return nextIndex >= points.length
+          ? acc
+          : [
+              ...acc,
+              {
+                pointIndex: nextIndex,
+                ...rest,
+              },
+            ];
+      },
+      []
+    ),
+  })
+);
 
 export function makeBlobTunnel() {
   const start = {
@@ -98,16 +178,36 @@ export function makeBlobTunnel() {
 
   return createMachine<Context, Event, State>({
     context: {
+      id: generateId(),
       thickness: TUNNEL_WIDTH,
-      points: makeCubicBezierPoints(start, cp1, cp2, end, 100),
+      points: makeCubicBezierPoints(start, cp1, cp2, end, 200),
       start,
       end,
       cp1,
       cp2,
+      tunellingOjects: [],
     },
     on: {
       DRAW: {
         actions: [drawTunnel],
+      },
+      UPDATE: {
+        actions: [updateTunnelling],
+      },
+      TUNNEL_CLICKED: {
+        actions: [
+          assign(({ tunellingOjects }) => ({
+            tunellingOjects: [
+              ...tunellingOjects,
+              {
+                direction: 'startToEnd',
+                pointIndex: 0,
+                draw: (ctx, p) =>
+                  drawBloblet({ position: p, radius: 10 }, { ctx }),
+              },
+            ],
+          })),
+        ],
       },
     },
     states: {},

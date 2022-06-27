@@ -31,8 +31,6 @@ export function propagateBlobletClicked(
   }
 }
 
-// GUARDS
-
 export function didClickOnBloblet({ bloblets }: Context, event: ClickedEvent) {
   return bloblets.some((blob) => blobletClicked(blob, event));
 }
