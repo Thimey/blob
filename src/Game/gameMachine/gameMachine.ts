@@ -1,7 +1,8 @@
-import { createMachine } from 'xstate';
+import { assign, createMachine, spawn } from 'xstate';
 
 import { LARVA_SPAWN_TIME_MS, SHRUB_GROW_TIME_MS } from 'game/paramaters';
 import { animationMachine } from 'game/animations/animationMachine';
+import { makeBlobTunnel } from 'game/blobTunnel/blobTunnel';
 
 import { Context, Event, State, PersistedGameState } from './types';
 import {
@@ -43,6 +44,7 @@ export function makeGameMachine({
     context: {
       mass,
       spawnOptions,
+      tunnels: [],
       blobQueen: null,
       bloblets: [],
       blobLarvae: [],
@@ -52,6 +54,7 @@ export function makeGameMachine({
       DRAW: {
         actions: [
           (_, e) => animationMachine.send(e),
+          ({ tunnels }, e) => tunnels.forEach((t) => t.send(e)),
           drawQueen,
           drawLarvae,
           drawShrubs,
@@ -77,6 +80,7 @@ export function makeGameMachine({
           initialiseQueen,
           initialiseShrubs(shrubs),
           initialiseBloblets(bloblets),
+          assign(() => ({ tunnels: [spawn(makeBlobTunnel())] })),
         ],
         always: { target: 'ready' },
       },

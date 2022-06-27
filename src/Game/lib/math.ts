@@ -78,3 +78,32 @@ export function isPointWithinRectangle(rect: Rectangle, { x, y }: Point) {
     y <= rect.y + rect.height
   );
 }
+
+export function makeCubicBezierPoints(
+  p0: Point,
+  p1: Point,
+  p2: Point,
+  p3: Point,
+  step: number
+) {
+  const cx = 3 * (p1.x - p0.x);
+  const bx = 3 * (p2.x - p1.x) - cx;
+  const ax = p3.x - p0.x - cx - bx;
+
+  const cy = 3 * (p1.y - p0.y);
+  const by = 3 * (p2.y - p1.y) - cy;
+  const ay = p3.y - p0.y - cy - by;
+
+  let t = 0;
+  const points: Point[] = [];
+
+  while (t <= 1) {
+    const x = ax * t ** 3 + bx * t ** 2 + cx * t + p0.x;
+    const y = ay * t ** 3 + by * t ** 2 + cy * t + p0.y;
+
+    points.push({ x, y });
+    t += 1 / step;
+  }
+
+  return points;
+}
