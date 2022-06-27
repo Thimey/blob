@@ -5,13 +5,13 @@ import {
   ActorRefFrom,
   StateMachine,
 } from 'xstate';
-import { Coordinates, DrawEvent, UpdateEvent } from 'game/types';
+import { Point, DrawEvent, UpdateEvent } from 'game/types';
 import { hexToRGB, RGB, generateId } from '../lib/math';
 
 const FLOAT_TIME_MS = 1500;
 interface Context {
   id: string;
-  position: Coordinates;
+  position: Point;
   amount: number;
   colorRGB: RGB;
   opacity: number;
@@ -45,7 +45,7 @@ const raise = assign(
 );
 
 interface Args {
-  position: Coordinates;
+  position: Point;
   amount: number;
   colorHex?: string;
 }

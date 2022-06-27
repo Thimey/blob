@@ -1,10 +1,10 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
-import { Coordinates, DrawEvent, UpdateEvent } from 'game/types';
+import { Point, DrawEvent, UpdateEvent } from 'game/types';
 
 export type { DrawEvent, UpdateEvent };
 
 export interface Context {
-  position: Coordinates;
+  position: Point;
   eyeRadiusY: number;
 }
 

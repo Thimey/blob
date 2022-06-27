@@ -1,6 +1,6 @@
 import { Interpreter } from 'xstate';
 import {
-  Coordinates,
+  Point,
   BlobType,
   UpdateEvent,
   DrawEvent,
@@ -16,7 +16,7 @@ export type { ClickedEvent };
 export type SpawnType = 'bloblet';
 type SpawnOptionDetails = {
   color: string;
-  position: Coordinates;
+  position: Point;
   radius: number;
 };
 type SpawnOptions = Record<SpawnType, SpawnOptionDetails>;
@@ -52,7 +52,7 @@ export type SpawnLarvaEvent = {
 
 export type LarvaSelectionEvent = {
   type: 'LARVA_SELECTED';
-  postion: Coordinates;
+  postion: Point;
   larvaId: string;
 };
 
@@ -71,7 +71,7 @@ export type SpawnBlobSelectedEvent = {
 export type BlobHatchedEvent = {
   type: 'BLOB_HATCHED';
   blob: 'bloblet';
-  position: Coordinates;
+  position: Point;
   larvaId: string;
 };
 

@@ -1,15 +1,10 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
-import {
-  Coordinates,
-  PersistedActor,
-  DrawEvent,
-  UpdateEvent,
-} from 'game/types';
+import { Point, PersistedActor, DrawEvent, UpdateEvent } from 'game/types';
 
 export type { UpdateEvent, DrawEvent };
 
 export interface Movement {
-  destination: Coordinates;
+  destination: Point;
   stepX: number;
   stepY: number;
   speed: number;
@@ -17,14 +12,14 @@ export interface Movement {
 
 export type Context = {
   id: string;
-  position: Coordinates;
+  position: Point;
   radius: number;
   movement?: Movement;
   harvestingShrub?: {
     startAt: number;
     shrubId: string;
     harvestRate: number;
-    position: Coordinates;
+    position: Point;
   };
 };
 
@@ -35,12 +30,12 @@ export type BlobClickEvent = {
 
 export type MapClickEvent = {
   type: 'MAP_CLICKED';
-  coordinates: Coordinates;
+  coordinates: Point;
 };
 
 export type ShrubClickEvent = {
   type: 'SHRUB_CLICKED';
-  coordinates: Coordinates;
+  coordinates: Point;
   shrubId: string;
   harvestRate: number;
 };

@@ -1,6 +1,6 @@
 export type BlobType = 'bloblet';
 
-export type Coordinates = {
+export type Point = {
   x: number;
   y: number;
 };
@@ -16,7 +16,7 @@ export interface DrawEventCtx {
 
 export type ClickedEvent = {
   type: 'CLICKED';
-  coordinates: Coordinates;
+  coordinates: Point;
 };
 
 export type DrawEvent = {

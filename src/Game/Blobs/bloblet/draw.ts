@@ -1,7 +1,7 @@
 import { blobletColor, shrubColor } from 'game/colors';
 import { isPointWithinCircle } from 'game/lib/math';
 import { drawCircle, drawDiamond } from 'game/lib/draw';
-import { Coordinates, DrawEventCtx } from 'game/types';
+import { Point, DrawEventCtx } from 'game/types';
 
 import { Context, BlobletActor } from './types';
 
@@ -57,7 +57,7 @@ export function drawCarryingShrub(
 
 export function blobletClicked(
   bloblet: BlobletActor,
-  { coordinates }: { coordinates: Coordinates }
+  { coordinates }: { coordinates: Point }
 ) {
   const blobletContext = bloblet.getSnapshot()?.context;
 

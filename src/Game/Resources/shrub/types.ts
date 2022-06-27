@@ -1,11 +1,11 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
-import { Coordinates, PersistedActor, DrawEvent } from 'game/types';
+import { Point, PersistedActor, DrawEvent } from 'game/types';
 
 export type { DrawEvent };
 
 export type Context = {
   id: string;
-  position: Coordinates;
+  position: Point;
   harvestRate: number;
   initialAmount: number;
   amount: number;

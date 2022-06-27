@@ -10,7 +10,7 @@ import {
   SHRUB_HARVEST_DWELL_TIME_MS,
   SHRUB_HARVEST_DROP_DWELL_TIME_MS,
 } from 'game/paramaters';
-import { Coordinates } from 'game/types';
+import { Point } from 'game/types';
 import { drawSelectedOutline } from 'game/lib/draw';
 import { drawBloblet, drawCarryingShrub } from './draw';
 import {
@@ -34,8 +34,8 @@ function makeMovement({
   destination,
   speed = DEFAULT_SPEED,
 }: {
-  position: Coordinates;
-  destination: Coordinates;
+  position: Point;
+  destination: Point;
   speed?: number;
 }): Movement {
   const dxTotal = destination.x - position.x;
@@ -77,7 +77,7 @@ const setDestinationAsQueen = assign<Context, Event>(({ position }) => ({
 
 const setDestinationAsShrub = assign<Context, Event>(
   ({ position, harvestingShrub }: Context) => {
-    const { x: shrubX, y: shrubY } = harvestingShrub?.position as Coordinates;
+    const { x: shrubX, y: shrubY } = harvestingShrub?.position as Point;
 
     return {
       movement: makeMovement({

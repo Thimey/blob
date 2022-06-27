@@ -1,5 +1,5 @@
 import { createMachine, interpret, assign, spawn } from 'xstate';
-import { Coordinates, UpdateEvent, DrawEvent } from 'game/types';
+import { Point, UpdateEvent, DrawEvent } from 'game/types';
 
 import { makeShowNumber, ShowNumberActor } from './showNumberMachine';
 
@@ -19,7 +19,7 @@ type State = {
 type ShowNumberAnimationEvent = {
   type: 'SHOW_NUMBER';
   amount: number;
-  position: Coordinates;
+  position: Point;
   colorHex?: string;
 };
 

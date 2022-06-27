@@ -1,4 +1,4 @@
-import { Coordinates } from '../types';
+import { Point } from '../types';
 
 export function generateId() {
   return Date.now().toString();
@@ -14,10 +14,7 @@ export function closestToZero(x1: number, x2: number) {
   return Math.abs(x1) < Math.abs(x2) ? x1 : x2;
 }
 
-export function getDistance(
-  { x: x1, y: y1 }: Coordinates,
-  { x: x2, y: y2 }: Coordinates
-) {
+export function getDistance({ x: x1, y: y1 }: Point, { x: x2, y: y2 }: Point) {
   return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
 
@@ -48,7 +45,7 @@ interface Ellipse {
   radiusY: number;
 }
 
-export function isPointWithinEllipse(ellipse: Ellipse, { x, y }: Coordinates) {
+export function isPointWithinEllipse(ellipse: Ellipse, { x, y }: Point) {
   return (
     (x - ellipse.x) ** 2 / ellipse.radiusX ** 2 +
       (y - ellipse.y) ** 2 / ellipse.radiusY ** 2 <=
@@ -57,9 +54,9 @@ export function isPointWithinEllipse(ellipse: Ellipse, { x, y }: Coordinates) {
 }
 
 export function isPointWithinCircle(
-  position: Coordinates,
+  position: Point,
   radius: number,
-  mousePosition: Coordinates
+  mousePosition: Point
 ) {
   const distanceFromClick = getDistance(position, mousePosition);
 
@@ -73,7 +70,7 @@ interface Rectangle {
   height: number;
 }
 
-export function isPointWithinRectangle(rect: Rectangle, { x, y }: Coordinates) {
+export function isPointWithinRectangle(rect: Rectangle, { x, y }: Point) {
   return (
     x >= rect.x &&
     x <= rect.x + rect.width &&

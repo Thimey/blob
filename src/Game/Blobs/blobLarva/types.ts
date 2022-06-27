@@ -1,6 +1,6 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
 import {
-  Coordinates,
+  Point,
   PersistedActor,
   BlobType,
   DrawEvent,
@@ -11,8 +11,8 @@ export type { DrawEvent };
 
 export interface Context {
   id: string;
-  position: Coordinates;
-  destination: Coordinates;
+  position: Point;
+  destination: Point;
   larvaHeadRadius: number;
   larvaBodyRadiusX: number;
   larvaBodyRadiusY: number;

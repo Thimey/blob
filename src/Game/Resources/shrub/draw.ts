@@ -1,4 +1,4 @@
-import { Coordinates, DrawEvent } from 'game/types';
+import { Point, DrawEvent } from 'game/types';
 import {
   QUEEN_POSITION,
   MAX_SHRUB_AMOUNT,
@@ -13,7 +13,7 @@ import { Context } from './types';
 const LEAF_HEIGHT = 25;
 const LEAF_WIDTH = 19;
 
-export function makePosition(harvestRate: number): Coordinates {
+export function makePosition(harvestRate: number): Point {
   const angle = Math.random() * 2 * Math.PI;
   const distance = (1 / harvestRate) * 400;
 
@@ -53,7 +53,7 @@ function makeShrubRow(
   });
 }
 
-function makeLeafPositions({ x, y }: Coordinates, spacingAdjust: number) {
+function makeLeafPositions({ x, y }: Point, spacingAdjust: number) {
   return [
     ...makeShrubRow(
       3,
@@ -80,7 +80,7 @@ function makeSizeAdjust(amount: number) {
 
 function drawLeaf(
   ctx: CanvasRenderingContext2D,
-  { x, y }: Coordinates,
+  { x, y }: Point,
   sizeAdjust: number
 ) {
   drawDiamond(
@@ -96,7 +96,7 @@ function drawLeaf(
 
 function drawLeaves(
   ctx: CanvasRenderingContext2D,
-  position: Coordinates,
+  position: Point,
   amount: number
 ) {
   const sizeAdjust = makeSizeAdjust(amount);
@@ -109,7 +109,7 @@ function drawLeaves(
 
 function drawAmountText(
   ctx: CanvasRenderingContext2D,
-  position: Coordinates,
+  position: Point,
   color: string,
   amount: number,
   initialAmount: number

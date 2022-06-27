@@ -1,11 +1,11 @@
-import { Coordinates } from '../types';
+import { Point } from '../types';
 import { selectionOutlineColor } from '../colors';
 
 interface DrawEvent {
   ctx: CanvasRenderingContext2D;
 }
 interface Circle {
-  position: Coordinates;
+  position: Point;
   radius: number;
 }
 
