@@ -10,7 +10,6 @@ import {
   isPointWithinEllipse,
   generateId,
 } from 'game/lib/math';
-import { drawCircle } from 'game/lib/draw';
 
 interface TunnellingObject {
   draw: (ctx: CanvasRenderingContext2D, point: Point) => void;
@@ -26,7 +25,7 @@ interface Context {
   end: Point;
   cp1: Point;
   cp2: Point;
-  tunellingOjects: TunnellingObject[];
+  tunnellingOjects: TunnellingObject[];
 }
 
 type TunnelClickEvent = {
@@ -70,7 +69,7 @@ export function tunnelClicked(
 }
 
 function drawTunnel(
-  { thickness, points, start, end, cp1, cp2, tunellingOjects }: Context,
+  { thickness, points, start, end, cp1, cp2, tunnellingOjects }: Context,
   { ctx }: DrawEvent
 ) {
   ctx.save();
@@ -128,21 +127,14 @@ function drawTunnel(
   ctx.restore();
 
   // Tunnelling objects
-  tunellingOjects.forEach(({ draw, pointIndex }) => {
+  tunnellingOjects.forEach(({ draw, pointIndex }) => {
     draw(ctx, points[pointIndex]);
   });
-
-  // Points
-  // points.forEach(({ x, y }) => {
-  //   ctx.beginPath();
-  //   drawCircle(ctx, x, y, 2, 'black');
-  //   ctx.closePath();
-  // });
 }
 
 const updateTunnelling = assign(
-  ({ tunellingOjects, points }: Context, _: UpdateEvent) => ({
-    tunellingOjects: tunellingOjects.reduce<TunnellingObject[]>(
+  ({ tunnellingOjects, points }: Context, _: UpdateEvent) => ({
+    tunnellingOjects: tunnellingOjects.reduce<TunnellingObject[]>(
       (acc, { pointIndex, ...rest }) => {
         const nextIndex = pointIndex + 1;
 
@@ -180,12 +172,12 @@ export function makeBlobTunnel() {
     context: {
       id: generateId(),
       thickness: TUNNEL_WIDTH,
-      points: makeCubicBezierPoints(start, cp1, cp2, end, 200),
+      points: makeCubicBezierPoints(start, cp1, cp2, end, 400),
       start,
       end,
       cp1,
       cp2,
-      tunellingOjects: [],
+      tunnellingOjects: [],
     },
     on: {
       DRAW: {
@@ -196,9 +188,9 @@ export function makeBlobTunnel() {
       },
       TUNNEL_CLICKED: {
         actions: [
-          assign(({ tunellingOjects }) => ({
-            tunellingOjects: [
-              ...tunellingOjects,
+          assign(({ tunnellingOjects }) => ({
+            tunnellingOjects: [
+              ...tunnellingOjects,
               {
                 direction: 'startToEnd',
                 pointIndex: 0,

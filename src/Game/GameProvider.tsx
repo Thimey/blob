@@ -14,6 +14,7 @@ export const INITIAL_GAME_STATE: PersistedGameState = {
     },
   },
   blobQueen: null,
+  tunnels: [],
   shrubs: [],
   bloblets: [],
   blobLarvae: [],
