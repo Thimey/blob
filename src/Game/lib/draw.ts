@@ -1,5 +1,5 @@
 import { Coordinates } from '../types';
-import { selectionOutlineColor } from './colors';
+import { selectionOutlineColor } from '../colors';
 
 interface DrawEvent {
   ctx: CanvasRenderingContext2D;

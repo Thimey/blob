@@ -14,7 +14,7 @@ import {
 import { BlobType } from 'game/types';
 import { Canvas, DrawOptions } from 'src/components/Canvas';
 import { GameService } from 'game/gameMachine/types';
-import { drawCircle } from 'game/draw';
+import { drawCircle } from 'game/lib/draw';
 
 const PROFILE_CANVAS_HEIGHT = 100;
 const PROFILE_CANVAS_WIDTH = 100;

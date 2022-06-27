@@ -2,7 +2,7 @@ import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
-import { getDistance, closestToZero, makeRandNumber } from 'game/utils';
+import { getDistance, closestToZero, makeRandNumber } from 'game/lib/math';
 import {
   QUEEN_POSITION,
   BLOBLET_HARVEST_INTERVAL,
@@ -11,7 +11,7 @@ import {
   SHRUB_HARVEST_DROP_DWELL_TIME_MS,
 } from 'game/paramaters';
 import { Coordinates } from 'game/types';
-import { drawSelectedOutline } from 'game/draw';
+import { drawSelectedOutline } from 'game/lib/draw';
 import { drawBloblet, drawCarryingShrub } from './draw';
 import {
   Context,

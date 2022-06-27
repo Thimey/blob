@@ -1,7 +1,7 @@
 import memoize from 'fast-memoize';
 import { Coordinates, DrawEventCtx } from 'src/types';
-import { isPointWithinCircle, isPointWithinEllipse } from 'game/utils';
-import { drawCircle, drawSelectedOutline } from 'game/draw';
+import { isPointWithinCircle, isPointWithinEllipse } from 'game/lib/math';
+import { drawCircle, drawSelectedOutline } from 'game/lib/draw';
 import { blobLarvaColor, blobPupaColor, progressBarColor } from 'game/colors';
 import { Context, BlobLarvaActor } from './types';
 

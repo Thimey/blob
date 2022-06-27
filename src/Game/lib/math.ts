@@ -1,4 +1,4 @@
-import { Coordinates } from './types';
+import { Coordinates } from '../types';
 
 export function generateId() {
   return Date.now().toString();

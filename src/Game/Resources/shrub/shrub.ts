@@ -1,7 +1,7 @@
 import { createMachine, assign } from 'xstate';
 import { send, sendParent, pure } from 'xstate/lib/actions';
 
-import { roundTo } from 'game/utils';
+import { roundTo } from 'game/lib/math';
 import { drawShrub, drawGrowingShrub } from './draw';
 import { Context, State, Event, HarvestEvent, DepleteEvent } from './types';
 

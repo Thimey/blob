@@ -10,7 +10,7 @@ import {
   BLOB_LARVA_BODY_RADIUS_Y,
   MAX_LARVAE,
 } from 'game/paramaters';
-import { generateId, makeRandNumber } from 'game/utils';
+import { generateId, makeRandNumber } from 'game/lib/math';
 import {
   makeBlobLarva,
   blobLarvaClicked,

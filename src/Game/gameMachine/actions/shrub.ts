@@ -15,7 +15,7 @@ import {
   makeRandNumber,
   roundTo,
   generateId,
-} from 'game/utils';
+} from 'game/lib/math';
 import { animationMachine } from 'game/animations';
 import {
   makeShrub,

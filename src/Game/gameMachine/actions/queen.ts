@@ -1,6 +1,6 @@
 import { assign, spawn } from 'xstate';
 
-import { isPointWithinEllipse } from 'game/utils';
+import { isPointWithinEllipse } from 'game/lib/math';
 import {
   QUEEN_POSITION,
   QUEEN_RADIUS_X,
