@@ -53,9 +53,9 @@ export function makeGameMachine({
     on: {
       DRAW: {
         actions: [
+          drawQueen,
           (_, e) => animationMachine.send(e),
           ({ tunnels }, e) => tunnels.forEach((t) => t.send(e)),
-          drawQueen,
           drawLarvae,
           drawShrubs,
           drawBloblets,

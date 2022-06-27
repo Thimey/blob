@@ -2,7 +2,12 @@ import { createMachine } from 'xstate';
 
 import { blobQueenColor } from 'game/colors';
 import { Point, DrawEvent } from 'game/types';
-import { makeCubicBezierPoints } from 'game/lib/math';
+import {
+  QUEEN_POSITION,
+  QUEEN_RADIUS_X,
+  QUEEN_RADIUS_Y,
+} from 'game/paramaters';
+import { makeCubicBezierPoints, makeRandNumber } from 'game/lib/math';
 import { drawCircle } from 'game/lib/draw';
 
 interface Context {
@@ -23,23 +28,31 @@ export type State = {
 
 type Event = DrawEvent;
 
-const TUNNEL_WALL_WIDTH = 6;
+const TUNNEL_WALL_WIDTH = 3;
+const TUNNEL_WIDTH = 20;
 
 function drawTunnel(
   { thickness, points, start, end, cp1, cp2 }: Context,
   { ctx }: DrawEvent
 ) {
-  // ctx.beginPath();
-  // ctx.moveTo(0, 0);
-  // ctx.quadraticCurveTo(50, 50, 79, 180);
-  // ctx.quadraticCurveTo(100, 250, 179, 180);
-  // ctx.stroke();
-
-  // // ctx.globalCompositeOperation = 'destination-out';
-  // ctx.lineWidth = 12;
-  // ctx.stroke();
-
   ctx.save();
+
+  // Entrance
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.beginPath();
+  ctx.ellipse(start.x, start.y, 20, 15, 0, 0, 2 * Math.PI);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5';
+  ctx.fill();
+  ctx.stroke();
+  ctx.closePath();
+
+  // Exit
+  ctx.beginPath();
+  ctx.ellipse(end.x, end.y, 20, 15, 0, 0, 2 * Math.PI);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5';
+  ctx.fill();
+  ctx.stroke();
+  ctx.closePath();
 
   // Tunnel wall
   ctx.beginPath();
@@ -49,17 +62,6 @@ function drawTunnel(
   ctx.lineWidth = thickness + TUNNEL_WALL_WIDTH;
   ctx.stroke();
   ctx.closePath();
-
-  ctx.globalCompositeOperation = 'destination-out';
-
-  ctx.beginPath();
-  ctx.moveTo(start.x, start.y);
-  ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-  ctx.lineWidth = thickness;
-  ctx.stroke();
-  ctx.closePath();
-
-  ctx.globalCompositeOperation = 'source-over';
 
   // Tunnel inner
   ctx.beginPath();
@@ -80,14 +82,23 @@ function drawTunnel(
 }
 
 export function makeBlobTunnel() {
-  const start = { x: 30, y: 30 };
+  const start = {
+    x: QUEEN_POSITION.x - QUEEN_RADIUS_X * 0.8,
+    y: QUEEN_POSITION.y,
+  };
   const end = { x: 350, y: 350 };
-  const cp1 = { x: 70, y: 200 };
-  const cp2 = { x: 125, y: 100 };
+  const cp1 = {
+    x: makeRandNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
+    y: makeRandNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
+  };
+  const cp2 = {
+    x: makeRandNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
+    y: makeRandNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
+  };
 
   return createMachine<Context, Event, State>({
     context: {
-      thickness: 20,
+      thickness: TUNNEL_WIDTH,
       points: makeCubicBezierPoints(start, cp1, cp2, end, 100),
       start,
       end,

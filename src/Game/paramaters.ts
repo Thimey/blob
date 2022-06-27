@@ -12,8 +12,8 @@ export const QUEEN_POSITION = {
   x: WORLD_WIDTH / 2,
   y: WORLD_HEIGHT / 2,
 };
-export const QUEEN_RADIUS_X = 60;
-export const QUEEN_RADIUS_Y = 40;
+export const QUEEN_RADIUS_X = 160;
+export const QUEEN_RADIUS_Y = 80;
 
 // Larvae
 export const MAX_LARVAE = 4;
