@@ -410,6 +410,11 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                   UPDATE: [
                     {
                       target: '#outside',
+                      actions: [
+                        assign((_) => ({
+                          tunnelling: undefined,
+                        })),
+                      ],
                       cond: hasReachedDestination,
                     },
                     {

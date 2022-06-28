@@ -17,8 +17,10 @@ export function propagateTunnelClicked(
   event: ClickedEvent
 ) {
   const clickedTunnel = tunnels.reduce<ClickedEntrance>((acc, tunnel) => {
+    if (acc) return acc;
+
     const tunnelContext = tunnel?.getSnapshot()?.context;
-    if (acc || !tunnelContext) return acc;
+    if (!tunnelContext) return acc;
 
     if (tunnelStartEntranceClicked(tunnelContext, event)) {
       return {
