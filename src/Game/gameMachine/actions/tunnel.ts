@@ -2,14 +2,21 @@ import { tunnelClicked } from 'game/blobTunnel';
 import { Context, ClickedEvent } from '../types';
 
 export function propagateTunnelClicked(
-  { tunnels }: Context,
+  { bloblets, tunnels }: Context,
   event: ClickedEvent
 ) {
   const clickedTunnel = tunnels.find((tunnel) => tunnelClicked(tunnel, event));
-  const context = clickedTunnel?.getSnapshot()?.context;
+  const tunnelContext = clickedTunnel?.getSnapshot()?.context;
 
-  if (context) {
-    clickedTunnel.send({ type: 'TUNNEL_CLICKED', id: context.id });
+  if (tunnelContext) {
+    bloblets.forEach((bloblet) => {
+      bloblet.send({
+        type: 'TUNNEL_CLICKED',
+        tunnelId: tunnelContext.id,
+        tunnelEntrancePosition: tunnelContext.start,
+        points: tunnelContext.points,
+      });
+    });
   }
 }
 

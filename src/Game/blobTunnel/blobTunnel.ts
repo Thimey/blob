@@ -172,7 +172,7 @@ export function makeBlobTunnel() {
     context: {
       id: generateId(),
       thickness: TUNNEL_WIDTH,
-      points: makeCubicBezierPoints(start, cp1, cp2, end, 400),
+      points: makeCubicBezierPoints(start, cp1, cp2, end, 300),
       start,
       end,
       cp1,

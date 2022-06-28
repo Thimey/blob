@@ -21,6 +21,11 @@ export type Context = {
     harvestRate: number;
     position: Point;
   };
+  tunnelling?: {
+    tunnelId: string;
+    points: Point[];
+    pointIndex: number;
+  };
 };
 
 export type BlobClickEvent = {
@@ -38,6 +43,13 @@ export type ShrubClickEvent = {
   coordinates: Point;
   shrubId: string;
   harvestRate: number;
+};
+
+export type TunnelClickedEvent = {
+  type: 'TUNNEL_CLICKED';
+  tunnelId: string;
+  tunnelEntrancePosition: Point;
+  points: Point[];
 };
 
 export type DrawSrubEvent = {
@@ -78,7 +90,8 @@ export type Event =
   | ShrubClickEvent
   | ShrubDepletedEvent
   | DrawSelectedEvent
-  | DrawSrubEvent;
+  | DrawSrubEvent
+  | TunnelClickedEvent;
 
 export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 export type PersistedBlobletActor = PersistedActor<Context, string[]>;
