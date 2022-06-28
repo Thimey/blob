@@ -1,20 +1,50 @@
-import { tunnelClicked } from 'game/blobTunnel';
+import {
+  tunnelClicked,
+  tunnelStartEntranceClicked,
+  tunnelEndEntranceClicked,
+} from 'game/blobTunnel';
+import { Point } from 'game/types';
 import { Context, ClickedEvent } from '../types';
+
+type ClickedEntrance = {
+  id: string;
+  points: Point[];
+  entrancePosition: Point;
+} | null;
 
 export function propagateTunnelClicked(
   { bloblets, tunnels }: Context,
   event: ClickedEvent
 ) {
-  const clickedTunnel = tunnels.find((tunnel) => tunnelClicked(tunnel, event));
-  const tunnelContext = clickedTunnel?.getSnapshot()?.context;
+  const clickedTunnel = tunnels.reduce<ClickedEntrance>((acc, tunnel) => {
+    const tunnelContext = tunnel?.getSnapshot()?.context;
+    if (acc || !tunnelContext) return acc;
 
-  if (tunnelContext) {
+    if (tunnelStartEntranceClicked(tunnelContext, event)) {
+      return {
+        id: tunnelContext.id,
+        points: tunnelContext.points,
+        entrancePosition: tunnelContext.start,
+      };
+    }
+    if (tunnelEndEntranceClicked(tunnelContext, event)) {
+      return {
+        id: tunnelContext.id,
+        points: [...tunnelContext.points].reverse(),
+        entrancePosition: tunnelContext.end,
+      };
+    }
+
+    return acc;
+  }, null);
+
+  if (clickedTunnel) {
     bloblets.forEach((bloblet) => {
       bloblet.send({
         type: 'TUNNEL_CLICKED',
-        tunnelId: tunnelContext.id,
-        tunnelEntrancePosition: tunnelContext.start,
-        points: tunnelContext.points,
+        tunnelId: clickedTunnel.id,
+        tunnelEntrancePosition: clickedTunnel.entrancePosition,
+        points: clickedTunnel.points,
       });
     });
   }

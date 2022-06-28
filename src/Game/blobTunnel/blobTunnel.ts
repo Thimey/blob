@@ -3,19 +3,12 @@ import { assign, createMachine, ActorRefFrom, StateMachine } from 'xstate';
 import { blobQueenColor } from 'game/colors';
 import { Point, DrawEvent, UpdateEvent } from 'game/types';
 import { QUEEN_POSITION, QUEEN_RADIUS_X } from 'game/paramaters';
-import { drawBloblet } from 'game/blobs/bloblet/draw';
 import {
   makeCubicBezierPoints,
   makeRandNumber,
   isPointWithinEllipse,
   generateId,
 } from 'game/lib/math';
-
-interface TunnellingObject {
-  draw: (ctx: CanvasRenderingContext2D, point: Point) => void;
-  pointIndex: number;
-  direction: 'startToEnd' | 'endToStart';
-}
 
 interface Context {
   id: string;
@@ -25,7 +18,6 @@ interface Context {
   end: Point;
   cp1: Point;
   cp2: Point;
-  tunnellingOjects: TunnellingObject[];
 }
 
 type TunnelClickEvent = {
@@ -33,7 +25,7 @@ type TunnelClickEvent = {
   id: string;
 };
 
-type StateValues = 'idle';
+type StateValues = 'growing' | 'ready';
 
 export type State = {
   value: StateValues;
@@ -48,6 +40,36 @@ const TUNNEL_WIDTH = 20;
 const ENTRANCE_RADIUS_X = 20;
 const ENTRANCE_RADIUS_Y = 20;
 
+export function tunnelStartEntranceClicked(
+  tunnelContext: Context,
+  { coordinates }: { coordinates: Point }
+) {
+  return isPointWithinEllipse(
+    {
+      x: tunnelContext.start.x,
+      y: tunnelContext.start.y,
+      radiusX: ENTRANCE_RADIUS_X,
+      radiusY: ENTRANCE_RADIUS_Y,
+    },
+    coordinates
+  );
+}
+
+export function tunnelEndEntranceClicked(
+  tunnelContext: Context,
+  { coordinates }: { coordinates: Point }
+) {
+  return isPointWithinEllipse(
+    {
+      x: tunnelContext.end.x,
+      y: tunnelContext.end.y,
+      radiusX: ENTRANCE_RADIUS_X,
+      radiusY: ENTRANCE_RADIUS_Y,
+    },
+    coordinates
+  );
+}
+
 export function tunnelClicked(
   tunnel: TunnelActor,
   { coordinates }: { coordinates: Point }
@@ -56,20 +78,13 @@ export function tunnelClicked(
 
   return (
     tunnelContext &&
-    isPointWithinEllipse(
-      {
-        x: tunnelContext.start.x,
-        y: tunnelContext.start.y,
-        radiusX: ENTRANCE_RADIUS_X,
-        radiusY: ENTRANCE_RADIUS_Y,
-      },
-      coordinates
-    )
+    (tunnelStartEntranceClicked(tunnelContext, { coordinates }) ||
+      tunnelEndEntranceClicked(tunnelContext, { coordinates }))
   );
 }
 
 function drawTunnel(
-  { thickness, points, start, end, cp1, cp2, tunnellingOjects }: Context,
+  { thickness, start, end, cp1, cp2 }: Context,
   { ctx }: DrawEvent
 ) {
   ctx.save();
@@ -125,33 +140,7 @@ function drawTunnel(
   ctx.stroke();
   ctx.closePath();
   ctx.restore();
-
-  // Tunnelling objects
-  tunnellingOjects.forEach(({ draw, pointIndex }) => {
-    draw(ctx, points[pointIndex]);
-  });
 }
-
-const updateTunnelling = assign(
-  ({ tunnellingOjects, points }: Context, _: UpdateEvent) => ({
-    tunnellingOjects: tunnellingOjects.reduce<TunnellingObject[]>(
-      (acc, { pointIndex, ...rest }) => {
-        const nextIndex = pointIndex + 1;
-
-        return nextIndex >= points.length
-          ? acc
-          : [
-              ...acc,
-              {
-                pointIndex: nextIndex,
-                ...rest,
-              },
-            ];
-      },
-      []
-    ),
-  })
-);
 
 export function makeBlobTunnel() {
   const start = {
@@ -177,31 +166,16 @@ export function makeBlobTunnel() {
       end,
       cp1,
       cp2,
-      tunnellingOjects: [],
     },
     on: {
       DRAW: {
         actions: [drawTunnel],
       },
-      UPDATE: {
-        actions: [updateTunnelling],
-      },
-      TUNNEL_CLICKED: {
-        actions: [
-          assign(({ tunnellingOjects }) => ({
-            tunnellingOjects: [
-              ...tunnellingOjects,
-              {
-                direction: 'startToEnd',
-                pointIndex: 0,
-                draw: (ctx, p) =>
-                  drawBloblet({ position: p, radius: 10 }, { ctx }),
-              },
-            ],
-          })),
-        ],
-      },
     },
-    states: {},
+    initial: 'growing',
+    states: {
+      growing: { always: 'ready' },
+      ready: {},
+    },
   });
 }
