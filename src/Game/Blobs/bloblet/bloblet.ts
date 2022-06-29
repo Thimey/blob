@@ -28,7 +28,7 @@ import {
 
 const { pure } = actions;
 
-const DEFAULT_SPEED = 2;
+const DEFAULT_SPEED = 1;
 
 function makeMovement({
   position,
@@ -99,7 +99,11 @@ const setTunnelling = assign<Context, TunnelClickedEvent>(
       points,
       pointIndex: 0,
     },
-    movement: makeMovement({ position, destination: tunnelEntrancePosition }),
+    movement: makeMovement({
+      position,
+      destination: { ...tunnelEntrancePosition },
+      // speed: 1,
+    }),
   })
 );
 
