@@ -4,7 +4,7 @@ import {
   MAX_SHRUB_AMOUNT,
   MIN_SHRUB_AMOUNT,
 } from 'game/paramaters';
-import { makeRandNumber } from 'game/lib/math';
+import { makeRandNumber, makePointsOnArc } from 'game/lib/math';
 import { drawDiamond } from 'game/lib/draw';
 
 import { shrubColor } from 'game/colors';
@@ -127,20 +127,39 @@ export function drawShrub(
   { amount, initialAmount, position }: Context,
   { ctx }: DrawEvent
 ) {
-  drawAmountText(ctx, position, shrubColor, amount, initialAmount);
-  drawLeaves(ctx, position, amount);
+  // drawAmountText(ctx, position, shrubColor, amount, initialAmount);
+  // drawLeaves(ctx, position, amount);
+  const points = makePointsOnArc(
+    20,
+    position,
+    50,
+    Math.PI / 6,
+    (3 * Math.PI) / 2
+  );
+
+  points.forEach((p) => drawLeaf(ctx, p, 0.6));
 }
 
 export function drawGrowingShrub(
   { amount, initialAmount, position }: Context,
   { ctx }: DrawEvent
 ) {
-  const percentOfInitial = amount / initialAmount;
+  // const percentOfInitial = amount / initialAmount;
 
-  if (percentOfInitial > 0.3) {
-    drawAmountText(ctx, position, 'grey', amount, initialAmount);
-  }
-  ctx.globalAlpha = percentOfInitial;
-  drawLeaves(ctx, position, amount);
-  ctx.globalAlpha = 1;
+  // if (percentOfInitial > 0.3) {
+  //   drawAmountText(ctx, position, 'grey', amount, initialAmount);
+  // }
+  // ctx.globalAlpha = percentOfInitial;
+  // drawLeaves(ctx, position, amount);
+  // ctx.globalAlpha = 1;
+
+  const points = makePointsOnArc(
+    4,
+    position,
+    50,
+    Math.PI / 6,
+    (3 * Math.PI) / 2
+  );
+
+  points.forEach((p) => drawLeaf(ctx, p, 0.6));
 }

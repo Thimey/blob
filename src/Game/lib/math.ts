@@ -78,3 +78,28 @@ export function isPointWithinRectangle(rect: Rectangle, { x, y }: Point) {
     y <= rect.y + rect.height
   );
 }
+
+export function makePointsOnArc(
+  number: number,
+  centerPoint: Point,
+  radius: number,
+  arcStart: number,
+  arcEnd: number
+) {
+  const points: Point[] = [];
+  const angleIncrement =
+    Math.max((2 * Math.PI - Math.abs(arcEnd - arcStart), arcEnd - arcStart)) /
+    number;
+  let angle = arcStart;
+
+  for (let i = 0; i < number; i += 1) {
+    points.push({
+      x: centerPoint.x + radius * Math.cos(angle),
+      y: centerPoint.y + radius * Math.sin(angle),
+    });
+
+    angle += angleIncrement;
+  }
+
+  return points;
+}
