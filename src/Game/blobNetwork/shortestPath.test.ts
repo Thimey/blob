@@ -2,14 +2,14 @@ import { shortestPath, makePath, Graph } from './shortestPath';
 
 describe('shortestPath', () => {
   describe('makePath', () => {
-    it('should make correct path from distances map', () => {
+    it('should make correct path from weights map', () => {
       expect(
         makePath(
           {
-            a: { distance: 0, prevNodeId: null },
-            b: { distance: 2, prevNodeId: 'a' },
-            c: { distance: 3, prevNodeId: 'a' },
-            d: { distance: 5, prevNodeId: 'b' },
+            a: { weight: 0, prevNode: null },
+            b: { weight: 2, prevNode: 'a' },
+            c: { weight: 3, prevNode: 'a' },
+            d: { weight: 5, prevNode: 'b' },
           },
           'a'
         )
@@ -18,10 +18,10 @@ describe('shortestPath', () => {
       expect(
         makePath(
           {
-            a: { distance: 0, prevNodeId: null },
-            b: { distance: 2, prevNodeId: 'a' },
-            c: { distance: 3, prevNodeId: 'a' },
-            d: { distance: 5, prevNodeId: 'b' },
+            a: { weight: 0, prevNode: null },
+            b: { weight: 2, prevNode: 'a' },
+            c: { weight: 3, prevNode: 'a' },
+            d: { weight: 5, prevNode: 'b' },
           },
           'b'
         )
@@ -30,10 +30,10 @@ describe('shortestPath', () => {
       expect(
         makePath(
           {
-            a: { distance: 0, prevNodeId: null },
-            b: { distance: 2, prevNodeId: 'a' },
-            c: { distance: 3, prevNodeId: 'a' },
-            d: { distance: 5, prevNodeId: 'b' },
+            a: { weight: 0, prevNode: null },
+            b: { weight: 2, prevNode: 'a' },
+            c: { weight: 3, prevNode: 'a' },
+            d: { weight: 5, prevNode: 'b' },
           },
           'd'
         )
@@ -42,10 +42,10 @@ describe('shortestPath', () => {
       expect(
         makePath(
           {
-            a: { distance: 0, prevNodeId: null },
-            b: { distance: 2, prevNodeId: 'a' },
-            c: { distance: 3, prevNodeId: 'a' },
-            d: { distance: 5, prevNodeId: 'c' },
+            a: { weight: 0, prevNode: null },
+            b: { weight: 2, prevNode: 'a' },
+            c: { weight: 3, prevNode: 'a' },
+            d: { weight: 5, prevNode: 'c' },
           },
           'd'
         )

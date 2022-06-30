@@ -1,84 +1,70 @@
-export type Graph = { [nodeId: string]: { [nodeId: string]: number } };
-export type Distances = {
-  [nodeId: string]: { distance: number; prevNodeId: string | null };
+type Weight = number;
+
+export type Graph = { [node: string]: { [node: string]: Weight } };
+export type WeightsFromStart = {
+  [node: string]: { weight: Weight; prevNode: string | null };
 };
 
-function makeInitialDistancesFromNodeStart(
-  nodeIds: string[],
-  startNodeId: string
-) {
-  return nodeIds.reduce<Distances>(
-    (acc, nodeId) => ({
+function makeInitialWeightsFromStart(nodes: string[], startNode: string) {
+  return nodes.reduce<WeightsFromStart>(
+    (acc, node) => ({
       ...acc,
-      [nodeId]: {
-        distance: nodeId === startNodeId ? 0 : Infinity,
-        prevNodeId: null,
+      [node]: {
+        weight: node === startNode ? 0 : Infinity,
+        prevNode: null,
       },
     }),
     {}
   );
 }
 
-function getSmallestKnownNodeFromStart(
-  distances: Distances,
-  nodeIds: string[]
-) {
-  return nodeIds.reduce(
-    (acc, nodeId) => {
-      const { distance } = distances[nodeId] || Infinity;
-      return distance < acc.distance ? { nodeId, distance } : acc;
+function getLowestWeight(weights: WeightsFromStart, nodes: string[]) {
+  return nodes.reduce<{ node: string; weight: Weight }>(
+    (acc, node) => {
+      const { weight } = weights[node] || Infinity;
+      return weight < acc.weight ? { node, weight } : acc;
     },
-    { nodeId: '', distance: Infinity }
-  ).nodeId;
+    { node: '', weight: Infinity }
+  ).node;
 }
 
 export function makePath(
-  distances: Distances,
-  nodeId: string | null
+  weights: WeightsFromStart,
+  node: string | null
 ): string[] {
-  if (!nodeId) return [];
-  const { prevNodeId } = distances[nodeId];
-
-  return [...makePath(distances, prevNodeId), nodeId];
+  return node ? [...makePath(weights, weights[node].prevNode), node] : [];
 }
 
-export function shortestPath(
-  graph: Graph,
-  startNodeId: string,
-  endNodeId: string
-) {
-  const nodeIds = [...Object.keys(graph)];
+/**
+ * Implements Dijkstra’s shortest path algorithm given weighted undirected graph, start and end nodes.
+ */
+export function shortestPath(graph: Graph, startNode: string, endNode: string) {
+  const nodes = [...Object.keys(graph)];
   const visited: string[] = [];
-  const distancesFromStart = makeInitialDistancesFromNodeStart(
-    nodeIds,
-    startNodeId
-  );
+  const weightsFromStart = makeInitialWeightsFromStart(nodes, startNode);
 
-  while (visited.length < nodeIds.length) {
-    const notVisited = nodeIds.filter((id) => !visited.includes(id));
-    const currentNodeId = getSmallestKnownNodeFromStart(
-      distancesFromStart,
-      notVisited
-    );
+  while (visited.length < nodes.length) {
+    const notVisited = nodes.filter((id) => !visited.includes(id));
+    const currentNode = getLowestWeight(weightsFromStart, notVisited);
     const notVisitedNeighbours = notVisited.filter(
-      (id) => !!graph[currentNodeId][id]
+      (id) => !!graph[currentNode][id]
     );
 
     notVisitedNeighbours.forEach((neighbour) => {
-      const distanceToNeighbour = graph[currentNodeId][neighbour];
-      const knownNeighbourDistanceFromStart =
-        distancesFromStart[neighbour].distance;
-      const newNeighbourDistanceFromStart =
-        distancesFromStart[currentNodeId].distance + distanceToNeighbour;
+      const weightToNeighbour = graph[currentNode][neighbour];
+      const knownNeighbourWeightFromStart = weightsFromStart[neighbour].weight;
+      const newNeighbourWeightFromStart =
+        weightsFromStart[currentNode].weight + weightToNeighbour;
 
-      if (newNeighbourDistanceFromStart < knownNeighbourDistanceFromStart) {
-        distancesFromStart[neighbour] = {
-          distance: newNeighbourDistanceFromStart,
-          prevNodeId: currentNodeId,
+      if (newNeighbourWeightFromStart < knownNeighbourWeightFromStart) {
+        weightsFromStart[neighbour] = {
+          weight: newNeighbourWeightFromStart,
+          prevNode: currentNode,
         };
       }
     });
-    visited.push(currentNodeId);
+    visited.push(currentNode);
   }
-  return makePath(distancesFromStart, endNodeId);
+
+  return makePath(weightsFromStart, endNode);
 }
