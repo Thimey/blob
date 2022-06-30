@@ -92,6 +92,7 @@ describe('shortestPath', () => {
       };
       expect(shortestPath(graph1, 'a', 'c')).toEqual(['a', 'd', 'e', 'c']);
       expect(shortestPath(graph1, 'a', 'b')).toEqual(['a', 'd', 'e', 'b']);
+      expect(shortestPath(graph1, 'c', 'a')).toEqual(['c', 'e', 'd', 'a']);
     });
 
     const graph2: Graph = {
@@ -131,5 +132,6 @@ describe('shortestPath', () => {
     };
     expect(shortestPath(graph2, 'a', 'c')).toEqual(['a', 'b', 'e', 'c']);
     expect(shortestPath(graph2, 'a', 'b')).toEqual(['a', 'b']);
+    expect(shortestPath(graph2, 'e', 'a')).toEqual(['e', 'b', 'a']);
   });
 });
