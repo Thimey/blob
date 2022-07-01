@@ -38,7 +38,11 @@ export function makePath(
 /**
  * Implements Dijkstra’s shortest path algorithm given weighted undirected graph, start and end nodes.
  */
-export function shortestPath(graph: Graph, startNode: string, endNode: string) {
+export function makeShortestPath(
+  graph: Graph,
+  startNode: string,
+  endNode: string
+) {
   const nodes = [...Object.keys(graph)];
   const visited: string[] = [];
   const weightsFromStart = makeInitialWeightsFromStart(nodes, startNode);

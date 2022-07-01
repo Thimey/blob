@@ -107,3 +107,23 @@ export function makeCubicBezierPoints(
 
   return points;
 }
+
+export function makeLinearPoints(start: Point, end: Point, step = 1) {
+  const totalDistance = getDistance(start, end);
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const angle = Math.atan(dy / dx);
+
+  let distance = totalDistance - step;
+  const points = [start];
+  while (distance > 0) {
+    const x = distance * Math.cos(angle);
+    const y = distance * Math.sin(angle);
+
+    points.push({ x, y });
+    distance -= Math.min(step, distance);
+  }
+  points.push(end);
+
+  return points;
+}

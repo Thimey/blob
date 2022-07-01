@@ -1,4 +1,4 @@
-import { shortestPath, makePath, Graph } from './shortestPath';
+import { makeShortestPath, makePath, Graph } from './shortestPath';
 
 describe('shortestPath', () => {
   describe('makePath', () => {
@@ -90,9 +90,9 @@ describe('shortestPath', () => {
           c: 5,
         },
       };
-      expect(shortestPath(graph1, 'a', 'c')).toEqual(['a', 'd', 'e', 'c']);
-      expect(shortestPath(graph1, 'a', 'b')).toEqual(['a', 'd', 'e', 'b']);
-      expect(shortestPath(graph1, 'c', 'a')).toEqual(['c', 'e', 'd', 'a']);
+      expect(makeShortestPath(graph1, 'a', 'c')).toEqual(['a', 'd', 'e', 'c']);
+      expect(makeShortestPath(graph1, 'a', 'b')).toEqual(['a', 'd', 'e', 'b']);
+      expect(makeShortestPath(graph1, 'c', 'a')).toEqual(['c', 'e', 'd', 'a']);
     });
 
     const graph2: Graph = {
@@ -130,8 +130,8 @@ describe('shortestPath', () => {
         c: 1,
       },
     };
-    expect(shortestPath(graph2, 'a', 'c')).toEqual(['a', 'b', 'e', 'c']);
-    expect(shortestPath(graph2, 'a', 'b')).toEqual(['a', 'b']);
-    expect(shortestPath(graph2, 'e', 'a')).toEqual(['e', 'b', 'a']);
+    expect(makeShortestPath(graph2, 'a', 'c')).toEqual(['a', 'b', 'e', 'c']);
+    expect(makeShortestPath(graph2, 'a', 'b')).toEqual(['a', 'b']);
+    expect(makeShortestPath(graph2, 'e', 'a')).toEqual(['e', 'b', 'a']);
   });
 });
