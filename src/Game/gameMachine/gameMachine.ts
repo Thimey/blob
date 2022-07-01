@@ -32,7 +32,7 @@ import {
   didClickOnShrub,
   propagateLarvaClicked,
   didClickOnBlobLarva,
-  didClickOnTunnel,
+  didClickOnNetwork,
 } from './actions';
 
 export function makeGameMachine({
@@ -86,7 +86,6 @@ export function makeGameMachine({
           initialiseQueen,
           initialiseShrubs(shrubs),
           initialiseBloblets(bloblets),
-          assign(() => ({ tunnels: [spawn(makeBlobTunnel())] })),
         ],
         always: { target: 'ready' },
       },
@@ -108,7 +107,7 @@ export function makeGameMachine({
             },
             {
               actions: [propagateTunnelClicked],
-              cond: didClickOnTunnel,
+              cond: didClickOnNetwork,
             },
             {
               actions: [propagateMapClicked],

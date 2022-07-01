@@ -1,36 +1,21 @@
 import { Point } from 'game/types';
 import {
+  QUEEN_POSITION,
+  QUEEN_RADIUS_X,
+  QUEEN_RADIUS_Y,
+} from 'game/paramaters';
+import {
   getDistance,
   isPointWithinEllipse,
   makeLinearPoints,
+  makeCubicBezierPoints,
+  generateId,
+  makeRandNumber,
 } from 'game/lib/math';
 
+import { Node, Connection, NodeId, NodeMap } from './types';
+import { drawNode, drawConnection } from './draw';
 import { makeShortestPath } from './shortestPath';
-
-interface Node {
-  id: string;
-  centre: Point;
-  radiusX: number;
-  radiusY: number;
-  connections: {
-    [nodeId: NodeId]: {
-      connectionId: Connection['id'];
-      direction: 'startToEnd' | 'endToStart';
-    };
-  };
-}
-
-interface Connection {
-  id: string;
-  start: Point;
-  end: Point;
-  bezierP1: Point;
-  bezierP2: Point;
-  points: Point[];
-}
-
-type NodeId = Node['id'];
-type NodeMap = Record<NodeId, Node>;
 
 function toMap<T extends { id: string }>(items: T[]) {
   return items.reduce<Record<T['id'], T>>(
@@ -86,9 +71,13 @@ export class BlobNetwork {
       if (isLastNode) return acc;
 
       const nextNodeId = path[index + 1];
-      const connection = this.getConnection(nodeId, nextNodeId);
+      const { direction } = this.nodes[nodeId].connections[nextNodeId];
+      const { points } = this.getConnection(nodeId, nextNodeId);
 
-      return [...acc, ...connection.points];
+      return [
+        ...acc,
+        ...(direction === 'startToEnd' ? points : points.reverse()),
+      ];
     }, []);
   }
 
@@ -114,6 +103,10 @@ export class BlobNetwork {
     ];
   }
 
+  public isPointOnNetwork(point: Point) {
+    return Boolean(findNodeOfPoint(this.nodes, point));
+  }
+
   public makePath(start: Point, end: Point) {
     const startNode = findNodeOfPoint(this.nodes, start);
     if (!startNode) return null;
@@ -129,4 +122,76 @@ export class BlobNetwork {
 
     return this.makePathPoints(shortestPath, start, end);
   }
+
+  public draw(ctx: CanvasRenderingContext2D) {
+    // Draw nodes
+    Object.values(this.nodes).forEach((node) => drawNode(ctx, node));
+
+    // Draw connections
+    Object.values(this.connections).forEach((connection) =>
+      drawConnection(ctx, connection)
+    );
+  }
 }
+
+function makeConnection(start: Point, end: Point): Connection {
+  const bezierP1 = {
+    x: makeRandNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
+    y: makeRandNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
+  };
+  const bezierP2 = {
+    x: makeRandNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
+    y: makeRandNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
+  };
+
+  return {
+    id: generateId(),
+    start,
+    end,
+    bezierP1,
+    bezierP2,
+    points: makeCubicBezierPoints(start, bezierP1, bezierP2, end, 300),
+  };
+}
+
+const node1: Node = {
+  id: 'a',
+  centre: QUEEN_POSITION,
+  radiusX: QUEEN_RADIUS_X * 1.5,
+  radiusY: QUEEN_RADIUS_Y * 1.5,
+  connections: {},
+};
+
+const node2: Node = {
+  id: 'b',
+  centre: {
+    x: QUEEN_POSITION.x - QUEEN_RADIUS_X * 3,
+    y: QUEEN_POSITION.y - QUEEN_RADIUS_Y * 2,
+  },
+  radiusX: QUEEN_RADIUS_X * 1.5,
+  radiusY: QUEEN_RADIUS_Y * 1.5,
+  connections: {},
+};
+
+const connection1 = makeConnection(
+  {
+    x: node1.centre.x - node1.radiusX * 0.5,
+    y: node1.centre.y - node1.radiusY * 0.5,
+  },
+  {
+    x: node2.centre.x + node2.radiusX * 0.5,
+    y: node2.centre.y + node2.radiusY * 0.5,
+  }
+);
+
+node1.connections[node2.id] = {
+  connectionId: connection1.id,
+  direction: 'startToEnd',
+};
+
+node2.connections[node1.id] = {
+  connectionId: connection1.id,
+  direction: 'endToStart',
+};
+
+export const network = new BlobNetwork([node1, node2], [connection1]);

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useContext } from 'react';
 
+import { network } from './blobNetwork/BlobNetwork';
 import { GameContext } from './GameProvider';
 import { sandColor } from './colors';
 import { WORLD_HEIGHT, WORLD_WIDTH } from './paramaters';
@@ -36,6 +37,7 @@ function gameLoop(gameService: any, gameCtx: CanvasRenderingContext2D) {
     loop += 1;
   }
 
+  network.draw(gameCtx);
   gameService.send('DRAW', { ctx: gameCtx });
 
   window.requestAnimationFrame(() => gameLoop(gameService, gameCtx));

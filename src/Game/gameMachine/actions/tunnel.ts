@@ -4,6 +4,8 @@ import {
   tunnelEndEntranceClicked,
 } from 'game/blobTunnel';
 import { Point } from 'game/types';
+
+import { network } from 'game/blobNetwork/BlobNetwork';
 import { Context, ClickedEvent } from '../types';
 
 type ClickedEntrance = {
@@ -52,6 +54,6 @@ export function propagateTunnelClicked(
   }
 }
 
-export function didClickOnTunnel({ tunnels }: Context, event: ClickedEvent) {
-  return tunnels.some((tunnel) => tunnelClicked(tunnel, event));
+export function didClickOnNetwork(_: Context, event: ClickedEvent) {
+  return network.isPointOnNetwork(event.coordinates);
 }
