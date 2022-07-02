@@ -16,9 +16,20 @@ describe('math', () => {
            \
             start(4, 3)
       */
-
       expect(
-        makeLinearPoints({ x: 3, y: 3 }, { x: 0, y: 0 }, 1)
+        makeLinearPoints({ x: 4, y: 3 }, { x: 0, y: 0 }, 1)
+      ).toMatchSnapshot();
+
+      /*
+            end(2, 0)                
+           /
+          /
+         /
+        /
+        start(0, 3)
+      */
+      expect(
+        makeLinearPoints({ x: 0, y: 3 }, { x: 2, y: 0 }, 1)
       ).toMatchSnapshot();
     });
   });

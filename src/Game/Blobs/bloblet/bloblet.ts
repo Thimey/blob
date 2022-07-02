@@ -11,6 +11,8 @@ import {
   SHRUB_HARVEST_DROP_DWELL_TIME_MS,
 } from 'game/paramaters';
 import { Point } from 'game/types';
+
+import { network } from 'game/blobNetwork/BlobNetwork';
 import { drawSelectedOutline } from 'game/lib/draw';
 import { drawBloblet, drawCarryingShrub } from './draw';
 import {
@@ -93,17 +95,11 @@ const setDestinationAsShrub = assign<Context, Event>(
 );
 
 const setTunnelling = assign<Context, TunnelClickedEvent>(
-  ({ position }, { points, tunnelEntrancePosition, tunnelId }) => ({
+  ({ position }, { destination }) => ({
     tunnelling: {
-      tunnelId,
-      points,
+      points: network.makePath(position, destination) || [],
       pointIndex: 0,
     },
-    movement: makeMovement({
-      position,
-      destination: { ...tunnelEntrancePosition },
-      // speed: 1,
-    }),
   })
 );
 
@@ -236,6 +232,8 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                       },
                       TUNNEL_CLICKED: {
                         target: ['#tunnelling', 'deselected'],
+                        cond: ({ position }) =>
+                          network.isPointOnNetwork(position),
                         actions: [setTunnelling],
                       },
                     },
@@ -350,26 +348,26 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
           },
           tunnelling: {
             id: 'tunnelling',
-            initial: 'movingToTunnel',
+            initial: 'inTunnel',
             states: {
-              movingToTunnel: {
-                on: {
-                  UPDATE: [
-                    {
-                      target: 'inTunnel',
-                      cond: hasReachedDestination,
-                    },
-                    {
-                      actions: [stepToDestination],
-                    },
-                  ],
-                },
-              },
+              // movingToTunnel: {
+              //   on: {
+              //     UPDATE: [
+              //       {
+              //         target: 'inTunnel',
+              //         cond: hasReachedDestination,
+              //       },
+              //       {
+              //         actions: [stepToDestination],
+              //       },
+              //     ],
+              //   },
+              // },
               inTunnel: {
                 on: {
                   UPDATE: [
                     {
-                      target: 'exitingTunnel',
+                      target: '#outside',
                       cond: ({ tunnelling }) =>
                         !!tunnelling &&
                         tunnelling.pointIndex >= tunnelling.points.length,
@@ -390,43 +388,43 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                   ],
                 },
               },
-              exitingTunnel: {
-                entry: assign(({ position, tunnelling }) => {
-                  if (!tunnelling) return {};
-                  const { points } = tunnelling;
-                  const firstPoint = points[0];
-                  const lastPoint = points[points.length - 1];
+              // exitingTunnel: {
+              //   entry: assign(({ position, tunnelling }) => {
+              //     if (!tunnelling) return {};
+              //     const { points } = tunnelling;
+              //     const firstPoint = points[0];
+              //     const lastPoint = points[points.length - 1];
 
-                  const xDir = Math.sign(lastPoint.x - firstPoint.x);
-                  const yDir = Math.sign(lastPoint.y - firstPoint.y);
+              //     const xDir = Math.sign(lastPoint.x - firstPoint.x);
+              //     const yDir = Math.sign(lastPoint.y - firstPoint.y);
 
-                  return {
-                    movement: makeMovement({
-                      position,
-                      destination: {
-                        x: position.x + xDir * makeRandNumber(10, 40),
-                        y: position.y + yDir * makeRandNumber(10, 40),
-                      },
-                    }),
-                  };
-                }),
-                on: {
-                  UPDATE: [
-                    {
-                      target: '#outside',
-                      actions: [
-                        assign((_) => ({
-                          tunnelling: undefined,
-                        })),
-                      ],
-                      cond: hasReachedDestination,
-                    },
-                    {
-                      actions: [stepToDestination],
-                    },
-                  ],
-                },
-              },
+              //     return {
+              //       movement: makeMovement({
+              //         position,
+              //         destination: {
+              //           x: position.x + xDir * makeRandNumber(10, 40),
+              //           y: position.y + yDir * makeRandNumber(10, 40),
+              //         },
+              //       }),
+              //     };
+              //   }),
+              //   on: {
+              //     UPDATE: [
+              //       {
+              //         target: '#outside',
+              //         actions: [
+              //           assign((_) => ({
+              //             tunnelling: undefined,
+              //           })),
+              //         ],
+              //         cond: hasReachedDestination,
+              //       },
+              //       {
+              //         actions: [stepToDestination],
+              //       },
+              //     ],
+              //   },
+              // },
             },
           },
         },

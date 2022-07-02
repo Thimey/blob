@@ -22,7 +22,6 @@ export type Context = {
     position: Point;
   };
   tunnelling?: {
-    tunnelId: string;
     points: Point[];
     pointIndex: number;
   };
@@ -47,9 +46,7 @@ export type ShrubClickEvent = {
 
 export type TunnelClickedEvent = {
   type: 'TUNNEL_CLICKED';
-  tunnelId: string;
-  tunnelEntrancePosition: Point;
-  points: Point[];
+  destination: Point;
 };
 
 export type DrawSrubEvent = {

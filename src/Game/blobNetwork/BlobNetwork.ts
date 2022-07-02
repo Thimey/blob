@@ -61,8 +61,18 @@ export class BlobNetwork {
   }
 
   private getConnection(from: NodeId, to: NodeId) {
-    const connectionId = this.nodes[from]?.connections[to].connectionId;
-    return this.connections[connectionId];
+    const { connectionId, direction } = this.nodes[from].connections[to];
+    const connection = this.connections[connectionId];
+
+    return {
+      ...connection,
+      start: direction === 'startToEnd' ? connection.start : connection.end,
+      end: direction === 'startToEnd' ? connection.end : connection.start,
+      points:
+        direction === 'startToEnd'
+          ? connection.points
+          : connection.points.reverse(),
+    };
   }
 
   private makeConnectionPoints(path: NodeId[]) {
@@ -71,18 +81,15 @@ export class BlobNetwork {
       if (isLastNode) return acc;
 
       const nextNodeId = path[index + 1];
-      const { direction } = this.nodes[nodeId].connections[nextNodeId];
       const { points } = this.getConnection(nodeId, nextNodeId);
 
-      return [
-        ...acc,
-        ...(direction === 'startToEnd' ? points : points.reverse()),
-      ];
+      return [...acc, ...points];
     }, []);
   }
 
   private makePathPoints(path: NodeId[], start: Point, end: Point) {
     if (path.length < 2) return [];
+    console.log(path);
 
     const pointsWithinFirstNode = makeLinearPoints(
       start,
@@ -90,7 +97,7 @@ export class BlobNetwork {
     );
 
     const pointsWithinLastNode = makeLinearPoints(
-      this.getConnection(path[path.length - 1], path[path.length - 2]).start,
+      this.getConnection(path[path.length - 2], path[path.length - 1]).end,
       end
     );
 

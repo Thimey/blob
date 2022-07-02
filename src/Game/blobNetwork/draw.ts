@@ -39,7 +39,7 @@ export function drawConnection(
     0,
     2 * Math.PI
   );
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.fill();
   ctx.stroke();
   ctx.closePath();
@@ -55,12 +55,12 @@ export function drawConnection(
     0,
     2 * Math.PI
   );
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.fill();
   ctx.stroke();
   ctx.closePath();
 
-  // CONNECTION wall
+  // Connection wall
   ctx.beginPath();
   ctx.moveTo(start.x, start.y);
   ctx.bezierCurveTo(
@@ -76,7 +76,7 @@ export function drawConnection(
   ctx.stroke();
   ctx.closePath();
 
-  // CONNECTION inner
+  // Connection inner
   ctx.beginPath();
   ctx.moveTo(start.x, start.y);
   ctx.bezierCurveTo(

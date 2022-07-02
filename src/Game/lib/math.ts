@@ -1,7 +1,8 @@
+import { v4 } from 'uuid';
 import { Point } from '../types';
 
 export function generateId() {
-  return Date.now().toString();
+  return v4();
 }
 
 export function roundTo(number: number, decimalPlaces: number) {
@@ -112,16 +113,18 @@ export function makeLinearPoints(start: Point, end: Point, step = 1) {
   const totalDistance = getDistance(start, end);
   const dx = end.x - start.x;
   const dy = end.y - start.y;
-  const angle = Math.atan(dy / dx);
+  const xDir = Math.sign(dx);
+  const yDir = Math.sign(dy);
+  const angle = Math.atan(Math.abs(dy / dx));
 
-  let distance = totalDistance - step;
-  const points = [start];
-  while (distance > 0) {
-    const x = distance * Math.cos(angle);
-    const y = distance * Math.sin(angle);
+  let distance = 0;
+  const points = [];
+  while (distance < totalDistance) {
+    const x = start.x + xDir * distance * Math.cos(angle);
+    const y = start.y + yDir * distance * Math.sin(angle);
 
     points.push({ x, y });
-    distance -= Math.min(step, distance);
+    distance += Math.min(step, totalDistance - distance);
   }
   points.push(end);
 

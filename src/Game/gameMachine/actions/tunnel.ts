@@ -18,40 +18,12 @@ export function propagateTunnelClicked(
   { bloblets, tunnels }: Context,
   event: ClickedEvent
 ) {
-  const clickedTunnel = tunnels.reduce<ClickedEntrance>((acc, tunnel) => {
-    if (acc) return acc;
-
-    const tunnelContext = tunnel?.getSnapshot()?.context;
-    if (!tunnelContext) return acc;
-
-    if (tunnelStartEntranceClicked(tunnelContext, event)) {
-      return {
-        id: tunnelContext.id,
-        points: tunnelContext.points,
-        entrancePosition: tunnelContext.start,
-      };
-    }
-    if (tunnelEndEntranceClicked(tunnelContext, event)) {
-      return {
-        id: tunnelContext.id,
-        points: [...tunnelContext.points].reverse(),
-        entrancePosition: tunnelContext.end,
-      };
-    }
-
-    return acc;
-  }, null);
-
-  if (clickedTunnel) {
-    bloblets.forEach((bloblet) => {
-      bloblet.send({
-        type: 'TUNNEL_CLICKED',
-        tunnelId: clickedTunnel.id,
-        tunnelEntrancePosition: clickedTunnel.entrancePosition,
-        points: clickedTunnel.points,
-      });
+  bloblets.forEach((bloblet) => {
+    bloblet.send({
+      type: 'TUNNEL_CLICKED',
+      destination: event.coordinates,
     });
-  }
+  });
 }
 
 export function didClickOnNetwork(_: Context, event: ClickedEvent) {
