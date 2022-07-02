@@ -2,7 +2,7 @@ import { createMachine, assign } from 'xstate';
 import { send, sendParent, pure } from 'xstate/lib/actions';
 
 import { roundTo } from 'game/lib/math';
-import { drawShrub, drawGrowingShrub } from './draw';
+import { drawShrub } from './draw';
 import { Context, State, Event, HarvestEvent, DepleteEvent } from './types';
 
 function makeHarvestAmount(harvestAmount: number, totalAmount: number) {
@@ -44,7 +44,7 @@ export function makeShrub(context: Context) {
       growing: {
         on: {
           DRAW: {
-            actions: [drawGrowingShrub],
+            actions: [drawShrub],
           },
           GROW: [
             {

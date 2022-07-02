@@ -4,6 +4,8 @@ import { blobQueenColor } from 'game/colors';
 import {
   QUEEN_POSITION,
   QUEEN_RADIUS_Y,
+  LEAF_HEIGHT,
+  LEAF_WIDTH,
   MIN_SHRUB_AMOUNT,
   MAX_SHRUB_AMOUNT,
   MIN_HARVEST_RATE,
@@ -11,7 +13,7 @@ import {
   MAX_SHRUB,
 } from 'game/paramaters';
 import {
-  isPointWithinCircle,
+  isPointWithinDiamond,
   makeRandNumber,
   roundTo,
   generateId,
@@ -20,6 +22,7 @@ import { animationMachine } from 'game/animations';
 import {
   makeShrub,
   makePosition,
+  makeLeafPositions,
   ShrubActor,
   PersistedShrubActor,
   DrawEvent,
@@ -37,20 +40,21 @@ const { pure } = actions;
 
 export function initialiseShrubs(persistedShrub: PersistedShrubActor[]) {
   const newShrubPositions = [
-    { position: makePosition(1), harvestRate: 1 },
-    { position: makePosition(2), harvestRate: 2 },
-    { position: makePosition(3), harvestRate: 3 },
+    { position: makePosition(300), harvestRate: 1 },
+    { position: makePosition(300), harvestRate: 2 },
+    { position: makePosition(300), harvestRate: 3 },
   ];
 
   return assign(() => ({
     shrubs: persistedShrub.length
       ? persistedShrub.map((sc) => spawn(makeShrub(sc.context)))
-      : newShrubPositions.map(({ position, harvestRate }, index) =>
+      : newShrubPositions.map(({ position }, index) =>
           spawn(
             makeShrub({
               id: `${index + 1}`,
               position,
-              harvestRate,
+              leafPositions: makeLeafPositions(position, 100),
+              harvestRate: 1,
               initialAmount: 100,
               amount: 0,
             })
@@ -67,7 +71,13 @@ function shrubClicked(shrub: ShrubActor, { coordinates }: ClickedEvent) {
   const shrubContext = shrub.getSnapshot()?.context;
 
   return (
-    shrubContext && isPointWithinCircle(shrubContext.position, 20, coordinates)
+    shrubContext &&
+    shrubContext.leafPositions.some((position) =>
+      isPointWithinDiamond(
+        { position, width: LEAF_WIDTH, height: LEAF_HEIGHT },
+        coordinates
+      )
+    )
   );
 }
 
@@ -144,6 +154,7 @@ export const growShrub = assign<Context, GrowShrubEvent>(
     const machine = makeShrub({
       id: generateId(),
       position,
+      leafPositions: makeLeafPositions(position, 0),
       harvestRate,
       initialAmount: roundTo(
         makeRandNumber(MIN_SHRUB_AMOUNT, MAX_SHRUB_AMOUNT),

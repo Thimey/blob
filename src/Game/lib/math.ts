@@ -18,8 +18,24 @@ export function getDistance({ x: x1, y: y1 }: Point, { x: x2, y: y2 }: Point) {
   return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
 
+export function makePerimeterOfEllipse(radiusX: number, radiusY: number) {
+  return Math.PI * 2 * Math.sqrt((radiusX ** 2 + radiusY ** 2) / 2);
+}
+
 export function makeRandNumber(min = 0, max = 1) {
   return Math.random() * (max - min + 1) + min;
+}
+
+export function shiftRandPosition({ x, y }: Point) {
+  return { x: x + makeRandNumber(-1, 1), y: y + makeRandNumber(-1, 1) };
+}
+
+export function shuffleArray(arr: any[]) {
+  return arr.sort(() => (Math.random() > 0.5 ? 1 : -1));
+}
+
+export function makeRandAngle() {
+  return Math.random() * 2 * Math.PI;
 }
 
 export type RGB = { r: number; g: number; b: number };
@@ -79,23 +95,36 @@ export function isPointWithinRectangle(rect: Rectangle, { x, y }: Point) {
   );
 }
 
-export function makePointsOnArc(
+interface Diamond {
+  position: Point;
+  width: number;
+  height: number;
+}
+
+export function isPointWithinDiamond(
+  { position, width, height }: Diamond,
+  { x, y }: Point
+) {
+  const dx = Math.abs(position.x - x);
+  const dy = Math.abs(position.y - y);
+
+  return dx / width + dy / height <= 1;
+}
+
+export function makePointsOnEllipse(
   number: number,
-  centerPoint: Point,
-  radius: number,
-  arcStart: number,
-  arcEnd: number
+  position: Point,
+  radiusX: number,
+  radiusY: number
 ) {
   const points: Point[] = [];
-  const angleIncrement =
-    Math.max((2 * Math.PI - Math.abs(arcEnd - arcStart), arcEnd - arcStart)) /
-    number;
-  let angle = arcStart;
+  const angleIncrement = (Math.PI * 2) / number;
+  let angle = 0;
 
   for (let i = 0; i < number; i += 1) {
     points.push({
-      x: centerPoint.x + radius * Math.cos(angle),
-      y: centerPoint.y + radius * Math.sin(angle),
+      x: position.x + radiusX * Math.cos(angle),
+      y: position.y + radiusY * Math.sin(angle),
     });
 
     angle += angleIncrement;
