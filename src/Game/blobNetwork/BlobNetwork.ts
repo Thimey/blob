@@ -101,7 +101,11 @@ export class BlobNetwork {
   }
 
   private makePathPoints(path: NodeId[], start: Point, end: Point) {
-    if (path.length < 2) return [];
+    if (!path.length) return [];
+
+    if (path.length === 1) {
+      return makeLinearPoints(start, end);
+    }
 
     const pointsWithinFirstNode = makeLinearPoints(
       start,
