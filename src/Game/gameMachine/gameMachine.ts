@@ -87,12 +87,12 @@ export function makeGameMachine({
               cond: didClickOnBlobLarva,
             },
             {
-              actions: [propagateShrubClicked],
-              cond: didClickOnShrub,
-            },
-            {
               actions: [propagateBlobletClicked],
               cond: didClickOnBloblet,
+            },
+            {
+              actions: [propagateShrubClicked],
+              cond: didClickOnShrub,
             },
             {
               actions: [propagateMapClicked],

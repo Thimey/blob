@@ -85,7 +85,9 @@ export function drawShrub(
     amount,
     initialAmount
   );
-  leafPositions.slice(0, amount).forEach((p) => drawLeaf(ctx, p, shrubColor));
+  leafPositions
+    .slice(0, Math.ceil(amount))
+    .forEach((p) => drawLeaf(ctx, p, shrubColor));
 }
 
 export function drawGrowingShrub(
@@ -99,5 +101,7 @@ export function drawGrowingShrub(
     amount,
     initialAmount
   );
-  leafPositions.slice(0, amount).forEach((p) => drawLeaf(ctx, p, 'grey'));
+  leafPositions
+    .slice(0, Math.ceil(amount))
+    .forEach((p) => drawLeaf(ctx, p, 'grey'));
 }
