@@ -109,7 +109,7 @@ export function makeCubicBezierPoints(
   return points;
 }
 
-export function makeLinearPoints(start: Point, end: Point, step = 1) {
+export function makeLinearPoints(start: Point, end: Point, step = 2) {
   const totalDistance = getDistance(start, end);
   const dx = end.x - start.x;
   const dy = end.y - start.y;

@@ -71,7 +71,7 @@ export class BlobNetwork {
       points:
         direction === 'startToEnd'
           ? connection.points
-          : connection.points.reverse(),
+          : [...connection.points].reverse(),
     };
   }
 
@@ -89,7 +89,6 @@ export class BlobNetwork {
 
   private makePathPoints(path: NodeId[], start: Point, end: Point) {
     if (path.length < 2) return [];
-    console.log(path);
 
     const pointsWithinFirstNode = makeLinearPoints(
       start,
@@ -157,7 +156,7 @@ function makeConnection(start: Point, end: Point): Connection {
     end,
     bezierP1,
     bezierP2,
-    points: makeCubicBezierPoints(start, bezierP1, bezierP2, end, 300),
+    points: makeCubicBezierPoints(start, bezierP1, bezierP2, end, 200),
   };
 }
 
