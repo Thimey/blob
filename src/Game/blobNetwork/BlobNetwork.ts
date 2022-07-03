@@ -285,7 +285,7 @@ node3.connections[node2.id] = {
 
 node3.connections[node4.id] = {
   connectionId: connection3.id,
-  direction: 'endToStart',
+  direction: 'startToEnd',
 };
 
 node4.connections[node3.id] = {
