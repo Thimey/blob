@@ -5,8 +5,6 @@ import {
   RADIUS_INCREMENT_X,
   RADIUS_INCREMENT_Y,
   QUEEN_POSITION,
-  MAX_SHRUB_AMOUNT,
-  MIN_SHRUB_AMOUNT,
 } from 'game/paramaters';
 import {
   makeRandAngle,
@@ -29,8 +27,12 @@ export function makePosition(distance: number): Point {
   };
 }
 
-function drawLeaf(ctx: CanvasRenderingContext2D, { x, y }: Point) {
-  drawDiamond(ctx, x, y, LEAF_WIDTH, LEAF_HEIGHT, shrubColor, 'black');
+function drawLeaf(
+  ctx: CanvasRenderingContext2D,
+  { x, y }: Point,
+  color: string
+) {
+  drawDiamond(ctx, x, y, LEAF_WIDTH, LEAF_HEIGHT, color, 'black');
 }
 
 function drawAmountText(
@@ -46,17 +48,17 @@ function drawAmountText(
 }
 
 function makeLeafRing(position: Point, radiusX: number, radiusY: number) {
-  const leafNumber = makePerimeterOfEllipse(radiusX, radiusY) / 8;
+  const leafCount = makePerimeterOfEllipse(radiusX, radiusY) / 8;
 
-  return makePointsOnEllipse(leafNumber, position, radiusX, radiusY);
+  return makePointsOnEllipse(leafCount, position, radiusX, radiusY);
 }
 
-export function makeLeafPositions(position: Point, amount: number) {
+export function makeLeafPositions(position: Point, initialAmount: number) {
   let positions = [position]; // Center leaf
   let ringCount = 1;
 
-  // Keep adding rings of leaves until > amount
-  while (amount > positions.length) {
+  // Keep adding rings of leaves until > initialAmount
+  while (initialAmount > positions.length) {
     const newRing = shuffleArray(
       makeLeafRing(
         position,
@@ -68,19 +70,34 @@ export function makeLeafPositions(position: Point, amount: number) {
     ringCount += 1;
   }
 
-  // Add some randomness and trim down to amount.
-  return positions.map(shiftRandPosition).slice(0, amount);
+  // Add some randomness and trim down to initialAmount.
+  return positions.map((p) => shiftRandPosition(p, 1)).slice(0, initialAmount);
 }
 
 export function drawShrub(
-  { amount, leafPositions }: Context,
+  { position, leafPositions, topLeafY, amount, initialAmount }: Context,
   { ctx }: DrawEvent
 ) {
-  // drawAmountText(ctx, position, shrubColor, amount, initialAmount);
-  leafPositions.slice(0, amount).forEach((p) => drawLeaf(ctx, p));
+  drawAmountText(
+    ctx,
+    { x: position.x - 12, y: topLeafY - 10 },
+    shrubColor,
+    amount,
+    initialAmount
+  );
+  leafPositions.slice(0, amount).forEach((p) => drawLeaf(ctx, p, shrubColor));
 }
 
 export function drawGrowingShrub(
-  { amount, initialAmount, position }: Context,
+  { position, leafPositions, topLeafY, amount, initialAmount }: Context,
   { ctx }: DrawEvent
-) {}
+) {
+  drawAmountText(
+    ctx,
+    { x: position.x - 12, y: topLeafY - 10 },
+    'grey',
+    amount,
+    initialAmount
+  );
+  leafPositions.slice(0, amount).forEach((p) => drawLeaf(ctx, p, 'grey'));
+}

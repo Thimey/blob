@@ -14,7 +14,7 @@ export function closestToZero(x1: number, x2: number) {
   return Math.abs(x1) < Math.abs(x2) ? x1 : x2;
 }
 
-export function getDistance({ x: x1, y: y1 }: Point, { x: x2, y: y2 }: Point) {
+export function makeDistance({ x: x1, y: y1 }: Point, { x: x2, y: y2 }: Point) {
   return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
 
@@ -26,8 +26,11 @@ export function makeRandNumber(min = 0, max = 1) {
   return Math.random() * (max - min + 1) + min;
 }
 
-export function shiftRandPosition({ x, y }: Point) {
-  return { x: x + makeRandNumber(-1, 1), y: y + makeRandNumber(-1, 1) };
+export function shiftRandPosition({ x, y }: Point, shiftDistance: number) {
+  return {
+    x: x + makeRandNumber(-shiftDistance, shiftDistance),
+    y: y + makeRandNumber(-shiftDistance, shiftDistance),
+  };
 }
 
 export function shuffleArray(arr: any[]) {
@@ -74,7 +77,7 @@ export function isPointWithinCircle(
   radius: number,
   mousePosition: Point
 ) {
-  const distanceFromClick = getDistance(position, mousePosition);
+  const distanceFromClick = makeDistance(position, mousePosition);
 
   return distanceFromClick <= radius;
 }

@@ -2,7 +2,7 @@ import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
-import { getDistance, closestToZero, makeRandNumber } from 'game/lib/math';
+import { makeDistance, closestToZero, makeRandNumber } from 'game/lib/math';
 import {
   QUEEN_POSITION,
   BLOBLET_HARVEST_INTERVAL,
@@ -40,7 +40,7 @@ function makeMovement({
 }): Movement {
   const dxTotal = destination.x - position.x;
   const dyTotal = destination.y - position.y;
-  const totalDistance = getDistance(position, destination);
+  const totalDistance = makeDistance(position, destination);
 
   return {
     destination,

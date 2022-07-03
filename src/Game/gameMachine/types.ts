@@ -75,10 +75,6 @@ export type BlobHatchedEvent = {
   larvaId: string;
 };
 
-export type GrowShrubEvent = {
-  type: 'GROW_SHRUB';
-};
-
 export type PersistedGameState = {
   bloblets: PersistedBlobletActor[];
   shrubs: PersistedShrubActor[];
@@ -102,7 +98,6 @@ export type Event =
   | LarvaSelectionEvent
   | LarvaDeSelectionEvent
   | SpawnBlobSelectedEvent
-  | BlobHatchedEvent
-  | GrowShrubEvent;
+  | BlobHatchedEvent;
 
 export type GameService = Interpreter<Context, any, Event, State>;

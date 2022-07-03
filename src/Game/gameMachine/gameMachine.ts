@@ -1,6 +1,6 @@
 import { createMachine } from 'xstate';
 
-import { LARVA_SPAWN_TIME_MS, SHRUB_GROW_TIME_MS } from 'game/paramaters';
+import { LARVA_SPAWN_TIME_MS } from 'game/paramaters';
 import { animationMachine } from 'game/animations/animationMachine';
 
 import { Context, Event, State, PersistedGameState } from './types';
@@ -18,8 +18,6 @@ import {
   transformLarvae,
   drawShrubs,
   updateBlobs,
-  growShrub,
-  shouldGrowShrub,
   harvestShrub,
   feedOnShrub,
   shrubDepleted,
@@ -100,10 +98,6 @@ export function makeGameMachine({
               actions: [propagateMapClicked],
             },
           ],
-          GROW_SHRUB: {
-            actions: [growShrub],
-            cond: shouldGrowShrub,
-          },
           SPAWN_LARVA: {
             actions: [spawnBlobLarva],
             cond: shouldSpawnLarva,
@@ -125,13 +119,8 @@ export function makeGameMachine({
               cb('SPAWN_LARVA');
             }, LARVA_SPAWN_TIME_MS);
 
-            const growShrubInterval = setInterval(() => {
-              cb('GROW_SHRUB');
-            }, SHRUB_GROW_TIME_MS);
-
             return () => {
               clearInterval(spawnLarvaeInterval);
-              clearInterval(growShrubInterval);
             };
           },
         },
