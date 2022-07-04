@@ -37,7 +37,13 @@ const { pure } = actions;
 
 export function initialiseShrubs(persistedShrub: PersistedShrubActor[]) {
   const newShrubPositions = [
-    { position: makePosition(0.5), harvestRate: 1 },
+    {
+      position: {
+        x: QUEEN_POSITION.x,
+        y: QUEEN_POSITION.y - QUEEN_RADIUS_Y * 6,
+      },
+      harvestRate: 1,
+    },
     { position: makePosition(2), harvestRate: 2 },
     { position: makePosition(3), harvestRate: 3 },
   ];
