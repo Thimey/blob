@@ -1,21 +1,25 @@
 import { Point, DrawEvent } from 'game/types';
 import {
+  LEAF_HEIGHT,
+  LEAF_WIDTH,
+  RADIUS_INCREMENT_X,
+  RADIUS_INCREMENT_Y,
   QUEEN_POSITION,
-  MAX_SHRUB_AMOUNT,
-  MIN_SHRUB_AMOUNT,
 } from 'game/paramaters';
-import { makeRandNumber } from 'game/lib/math';
+import {
+  makeRandomAngle,
+  makePointsOnEllipse,
+  makePerimeterOfEllipse,
+  shiftRandomPosition,
+  shuffleArray,
+} from 'game/lib/math';
 import { drawDiamond } from 'game/lib/draw';
 
 import { shrubColor } from 'game/colors';
 import { Context } from './types';
 
-const LEAF_HEIGHT = 25;
-const LEAF_WIDTH = 19;
-
-export function makePosition(harvestRate: number): Point {
-  const angle = Math.random() * 2 * Math.PI;
-  const distance = (1 / harvestRate) * 400;
+export function makePosition(distance: number): Point {
+  const angle = makeRandomAngle();
 
   return {
     x: QUEEN_POSITION.x + distance * Math.cos(angle),
@@ -23,124 +27,91 @@ export function makePosition(harvestRate: number): Point {
   };
 }
 
-// TODO set random offsets into machine context and use
-export function makeLeafOffsets(length: number) {
-  return new Array(length).fill(0).map((_, i) => {
-    return {
-      x: makeRandNumber(0, 1),
-      y: makeRandNumber(0, 2),
-    };
-  });
-}
-
-function makeShrubRow(
-  length: number,
-  x: number,
-  y: number,
-  offset: number,
-  spacingAdjust: number
-) {
-  return new Array(length).fill(0).map((_, i) => {
-    const shiftDirection = i % 2 === 0 ? -1 : 1;
-
-    return {
-      x:
-        x +
-        (LEAF_WIDTH * 0.75 * Math.ceil(i / 2) * shiftDirection + offset) *
-          spacingAdjust,
-      y,
-    };
-  });
-}
-
-function makeLeafPositions({ x, y }: Point, spacingAdjust: number) {
-  return [
-    ...makeShrubRow(
-      3,
-      x,
-      y - LEAF_HEIGHT * spacingAdjust,
-      LEAF_WIDTH / 2,
-      spacingAdjust
-    ),
-    ...makeShrubRow(
-      4,
-      x,
-      y - (LEAF_HEIGHT / 2) * spacingAdjust,
-      0,
-      spacingAdjust
-    ),
-    ...makeShrubRow(3, x, y, LEAF_WIDTH / 2, spacingAdjust),
-  ];
-}
-
-function makeSizeAdjust(amount: number) {
-  const percentOfMaxAmount = (amount + MIN_SHRUB_AMOUNT) / MAX_SHRUB_AMOUNT;
-  return percentOfMaxAmount > 1 ? 1 : percentOfMaxAmount;
-}
-
 function drawLeaf(
   ctx: CanvasRenderingContext2D,
   { x, y }: Point,
-  sizeAdjust: number
+  color: string
 ) {
-  drawDiamond(
-    ctx,
-    x,
-    y,
-    LEAF_WIDTH * sizeAdjust,
-    LEAF_HEIGHT * sizeAdjust,
-    shrubColor,
-    'black'
-  );
-}
-
-function drawLeaves(
-  ctx: CanvasRenderingContext2D,
-  position: Point,
-  amount: number
-) {
-  const sizeAdjust = makeSizeAdjust(amount);
-  const leafPositions = makeLeafPositions(position, sizeAdjust);
-
-  leafPositions.forEach((leafPosition) =>
-    drawLeaf(ctx, leafPosition, sizeAdjust)
-  );
+  drawDiamond(ctx, x, y, LEAF_WIDTH, LEAF_HEIGHT, color, 'black');
 }
 
 function drawAmountText(
   ctx: CanvasRenderingContext2D,
-  position: Point,
+  { x, y }: Point,
   color: string,
   amount: number,
   initialAmount: number
 ) {
   ctx.font = '10px Arial';
   ctx.fillStyle = color;
-  ctx.fillText(
-    `${amount}/${initialAmount}`,
-    position.x - 10,
-    position.y - 60 * makeSizeAdjust(amount)
+  ctx.fillText(`${amount}/${initialAmount}`, x, y);
+}
+
+function makeLeafRing(position: Point, radiusX: number, radiusY: number) {
+  const leafCount = makePerimeterOfEllipse(radiusX, radiusY) / 8;
+
+  return makePointsOnEllipse(leafCount, position, radiusX, radiusY);
+}
+
+export function makeRemainingLeafPositions(
+  initialLeafPositions: Point[],
+  amount: number
+) {
+  return initialLeafPositions.slice(0, Math.ceil(amount));
+}
+
+export function makeLeafPositions(position: Point, initialAmount: number) {
+  let positions = [position]; // Center leaf
+  let ringCount = 1;
+
+  // Keep adding rings of leaves until > initialAmount
+  while (initialAmount > positions.length) {
+    const newRing = shuffleArray(
+      makeLeafRing(
+        position,
+        RADIUS_INCREMENT_X * ringCount,
+        RADIUS_INCREMENT_Y * ringCount
+      )
+    );
+    positions = [...positions, ...newRing];
+    ringCount += 1;
+  }
+
+  // Add some randomness and trim down to initialAmount.
+  return makeRemainingLeafPositions(
+    positions.map((p) => shiftRandomPosition(p, 1)),
+    initialAmount
   );
 }
 
 export function drawShrub(
-  { amount, initialAmount, position }: Context,
+  { position, leafPositions, topLeafY, amount, initialAmount }: Context,
   { ctx }: DrawEvent
 ) {
-  drawAmountText(ctx, position, shrubColor, amount, initialAmount);
-  drawLeaves(ctx, position, amount);
+  drawAmountText(
+    ctx,
+    { x: position.x - 12, y: topLeafY - 10 },
+    shrubColor,
+    amount,
+    initialAmount
+  );
+  makeRemainingLeafPositions(leafPositions, amount).forEach((p) =>
+    drawLeaf(ctx, p, shrubColor)
+  );
 }
 
 export function drawGrowingShrub(
-  { amount, initialAmount, position }: Context,
+  { position, leafPositions, topLeafY, amount, initialAmount }: Context,
   { ctx }: DrawEvent
 ) {
-  const percentOfInitial = amount / initialAmount;
-
-  if (percentOfInitial > 0.3) {
-    drawAmountText(ctx, position, 'grey', amount, initialAmount);
-  }
-  ctx.globalAlpha = percentOfInitial;
-  drawLeaves(ctx, position, amount);
-  ctx.globalAlpha = 1;
+  drawAmountText(
+    ctx,
+    { x: position.x - 12, y: topLeafY - 10 },
+    'grey',
+    amount,
+    initialAmount
+  );
+  makeRemainingLeafPositions(leafPositions, amount).forEach((p) =>
+    drawLeaf(ctx, p, 'grey')
+  );
 }

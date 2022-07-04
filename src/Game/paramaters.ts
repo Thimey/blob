@@ -31,11 +31,9 @@ export const BLOBLET_HARVEST_INTERVAL = 5_000;
 export const BLOBLET_DRIFT_DISTANCE = 10;
 
 // Shrubs
-export const MAX_SHRUB = 5;
-export const MIN_SHRUB_AMOUNT = 50;
-export const MAX_SHRUB_AMOUNT = 300;
-export const MIN_HARVEST_RATE = 0.5;
-export const MAX_HARVEST_RATE = 2;
-export const SHRUB_GROW_TIME_MS = 20_000;
+export const LEAF_HEIGHT = 12;
+export const LEAF_WIDTH = 8;
+export const RADIUS_INCREMENT_X = 5;
+export const RADIUS_INCREMENT_Y = 3;
 export const SHRUB_HARVEST_DWELL_TIME_MS = 1_000;
 export const SHRUB_HARVEST_DROP_DWELL_TIME_MS = 300;

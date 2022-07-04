@@ -69,31 +69,23 @@ export function makeShrub(context: Context) {
         },
       },
       ready: {
-        initial: 'active',
-        states: {
-          active: {
-            on: {
-              DRAW: {
-                actions: [drawShrub],
-              },
-              HARVEST: [
-                {
-                  actions: [harvest],
-                },
-              ],
-              DEPLETE: {
-                target: 'depleted',
-                actions: sendParent<Context, DepleteEvent>(
-                  ({ id: shrubId }: Context) => ({
-                    type: 'SHRUB_DEPLETED',
-                    shrubId,
-                  })
-                ),
-              },
-            },
+        on: {
+          DRAW: {
+            actions: [drawShrub],
           },
-          depleted: {
-            type: 'final',
+          HARVEST: [
+            {
+              actions: [harvest],
+            },
+          ],
+          DEPLETE: {
+            target: 'growing',
+            actions: sendParent<Context, DepleteEvent>(
+              ({ id: shrubId }: Context) => ({
+                type: 'SHRUB_DEPLETED',
+                shrubId,
+              })
+            ),
           },
         },
       },

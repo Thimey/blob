@@ -1,3 +1,7 @@
 export * from './shrub';
 export * from './types';
-export { makePosition } from './draw';
+export {
+  makePosition,
+  makeLeafPositions,
+  makeRemainingLeafPositions,
+} from './draw';

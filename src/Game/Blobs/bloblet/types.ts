@@ -20,6 +20,8 @@ export type Context = {
     shrubId: string;
     harvestRate: number;
     position: Point;
+    leafPositions: Point[];
+    amount: number;
   };
 };
 
@@ -35,9 +37,12 @@ export type MapClickEvent = {
 
 export type ShrubClickEvent = {
   type: 'SHRUB_CLICKED';
-  coordinates: Point;
+  clickCoordinates: Point;
+  shrubPosition: Point;
   shrubId: string;
   harvestRate: number;
+  leafPositions: Point[];
+  amount: number;
 };
 
 export type DrawSrubEvent = {

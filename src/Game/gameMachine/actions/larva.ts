@@ -10,7 +10,7 @@ import {
   BLOB_LARVA_BODY_RADIUS_Y,
   MAX_LARVAE,
 } from 'game/paramaters';
-import { generateId, makeRandNumber } from 'game/lib/math';
+import { generateId, makeRandomNumber } from 'game/lib/math';
 import {
   makeBlobLarva,
   blobLarvaClicked,
@@ -35,8 +35,8 @@ export function drawLarvae({ blobLarvae }: Context, { ctx }: DrawEvent) {
 export const spawnBlobLarva = assign<Context, SpawnLarvaEvent>(
   ({ blobLarvae }: Context, _: SpawnLarvaEvent) => {
     const position = {
-      x: QUEEN_POSITION.x + QUEEN_RADIUS_X + makeRandNumber(-80, 80),
-      y: QUEEN_POSITION.y + QUEEN_RADIUS_Y + makeRandNumber(-80, 80),
+      x: QUEEN_POSITION.x + QUEEN_RADIUS_X + makeRandomNumber(-80, 80),
+      y: QUEEN_POSITION.y + QUEEN_RADIUS_Y + makeRandomNumber(-80, 80),
     };
 
     const machine = makeBlobLarva({
