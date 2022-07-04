@@ -12,7 +12,7 @@ import {
 } from 'game/paramaters';
 import { Point } from 'game/types';
 
-import { network } from 'game/blobNetwork/BlobNetwork';
+import { network } from 'game/blobNetwork';
 import { drawSelectedOutline } from 'game/lib/draw';
 import { drawBloblet, drawCarryingShrub } from './draw';
 import {

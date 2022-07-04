@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useContext } from 'react';
 
-import { network } from './blobNetwork/BlobNetwork';
+import { network } from './blobNetwork';
 import { GameContext } from './GameProvider';
 import { sandColor } from './colors';
 import { WORLD_HEIGHT, WORLD_WIDTH } from './paramaters';
