@@ -2,7 +2,6 @@ import { assign, createMachine, spawn } from 'xstate';
 
 import { LARVA_SPAWN_TIME_MS, SHRUB_GROW_TIME_MS } from 'game/paramaters';
 import { animationMachine } from 'game/animations/animationMachine';
-import { makeBlobTunnel } from 'game/blobTunnel';
 
 import { Context, Event, State, PersistedGameState } from './types';
 import {
@@ -27,12 +26,10 @@ import {
   propagateBlobletClicked,
   propagateMapClicked,
   propagateShrubClicked,
-  propagateTunnelClicked,
   didClickOnBloblet,
   didClickOnShrub,
   propagateLarvaClicked,
   didClickOnBlobLarva,
-  didClickOnNetwork,
 } from './actions';
 
 export function makeGameMachine({
@@ -46,7 +43,6 @@ export function makeGameMachine({
     context: {
       mass,
       spawnOptions,
-      tunnels: [],
       blobQueen: null,
       bloblets: [],
       blobLarvae: [],
@@ -57,7 +53,6 @@ export function makeGameMachine({
         actions: [
           drawQueen,
           (_, e) => animationMachine.send(e),
-          ({ tunnels }, e) => tunnels.forEach((t) => t.send(e)),
           drawLarvae,
           drawShrubs,
           drawBloblets,
@@ -66,7 +61,6 @@ export function makeGameMachine({
       UPDATE: {
         actions: [
           (_, e) => animationMachine.send(e),
-          ({ tunnels }, e) => tunnels.forEach((t) => t.send(e)),
           updateBlobs,
         ],
       },
@@ -104,10 +98,6 @@ export function makeGameMachine({
             {
               actions: [propagateBlobletClicked],
               cond: didClickOnBloblet,
-            },
-            {
-              actions: [propagateTunnelClicked],
-              cond: didClickOnNetwork,
             },
             {
               actions: [propagateMapClicked],

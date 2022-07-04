@@ -2,7 +2,7 @@ import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
-import { getDistance, closestToZero, makeRandNumber } from 'game/lib/math';
+import { makeRandNumber } from 'game/lib/math';
 import {
   QUEEN_POSITION,
   BLOBLET_HARVEST_INTERVAL,
@@ -21,7 +21,6 @@ import {
   UpdateEvent,
   ShrubClickEvent,
   ShrubDepletedEvent,
-  TunnelClickedEvent,
   Event,
   State,
   PersistedBlobletActor,
@@ -30,30 +29,22 @@ import {
 
 const { pure } = actions;
 
-const DEFAULT_SPEED = 1;
-
 function makeMovement({
   position,
   destination,
-  speed = DEFAULT_SPEED,
+  speed,
 }: {
   position: Point;
   destination: Point;
   speed?: number;
 }): Movement {
-  const dxTotal = destination.x - position.x;
-  const dyTotal = destination.y - position.y;
-  const totalDistance = getDistance(position, destination);
-
   return {
-    destination,
-    stepX: (dxTotal / totalDistance) * speed,
-    stepY: (dyTotal / totalDistance) * speed,
-    speed,
+    path: network.makePath(position, destination, speed),
+    pathIndex: 0,
   };
 }
 
-const setDestination = assign(
+const setMovement = assign(
   ({ position }: Context, { coordinates }: MapClickEvent) => ({
     movement: makeMovement({ position, destination: coordinates }),
   })
@@ -94,14 +85,17 @@ const setDestinationAsShrub = assign<Context, Event>(
   }
 );
 
-const setTunnelling = assign<Context, TunnelClickedEvent>(
-  ({ position }, { destination }) => ({
-    tunnelling: {
-      points: network.makePath(position, destination) || [],
-      pointIndex: 0,
+const stepToDestination = assign<Context, UpdateEvent>(({ movement }) => {
+  if (!movement) return {};
+
+  return {
+    position: movement.path[movement.pathIndex],
+    movement: {
+      ...movement,
+      pathIndex: movement.pathIndex + 1,
     },
-  })
-);
+  };
+});
 
 const drift = assign<Context, Event>(({ position: { x, y } }: Context) => {
   const angle = Math.random() * 2 * Math.PI;
@@ -113,37 +107,16 @@ const drift = assign<Context, Event>(({ position: { x, y } }: Context) => {
         x: x + BLOBLET_DRIFT_DISTANCE * Math.cos(angle),
         y: y + BLOBLET_DRIFT_DISTANCE * Math.sin(angle),
       },
-      speed: 0.05,
+      speed: 0.1,
     }),
   };
 });
 
-function hasReachedDestination({ position, movement }: Context) {
+function hasReachedDestination({ movement }: Context) {
   if (!movement) return true;
 
-  return (
-    Math.abs(position.x - movement.destination.x) <= 1 &&
-    Math.abs(position.y - movement.destination.y) <= 1
-  );
+  return movement.pathIndex >= movement.path.length;
 }
-
-const stepToDestination = assign<Context, UpdateEvent>(
-  ({ position, movement }: Context) => {
-    if (movement) {
-      const remainingX = movement.destination.x - position.x;
-      const remainingY = movement.destination.y - position.y;
-
-      return {
-        position: {
-          x: position.x + closestToZero(movement.stepX, remainingX),
-          y: position.y + closestToZero(movement.stepY, remainingY),
-        },
-      };
-    }
-
-    return { position };
-  }
-);
 
 const harvestShrub = pure<Context, UpdateEvent>(
   ({ harvestingShrub }, { currentUpdateAt, lastUpdateAt }) => {
@@ -184,7 +157,7 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
         ],
       },
       ready: {
-        initial: 'outside',
+        type: 'parallel',
         on: {
           DRAW: {
             actions: [
@@ -195,236 +168,143 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
           },
         },
         states: {
-          outside: {
-            id: 'outside',
-            type: 'parallel',
+          selection: {
+            initial: 'deselected',
             states: {
-              selection: {
-                initial: 'deselected',
-                states: {
-                  deselected: {
-                    on: {
-                      BLOBLET_CLICKED: {
-                        target: 'selected',
-                        cond: ({ id }, { id: clickedId }) => id === clickedId,
-                      },
-                    },
-                  },
-                  selected: {
-                    on: {
-                      DRAW_SELECTED: {
-                        actions: [drawSelectedOutline],
-                      },
-                      BLOBLET_CLICKED: [
-                        {
-                          target: 'deselected',
-                        },
-                      ],
-                      MAP_CLICKED: [
-                        {
-                          target: '#mapMoving',
-                          actions: [setDestination],
-                        },
-                      ],
-                      SHRUB_CLICKED: {
-                        target: ['#harvestingShrub', 'deselected'],
-                        actions: [setHarvestingShrub],
-                      },
-                      TUNNEL_CLICKED: {
-                        target: ['#tunnelling', 'deselected'],
-                        cond: ({ position }) =>
-                          network.isPointOnNetwork(position),
-                        actions: [setTunnelling],
-                      },
-                    },
+              deselected: {
+                on: {
+                  BLOBLET_CLICKED: {
+                    target: 'selected',
+                    cond: ({ id }, { id: clickedId }) => id === clickedId,
                   },
                 },
               },
-              movement: {
-                initial: 'stationary',
-                states: {
-                  stationary: {
-                    entry: [drift],
-                    on: {
-                      UPDATE: [
-                        {
-                          actions: [stepToDestination],
-                          cond: (ctx) => !hasReachedDestination(ctx),
-                        },
-                      ],
-                    },
+              selected: {
+                on: {
+                  DRAW_SELECTED: {
+                    actions: [drawSelectedOutline],
                   },
-                  mapMoving: {
-                    id: 'mapMoving',
-                    on: {
-                      UPDATE: [
-                        {
-                          target: 'stationary',
-                          cond: hasReachedDestination,
-                        },
-                        {
-                          actions: [stepToDestination],
-                        },
-                      ],
+                  BLOBLET_CLICKED: [
+                    {
+                      target: 'deselected',
                     },
-                  },
-                  harvestingShrub: {
-                    id: 'harvestingShrub',
-                    type: 'parallel',
-                    on: {
-                      SHRUB_DEPLETED: {
-                        target: 'stationary',
-                        cond: (
-                          { harvestingShrub }: Context,
-                          { shrubId }: ShrubDepletedEvent
-                        ) => harvestingShrub?.shrubId === shrubId,
-                      },
+                  ],
+                  MAP_CLICKED: [
+                    {
+                      target: '#mapMoving',
+                      actions: [setMovement],
                     },
-                    states: {
-                      feedingQueen: {
-                        on: {
-                          UPDATE: {
-                            actions: [harvestShrub],
-                          },
-                        },
-                      },
-                      harvestingMoving: {
-                        initial: 'movingToShrub',
-                        states: {
-                          movingToShrub: {
-                            on: {
-                              UPDATE: [
-                                {
-                                  target: 'atShrub',
-                                  cond: hasReachedDestination,
-                                },
-                                {
-                                  actions: [stepToDestination],
-                                },
-                              ],
-                            },
-                          },
-                          atShrub: {
-                            after: [
-                              {
-                                delay: SHRUB_HARVEST_DWELL_TIME_MS,
-                                target: 'movingToQueen',
-                                actions: [setDestinationAsQueen],
-                              },
-                            ],
-                          },
-                          movingToQueen: {
-                            on: {
-                              UPDATE: [
-                                {
-                                  target: 'atQueen',
-                                  cond: hasReachedDestination,
-                                },
-                                {
-                                  actions: [stepToDestination],
-                                },
-                              ],
-                              DRAW_SHRUB: {
-                                actions: [drawCarryingShrub],
-                              },
-                            },
-                          },
-                          atQueen: {
-                            after: [
-                              {
-                                delay: SHRUB_HARVEST_DROP_DWELL_TIME_MS,
-                                target: 'movingToShrub',
-                                actions: [setDestinationAsShrub],
-                              },
-                            ],
-                          },
-                        },
-                      },
-                    },
+                  ],
+                  SHRUB_CLICKED: {
+                    target: ['#harvestingShrub', 'deselected'],
+                    actions: [setHarvestingShrub],
                   },
                 },
               },
             },
           },
-          tunnelling: {
-            id: 'tunnelling',
-            initial: 'inTunnel',
+          movement: {
+            initial: 'stationary',
             states: {
-              // movingToTunnel: {
-              //   on: {
-              //     UPDATE: [
-              //       {
-              //         target: 'inTunnel',
-              //         cond: hasReachedDestination,
-              //       },
-              //       {
-              //         actions: [stepToDestination],
-              //       },
-              //     ],
-              //   },
-              // },
-              inTunnel: {
+              stationary: {
+                entry: [drift],
                 on: {
                   UPDATE: [
                     {
-                      target: '#outside',
-                      cond: ({ tunnelling }) =>
-                        !!tunnelling &&
-                        tunnelling.pointIndex >= tunnelling.points.length,
-                    },
-                    {
-                      actions: assign(({ tunnelling }) => {
-                        if (!tunnelling) return {};
-
-                        return {
-                          position: tunnelling.points[tunnelling.pointIndex],
-                          tunnelling: {
-                            ...tunnelling,
-                            pointIndex: tunnelling.pointIndex + 1,
-                          },
-                        };
-                      }),
+                      actions: [stepToDestination],
+                      cond: (ctx) => !hasReachedDestination(ctx),
                     },
                   ],
                 },
               },
-              // exitingTunnel: {
-              //   entry: assign(({ position, tunnelling }) => {
-              //     if (!tunnelling) return {};
-              //     const { points } = tunnelling;
-              //     const firstPoint = points[0];
-              //     const lastPoint = points[points.length - 1];
-
-              //     const xDir = Math.sign(lastPoint.x - firstPoint.x);
-              //     const yDir = Math.sign(lastPoint.y - firstPoint.y);
-
-              //     return {
-              //       movement: makeMovement({
-              //         position,
-              //         destination: {
-              //           x: position.x + xDir * makeRandNumber(10, 40),
-              //           y: position.y + yDir * makeRandNumber(10, 40),
-              //         },
-              //       }),
-              //     };
-              //   }),
-              //   on: {
-              //     UPDATE: [
-              //       {
-              //         target: '#outside',
-              //         actions: [
-              //           assign((_) => ({
-              //             tunnelling: undefined,
-              //           })),
-              //         ],
-              //         cond: hasReachedDestination,
-              //       },
-              //       {
-              //         actions: [stepToDestination],
-              //       },
-              //     ],
-              //   },
-              // },
+              mapMoving: {
+                id: 'mapMoving',
+                on: {
+                  UPDATE: [
+                    {
+                      target: 'stationary',
+                      cond: hasReachedDestination,
+                    },
+                    {
+                      actions: [stepToDestination],
+                    },
+                  ],
+                },
+              },
+              harvestingShrub: {
+                id: 'harvestingShrub',
+                type: 'parallel',
+                on: {
+                  SHRUB_DEPLETED: {
+                    target: 'stationary',
+                    cond: (
+                      { harvestingShrub }: Context,
+                      { shrubId }: ShrubDepletedEvent
+                    ) => harvestingShrub?.shrubId === shrubId,
+                  },
+                },
+                states: {
+                  feedingQueen: {
+                    on: {
+                      UPDATE: {
+                        actions: [harvestShrub],
+                      },
+                    },
+                  },
+                  harvestingMoving: {
+                    initial: 'movingToShrub',
+                    states: {
+                      movingToShrub: {
+                        on: {
+                          UPDATE: [
+                            {
+                              target: 'atShrub',
+                              cond: hasReachedDestination,
+                            },
+                            {
+                              actions: [stepToDestination],
+                            },
+                          ],
+                        },
+                      },
+                      atShrub: {
+                        after: [
+                          {
+                            delay: SHRUB_HARVEST_DWELL_TIME_MS,
+                            target: 'movingToQueen',
+                            actions: [setDestinationAsQueen],
+                          },
+                        ],
+                      },
+                      movingToQueen: {
+                        on: {
+                          UPDATE: [
+                            {
+                              target: 'atQueen',
+                              cond: hasReachedDestination,
+                            },
+                            {
+                              actions: [stepToDestination],
+                            },
+                          ],
+                          DRAW_SHRUB: {
+                            actions: [drawCarryingShrub],
+                          },
+                        },
+                      },
+                      atQueen: {
+                        after: [
+                          {
+                            delay: SHRUB_HARVEST_DROP_DWELL_TIME_MS,
+                            target: 'movingToShrub',
+                            actions: [setDestinationAsShrub],
+                          },
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },

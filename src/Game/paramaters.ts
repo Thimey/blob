@@ -39,3 +39,5 @@ export const MAX_HARVEST_RATE = 2;
 export const SHRUB_GROW_TIME_MS = 20_000;
 export const SHRUB_HARVEST_DWELL_TIME_MS = 1_000;
 export const SHRUB_HARVEST_DROP_DWELL_TIME_MS = 300;
+
+export const DEFAULT_SPEED = 1.2;

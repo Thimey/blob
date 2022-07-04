@@ -4,10 +4,8 @@ import { Point, PersistedActor, DrawEvent, UpdateEvent } from 'game/types';
 export type { UpdateEvent, DrawEvent };
 
 export interface Movement {
-  destination: Point;
-  stepX: number;
-  stepY: number;
-  speed: number;
+  path: Point[];
+  pathIndex: number;
 }
 
 export type Context = {
@@ -20,10 +18,6 @@ export type Context = {
     shrubId: string;
     harvestRate: number;
     position: Point;
-  };
-  tunnelling?: {
-    points: Point[];
-    pointIndex: number;
   };
 };
 
@@ -42,11 +36,6 @@ export type ShrubClickEvent = {
   coordinates: Point;
   shrubId: string;
   harvestRate: number;
-};
-
-export type TunnelClickedEvent = {
-  type: 'TUNNEL_CLICKED';
-  destination: Point;
 };
 
 export type DrawSrubEvent = {
@@ -87,8 +76,7 @@ export type Event =
   | ShrubClickEvent
   | ShrubDepletedEvent
   | DrawSelectedEvent
-  | DrawSrubEvent
-  | TunnelClickedEvent;
+  | DrawSrubEvent;
 
 export type BlobletActor = ActorRefFrom<StateMachine<Context, any, Event>>;
 export type PersistedBlobletActor = PersistedActor<Context, string[]>;

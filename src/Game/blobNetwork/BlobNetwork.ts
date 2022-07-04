@@ -3,6 +3,7 @@ import {
   QUEEN_POSITION,
   QUEEN_RADIUS_X,
   QUEEN_RADIUS_Y,
+  DEFAULT_SPEED,
 } from 'game/paramaters';
 import {
   getDistance,
@@ -75,7 +76,7 @@ export class BlobNetwork {
     };
   }
 
-  private makeConnectionPoints(path: NodeId[]) {
+  private makeConnectionPoints(path: NodeId[], speed: number) {
     const connections = path.reduce<Connection[]>((acc, nodeId, index) => {
       const isLast = index === path.length - 1;
       if (isLast) return acc;
@@ -93,31 +94,39 @@ export class BlobNetwork {
 
       const pointsToNextConnection = makeLinearPoints(
         connection.end,
-        nextConnection.start
+        nextConnection.start,
+        speed
       );
 
       return [...acc, ...connection.points, ...pointsToNextConnection];
     }, []);
   }
 
-  private makePathPoints(path: NodeId[], start: Point, end: Point) {
+  private makePathPoints(
+    path: NodeId[],
+    start: Point,
+    end: Point,
+    speed: number
+  ) {
     if (!path.length) return [];
 
     if (path.length === 1) {
-      return makeLinearPoints(start, end);
+      return makeLinearPoints(start, end, speed);
     }
 
     const pointsWithinFirstNode = makeLinearPoints(
       start,
-      this.getConnection(path[0], path[1]).start
+      this.getConnection(path[0], path[1]).start,
+      speed
     );
 
     const pointsWithinLastNode = makeLinearPoints(
       this.getConnection(path[path.length - 2], path[path.length - 1]).end,
-      end
+      end,
+      speed
     );
 
-    const pointsBetweenNodes = this.makeConnectionPoints(path);
+    const pointsBetweenNodes = this.makeConnectionPoints(path, speed);
 
     return [
       ...pointsWithinFirstNode,
@@ -130,12 +139,12 @@ export class BlobNetwork {
     return Boolean(findNodeOfPoint(this.nodes, point));
   }
 
-  public makePath(start: Point, end: Point) {
+  public makePath(start: Point, end: Point, speed = DEFAULT_SPEED) {
     const startNode = findNodeOfPoint(this.nodes, start);
-    if (!startNode) return null;
-
     const endNode = findNodeOfPoint(this.nodes, end);
-    if (!endNode) return null;
+
+    // Movement not with in network is simply linear
+    if (!startNode || !endNode) return makeLinearPoints(start, end, speed);
 
     const shortestPath = makeShortestPath(
       makeWeightedGraph(this.nodes),
@@ -143,7 +152,7 @@ export class BlobNetwork {
       endNode.id
     );
 
-    return this.makePathPoints(shortestPath, start, end);
+    return this.makePathPoints(shortestPath, start, end, speed);
   }
 
   public draw(ctx: CanvasRenderingContext2D) {
