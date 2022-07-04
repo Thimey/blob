@@ -2,7 +2,7 @@ import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
-import { makeRandNumber } from 'game/lib/math';
+import { selectRandomElementFromArray } from 'game/lib/math';
 import {
   QUEEN_POSITION,
   BLOBLET_HARVEST_INTERVAL,
@@ -14,6 +14,7 @@ import { Point } from 'game/types';
 
 import { network } from 'game/blobNetwork';
 import { drawSelectedOutline } from 'game/lib/draw';
+import { makeRemainingLeafPositions } from 'game/resources/shrub';
 import { drawBloblet, drawCarryingShrub } from './draw';
 import {
   Context,
@@ -53,35 +54,48 @@ const setMovement = assign(
 const setHarvestingShrub = assign(
   (
     { position }: Context,
-    { shrubId, harvestRate, point: shrubPosition }: ShrubClickEvent
+    {
+      shrubId,
+      harvestRate,
+      clickCoordinates,
+      shrubPosition,
+      leafPositions,
+      amount,
+    }: ShrubClickEvent
   ) => ({
-    movement: makeMovement({ position, destination: shrubPosition }),
+    movement: makeMovement({ position, destination: clickCoordinates }),
     harvestingShrub: {
       startAt: Date.now(),
       shrubId,
       harvestRate,
       position: shrubPosition,
+      leafPositions,
+      amount,
     },
   })
 );
 
-const setDestinationAsQueen = assign<Context, Event>(({ position }) => ({
+const setDestinationAsQueen = assign<Context, any>(({ position }) => ({
   movement: makeMovement({ position, destination: QUEEN_POSITION }),
 }));
 
-const setDestinationAsShrub = assign<Context, Event>(
-  ({ position, harvestingShrub }: Context) => {
-    const { x: shrubX, y: shrubY } = harvestingShrub?.position as Point;
+const setDestinationAsShrub = pure<Context, Event>(
+  ({ position, harvestingShrub }) => {
+    if (!harvestingShrub) return undefined;
 
-    return {
-      movement: makeMovement({
-        position,
-        destination: {
-          x: shrubX + makeRandNumber(-6, 6),
-          y: shrubY + makeRandNumber(-6, 6),
-        },
+    const { leafPositions, amount } = harvestingShrub;
+    const targetLeaf = selectRandomElementFromArray(
+      makeRemainingLeafPositions(leafPositions, amount)
+    );
+
+    return [
+      assign({
+        movement: makeMovement({
+          position,
+          destination: targetLeaf,
+        }),
       }),
-    };
+    ];
   }
 );
 
@@ -236,7 +250,8 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                 type: 'parallel',
                 on: {
                   SHRUB_DEPLETED: {
-                    target: 'stationary',
+                    target: 'mapMoving',
+                    actions: [setDestinationAsQueen],
                     cond: (
                       { harvestingShrub }: Context,
                       { shrubId }: ShrubDepletedEvent

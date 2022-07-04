@@ -1,7 +1,7 @@
 import { assign, createMachine } from 'xstate';
 import { sendParent, send } from 'xstate/lib/actions';
 
-import { makeRandNumber } from 'game/lib/math';
+import { makeRandomNumber } from 'game/lib/math';
 import { QUEEN_POSITION } from 'game/paramaters';
 import { UpdateEvent } from 'game/types';
 import {
@@ -34,8 +34,8 @@ const stepToDestination = assign<Context, UpdateEvent>(
 
 const setNewDestination = assign<Context, UpdateEvent>(() => ({
   destination: {
-    x: QUEEN_POSITION.x + makeRandNumber(-100, 100),
-    y: QUEEN_POSITION.y + makeRandNumber(-100, 100),
+    x: QUEEN_POSITION.x + makeRandomNumber(-100, 100),
+    y: QUEEN_POSITION.y + makeRandomNumber(-100, 100),
   },
 }));
 

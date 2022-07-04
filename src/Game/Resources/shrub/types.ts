@@ -6,16 +6,14 @@ export type { DrawEvent };
 export type Context = {
   id: string;
   position: Point;
+  leafPositions: Point[];
+  topLeafY: number;
   harvestRate: number;
   initialAmount: number;
   amount: number;
 };
 
-export type StateValues =
-  | 'initialising'
-  | 'growing'
-  | { ready: 'active' }
-  | { ready: 'depleted' };
+export type StateValues = 'initialising' | 'growing' | 'active';
 
 export type State = {
   value: StateValues;

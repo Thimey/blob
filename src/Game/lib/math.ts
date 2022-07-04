@@ -15,12 +15,35 @@ export function closestToZero(x1: number, x2: number) {
   return Math.abs(x1) < Math.abs(x2) ? x1 : x2;
 }
 
-export function getDistance({ x: x1, y: y1 }: Point, { x: x2, y: y2 }: Point) {
+export function makeDistance({ x: x1, y: y1 }: Point, { x: x2, y: y2 }: Point) {
   return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
 
-export function makeRandNumber(min = 0, max = 1) {
+export function makePerimeterOfEllipse(radiusX: number, radiusY: number) {
+  return Math.PI * 2 * Math.sqrt((radiusX ** 2 + radiusY ** 2) / 2);
+}
+
+export function makeRandomNumber(min = 0, max = 1) {
   return Math.random() * (max - min + 1) + min;
+}
+
+export function shiftRandomPosition({ x, y }: Point, shiftDistance: number) {
+  return {
+    x: x + makeRandomNumber(-shiftDistance, shiftDistance),
+    y: y + makeRandomNumber(-shiftDistance, shiftDistance),
+  };
+}
+
+export function shuffleArray(arr: any[]) {
+  return arr.sort(() => (Math.random() > 0.5 ? 1 : -1));
+}
+
+export function selectRandomElementFromArray<T>(arr: T[]): T {
+  return arr[Math.round(makeRandomNumber(0, arr.length))];
+}
+
+export function makeRandomAngle() {
+  return Math.random() * 2 * Math.PI;
 }
 
 export type RGB = { r: number; g: number; b: number };
@@ -59,7 +82,7 @@ export function isPointWithinCircle(
   radius: number,
   mousePosition: Point
 ) {
-  const distanceFromClick = getDistance(position, mousePosition);
+  const distanceFromClick = makeDistance(position, mousePosition);
 
   return distanceFromClick <= radius;
 }
@@ -110,7 +133,7 @@ export function makeCubicBezierPoints(
 }
 
 export function makeLinearPoints(start: Point, end: Point, step = 2) {
-  const totalDistance = getDistance(start, end);
+  const totalDistance = makeDistance(start, end);
   const dx = end.x - start.x;
   const dy = end.y - start.y;
   const xDir = Math.sign(dx);
@@ -127,6 +150,44 @@ export function makeLinearPoints(start: Point, end: Point, step = 2) {
     distance += Math.min(step, totalDistance - distance);
   }
   points.push(end);
+
+  return points;
+}
+
+interface Diamond {
+  position: Point;
+  width: number;
+  height: number;
+}
+
+export function isPointWithinDiamond(
+  { position, width, height }: Diamond,
+  { x, y }: Point
+) {
+  const dx = Math.abs(position.x - x);
+  const dy = Math.abs(position.y - y);
+
+  return dx / width + dy / height <= 1;
+}
+
+export function makePointsOnEllipse(
+  number: number,
+  position: Point,
+  radiusX: number,
+  radiusY: number
+) {
+  const points: Point[] = [];
+  const angleIncrement = (Math.PI * 2) / number;
+  let angle = 0;
+
+  for (let i = 0; i < number; i += 1) {
+    points.push({
+      x: position.x + radiusX * Math.cos(angle),
+      y: position.y + radiusY * Math.sin(angle),
+    });
+
+    angle += angleIncrement;
+  }
 
   return points;
 }
