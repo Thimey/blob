@@ -244,13 +244,13 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                   },
                 },
                 states: {
-                  feedingQueen: {
-                    on: {
-                      UPDATE: {
-                        actions: [harvestShrub],
-                      },
-                    },
-                  },
+                  // feedingQueen: {
+                  //   on: {
+                  //     UPDATE: {
+                  //       actions: [harvestShrub],
+                  //     },
+                  //   },
+                  // },
                   harvestingMoving: {
                     initial: 'movingToShrub',
                     states: {
@@ -297,7 +297,14 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                           {
                             delay: SHRUB_HARVEST_DROP_DWELL_TIME_MS,
                             target: 'movingToShrub',
-                            actions: [setDestinationAsShrub],
+                            actions: [
+                              setDestinationAsShrub,
+                              sendParent(({ harvestingShrub }) => ({
+                                type: 'HARVEST_SHRUB',
+                                shrubId: harvestingShrub?.shrubId,
+                                harvestCount: 1,
+                              })),
+                            ],
                           },
                         ],
                       },
