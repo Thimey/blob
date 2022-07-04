@@ -2,7 +2,7 @@ import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
-import { makeDistance, closestToZero, makeRandNumber } from 'game/lib/math';
+import { makeDistance, closestToZero, makeRandomNumber } from 'game/lib/math';
 import {
   QUEEN_POSITION,
   BLOBLET_HARVEST_INTERVAL,
@@ -83,8 +83,8 @@ const setDestinationAsShrub = assign<Context, Event>(
       movement: makeMovement({
         position,
         destination: {
-          x: shrubX + makeRandNumber(-6, 6),
-          y: shrubY + makeRandNumber(-6, 6),
+          x: shrubX + makeRandomNumber(-6, 6),
+          y: shrubY + makeRandomNumber(-6, 6),
         },
       }),
     };

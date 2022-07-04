@@ -22,14 +22,14 @@ export function makePerimeterOfEllipse(radiusX: number, radiusY: number) {
   return Math.PI * 2 * Math.sqrt((radiusX ** 2 + radiusY ** 2) / 2);
 }
 
-export function makeRandNumber(min = 0, max = 1) {
+export function makeRandomNumber(min = 0, max = 1) {
   return Math.random() * (max - min + 1) + min;
 }
 
-export function shiftRandPosition({ x, y }: Point, shiftDistance: number) {
+export function shiftRandomPosition({ x, y }: Point, shiftDistance: number) {
   return {
-    x: x + makeRandNumber(-shiftDistance, shiftDistance),
-    y: y + makeRandNumber(-shiftDistance, shiftDistance),
+    x: x + makeRandomNumber(-shiftDistance, shiftDistance),
+    y: y + makeRandomNumber(-shiftDistance, shiftDistance),
   };
 }
 
@@ -37,7 +37,7 @@ export function shuffleArray(arr: any[]) {
   return arr.sort(() => (Math.random() > 0.5 ? 1 : -1));
 }
 
-export function makeRandAngle() {
+export function makeRandomAngle() {
   return Math.random() * 2 * Math.PI;
 }
 

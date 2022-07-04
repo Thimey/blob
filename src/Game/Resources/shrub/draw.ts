@@ -7,10 +7,10 @@ import {
   QUEEN_POSITION,
 } from 'game/paramaters';
 import {
-  makeRandAngle,
+  makeRandomAngle,
   makePointsOnEllipse,
   makePerimeterOfEllipse,
-  shiftRandPosition,
+  shiftRandomPosition,
   shuffleArray,
 } from 'game/lib/math';
 import { drawDiamond } from 'game/lib/draw';
@@ -19,7 +19,7 @@ import { shrubColor } from 'game/colors';
 import { Context } from './types';
 
 export function makePosition(distance: number): Point {
-  const angle = makeRandAngle();
+  const angle = makeRandomAngle();
 
   return {
     x: QUEEN_POSITION.x + distance * Math.cos(angle),
@@ -71,7 +71,9 @@ export function makeLeafPositions(position: Point, initialAmount: number) {
   }
 
   // Add some randomness and trim down to initialAmount.
-  return positions.map((p) => shiftRandPosition(p, 1)).slice(0, initialAmount);
+  return positions
+    .map((p) => shiftRandomPosition(p, 1))
+    .slice(0, initialAmount);
 }
 
 export function drawShrub(
