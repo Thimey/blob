@@ -24,3 +24,6 @@ export interface Connection {
 
 export type NodeId = Node['id'];
 export type NodeMap = Record<NodeId, Node>;
+
+export type ConnectionId = Connection['id'];
+export type ConnectionMap = Record<ConnectionId, Connection>;

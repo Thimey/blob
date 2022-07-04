@@ -6,12 +6,12 @@ import {
   DEFAULT_SPEED,
 } from 'game/paramaters';
 import {
-  getDistance,
+  makeDistance,
   isPointWithinEllipse,
   makeLinearPoints,
   makeCubicBezierPoints,
   generateId,
-  makeRandNumber,
+  makeRandomNumber,
 } from 'game/lib/math';
 
 import { Node, Connection, NodeId, NodeMap } from './types';
@@ -26,7 +26,7 @@ function toMap<T extends { id: string }>(items: T[]) {
 }
 
 function makeWeight(node1: Node, node2: Node) {
-  return getDistance(node1.centre, node2.centre);
+  return makeDistance(node1.centre, node2.centre);
 }
 
 function makeWeightedGraph(nodes: NodeMap) {
@@ -168,12 +168,12 @@ export class BlobNetwork {
 
 function makeConnection(start: Point, end: Point): Connection {
   const bezierP1 = {
-    x: makeRandNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
-    y: makeRandNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
+    x: makeRandomNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
+    y: makeRandomNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
   };
   const bezierP2 = {
-    x: makeRandNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
-    y: makeRandNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
+    x: makeRandomNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
+    y: makeRandomNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
   };
 
   return {
