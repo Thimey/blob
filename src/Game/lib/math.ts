@@ -37,6 +37,10 @@ export function shuffleArray(arr: any[]) {
   return arr.sort(() => (Math.random() > 0.5 ? 1 : -1));
 }
 
+export function selectRandomElementFromArray<T>(arr: T[]): T {
+  return arr[Math.round(makeRandomNumber(0, arr.length))];
+}
+
 export function makeRandomAngle() {
   return Math.random() * 2 * Math.PI;
 }

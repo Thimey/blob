@@ -87,14 +87,18 @@ export function propagateShrubClicked(
   const clickedShrubState = clickedShrub?.getSnapshot();
 
   if (clickedShrubState && clickedShrubState.matches('ready')) {
-    const { id, harvestRate, position } = clickedShrubState.context;
+    const { id, harvestRate, position, leafPositions, amount } =
+      clickedShrubState.context;
 
     bloblets.forEach((blob) => {
       blob.send({
         type: 'SHRUB_CLICKED',
         shrubId: id,
         harvestRate,
-        coordinates: position,
+        clickCoordinates: event.coordinates,
+        shrubPosition: position,
+        leafPositions,
+        amount,
       });
     });
   }

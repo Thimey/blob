@@ -53,6 +53,13 @@ function makeLeafRing(position: Point, radiusX: number, radiusY: number) {
   return makePointsOnEllipse(leafCount, position, radiusX, radiusY);
 }
 
+export function makeRemainingLeafPositions(
+  initialLeafPositions: Point[],
+  amount: number
+) {
+  return initialLeafPositions.slice(0, Math.ceil(amount));
+}
+
 export function makeLeafPositions(position: Point, initialAmount: number) {
   let positions = [position]; // Center leaf
   let ringCount = 1;
@@ -71,9 +78,10 @@ export function makeLeafPositions(position: Point, initialAmount: number) {
   }
 
   // Add some randomness and trim down to initialAmount.
-  return positions
-    .map((p) => shiftRandomPosition(p, 1))
-    .slice(0, initialAmount);
+  return makeRemainingLeafPositions(
+    positions.map((p) => shiftRandomPosition(p, 1)),
+    initialAmount
+  );
 }
 
 export function drawShrub(
@@ -87,9 +95,9 @@ export function drawShrub(
     amount,
     initialAmount
   );
-  leafPositions
-    .slice(0, Math.ceil(amount))
-    .forEach((p) => drawLeaf(ctx, p, shrubColor));
+  makeRemainingLeafPositions(leafPositions, amount).forEach((p) =>
+    drawLeaf(ctx, p, shrubColor)
+  );
 }
 
 export function drawGrowingShrub(
@@ -103,7 +111,7 @@ export function drawGrowingShrub(
     amount,
     initialAmount
   );
-  leafPositions
-    .slice(0, Math.ceil(amount))
-    .forEach((p) => drawLeaf(ctx, p, 'grey'));
+  makeRemainingLeafPositions(leafPositions, amount).forEach((p) =>
+    drawLeaf(ctx, p, 'grey')
+  );
 }
