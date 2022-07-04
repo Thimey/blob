@@ -28,12 +28,12 @@ export type BlobClickEvent = {
 
 export type MapClickEvent = {
   type: 'MAP_CLICKED';
-  coordinates: Point;
+  point: Point;
 };
 
 export type ShrubClickEvent = {
   type: 'SHRUB_CLICKED';
-  coordinates: Point;
+  point: Point;
   shrubId: string;
   harvestRate: number;
 };

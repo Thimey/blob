@@ -68,7 +68,7 @@ export const Game = () => {
     if (gameServices.gameService && geometry) {
       const { x, y } = geometry;
       gameServices.gameService.send('CLICKED', {
-        coordinates: { x: clientX - x, y: clientY - y },
+        point: { x: clientX - x, y: clientY - y },
       });
     }
   };

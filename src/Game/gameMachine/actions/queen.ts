@@ -19,7 +19,7 @@ export function drawQueen({ blobQueen }: Context, { ctx }: DrawEvent) {
 
 export function didClickOnBlobQueen(
   _: Context,
-  { coordinates: { x: mouseX, y: mouseY } }: ClickedEvent
+  { point: { x: mouseX, y: mouseY } }: ClickedEvent
 ) {
   return isPointWithinEllipse(
     {

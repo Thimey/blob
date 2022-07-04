@@ -37,7 +37,7 @@ const { pure } = actions;
 
 export function initialiseShrubs(persistedShrub: PersistedShrubActor[]) {
   const newShrubPositions = [
-    { position: makePosition(1), harvestRate: 1 },
+    { position: makePosition(0.5), harvestRate: 1 },
     { position: makePosition(2), harvestRate: 2 },
     { position: makePosition(3), harvestRate: 3 },
   ];
@@ -63,12 +63,10 @@ export function drawShrubs({ shrubs }: Context, { ctx }: DrawEvent) {
   shrubs.forEach((shrub) => shrub.send({ type: 'DRAW', ctx }));
 }
 
-function shrubClicked(shrub: ShrubActor, { coordinates }: ClickedEvent) {
+function shrubClicked(shrub: ShrubActor, { point }: ClickedEvent) {
   const shrubContext = shrub.getSnapshot()?.context;
 
-  return (
-    shrubContext && isPointWithinCircle(shrubContext.position, 20, coordinates)
-  );
+  return shrubContext && isPointWithinCircle(shrubContext.position, 20, point);
 }
 
 export function propagateShrubClicked(
@@ -86,7 +84,7 @@ export function propagateShrubClicked(
         type: 'SHRUB_CLICKED',
         shrubId: id,
         harvestRate,
-        coordinates: position,
+        point: position,
       });
     });
   }

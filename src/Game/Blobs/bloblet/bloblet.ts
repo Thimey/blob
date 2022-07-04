@@ -45,15 +45,15 @@ function makeMovement({
 }
 
 const setMovement = assign(
-  ({ position }: Context, { coordinates }: MapClickEvent) => ({
-    movement: makeMovement({ position, destination: coordinates }),
+  ({ position }: Context, { point }: MapClickEvent) => ({
+    movement: makeMovement({ position, destination: point }),
   })
 );
 
 const setHarvestingShrub = assign(
   (
     { position }: Context,
-    { shrubId, harvestRate, coordinates: shrubPosition }: ShrubClickEvent
+    { shrubId, harvestRate, point: shrubPosition }: ShrubClickEvent
   ) => ({
     movement: makeMovement({ position, destination: shrubPosition }),
     harvestingShrub: {
