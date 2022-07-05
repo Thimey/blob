@@ -131,6 +131,8 @@ export class BlobNetwork {
   }
 }
 
+// SETUP TEST NETWORK CODE (Will be moved else where in upcoming work) -->
+
 function makeConnection(start: Point, end: Point): Connection {
   const bezierP1 = {
     x: makeRandomNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
