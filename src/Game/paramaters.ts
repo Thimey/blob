@@ -38,4 +38,10 @@ export const RADIUS_INCREMENT_Y = 3;
 export const SHRUB_HARVEST_DWELL_TIME_MS = 1_000;
 export const SHRUB_HARVEST_DROP_DWELL_TIME_MS = 300;
 
+// Network
+export const CONNECTION_WALL_WIDTH = 3;
+export const CONNECTION_WIDTH = 20;
+export const ENTRANCE_RADIUS_X = 20;
+export const ENTRANCE_RADIUS_Y = 20;
+
 export const DEFAULT_SPEED = 1.2;

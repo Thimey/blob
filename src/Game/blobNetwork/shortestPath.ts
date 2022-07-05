@@ -28,11 +28,13 @@ function getLowestWeight(weights: WeightsFromStart, nodes: string[]) {
   ).node;
 }
 
-export function makePath(
+export function makePathFromWeights(
   weights: WeightsFromStart,
   node: string | null
 ): string[] {
-  return node ? [...makePath(weights, weights[node].prevNode), node] : [];
+  return node
+    ? [...makePathFromWeights(weights, weights[node].prevNode), node]
+    : [];
 }
 
 /**
@@ -70,5 +72,5 @@ export function makeShortestPath(
     visited.push(currentNode);
   }
 
-  return makePath(weightsFromStart, endNode);
+  return makePathFromWeights(weightsFromStart, endNode);
 }

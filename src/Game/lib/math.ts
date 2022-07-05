@@ -15,6 +15,13 @@ export function closestToZero(x1: number, x2: number) {
   return Math.abs(x1) < Math.abs(x2) ? x1 : x2;
 }
 
+export function minMax(x1: number, x2: number) {
+  return {
+    min: Math.min(x1, x2),
+    max: Math.max(x1, x2),
+  };
+}
+
 export function makeDistance({ x: x1, y: y1 }: Point, { x: x2, y: y2 }: Point) {
   return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }

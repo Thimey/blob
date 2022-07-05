@@ -1,10 +1,10 @@
-import { makeShortestPath, makePath, Graph } from './shortestPath';
+import { makeShortestPath, makePathFromWeights, Graph } from './shortestPath';
 
 describe('shortestPath', () => {
   describe('makePath', () => {
     it('should make correct path from weights map', () => {
       expect(
-        makePath(
+        makePathFromWeights(
           {
             a: { weight: 0, prevNode: null },
             b: { weight: 2, prevNode: 'a' },
@@ -16,7 +16,7 @@ describe('shortestPath', () => {
       ).toEqual(['a']);
 
       expect(
-        makePath(
+        makePathFromWeights(
           {
             a: { weight: 0, prevNode: null },
             b: { weight: 2, prevNode: 'a' },
@@ -28,7 +28,7 @@ describe('shortestPath', () => {
       ).toEqual(['a', 'b']);
 
       expect(
-        makePath(
+        makePathFromWeights(
           {
             a: { weight: 0, prevNode: null },
             b: { weight: 2, prevNode: 'a' },
@@ -40,7 +40,7 @@ describe('shortestPath', () => {
       ).toEqual(['a', 'b', 'd']);
 
       expect(
-        makePath(
+        makePathFromWeights(
           {
             a: { weight: 0, prevNode: null },
             b: { weight: 2, prevNode: 'a' },

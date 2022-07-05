@@ -1,12 +1,13 @@
 import { blobQueenColor } from 'game/colors';
 import { hexToRGB } from 'game/lib/math';
+import {
+  CONNECTION_WALL_WIDTH,
+  CONNECTION_WIDTH,
+  ENTRANCE_RADIUS_X,
+  ENTRANCE_RADIUS_Y,
+} from 'game/paramaters';
 
 import { Node, Connection } from './types';
-
-const CONNECTION_WALL_WIDTH = 3;
-const CONNECTION_WIDTH = 20;
-const ENTRANCE_RADIUS_X = 20;
-const ENTRANCE_RADIUS_Y = 20;
 
 const nodeColor = hexToRGB(blobQueenColor);
 

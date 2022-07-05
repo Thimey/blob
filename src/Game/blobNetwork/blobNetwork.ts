@@ -4,44 +4,26 @@ import {
   QUEEN_RADIUS_X,
   QUEEN_RADIUS_Y,
   DEFAULT_SPEED,
+  CONNECTION_WIDTH,
 } from 'game/paramaters';
 import {
-  makeDistance,
   isPointWithinEllipse,
+  isPointWithinCircle,
   makeLinearPoints,
   makeCubicBezierPoints,
   generateId,
   makeRandomNumber,
+  minMax,
 } from 'game/lib/math';
 
-import { Node, Connection, NodeId, NodeMap } from './types';
+import { Node, Connection, NodeMap, ConnectionMap } from './types';
 import { drawNode, drawConnection } from './draw';
-import { makeShortestPath } from './shortestPath';
+import { makePath } from './makePath';
 
 function toMap<T extends { id: string }>(items: T[]) {
   return items.reduce<Record<T['id'], T>>(
     (acc, item) => ({ ...acc, [item.id]: item }),
     {} as Record<T['id'], T>
-  );
-}
-
-function makeWeight(node1: Node, node2: Node) {
-  return makeDistance(node1.centre, node2.centre);
-}
-
-function makeWeightedGraph(nodes: NodeMap) {
-  return Object.values(nodes).reduce(
-    (graph, node) => ({
-      ...graph,
-      [node.id]: Object.keys(node.connections).reduce(
-        (neighbours, toNodeId) => ({
-          ...neighbours,
-          [toNodeId]: makeWeight(node, nodes[toNodeId]),
-        }),
-        {}
-      ),
-    }),
-    {}
   );
 }
 
@@ -51,108 +33,71 @@ function findNodeOfPoint(nodes: NodeMap, point: Point) {
   );
 }
 
+function couldPointBeOnConnection({ start, end }: Connection, { x, y }: Point) {
+  const { min: minX, max: maxX } = minMax(start.x, end.x);
+  const { min: minY, max: maxY } = minMax(start.y, end.y);
+  return (
+    x > minX - CONNECTION_WIDTH &&
+    x < maxX + CONNECTION_WIDTH &&
+    y > minY - CONNECTION_WIDTH &&
+    y < maxY + CONNECTION_WIDTH
+  );
+}
+
+function pointIsOnConnection({ points }: Connection, point: Point) {
+  return points.some(
+    (connectionPoint, i) =>
+      i % 2 === 0 &&
+      isPointWithinCircle(connectionPoint, CONNECTION_WIDTH / 2, point)
+  );
+}
+
+function findConnectionOfPoint(connections: ConnectionMap, point: Point) {
+  return Object.values(connections).find(
+    (connection) =>
+      couldPointBeOnConnection(connection, point) &&
+      pointIsOnConnection(connection, point)
+  );
+}
+
 export class BlobNetwork {
   private nodes: NodeMap;
 
-  private connections: Record<Connection['id'], Connection>;
+  private connections: ConnectionMap;
+
+  private get network() {
+    return { nodes: this.nodes, connections: this.connections };
+  }
 
   constructor(nodes: Node[], connections: Connection[]) {
     this.nodes = toMap(nodes);
     this.connections = toMap(connections);
   }
 
-  private getConnection(from: NodeId, to: NodeId) {
-    const { connectionId, direction } = this.nodes[from].connections[to];
-    const connection = this.connections[connectionId];
+  public makePath(start: Point, end: Point, speed = DEFAULT_SPEED) {
+    // If not already on network, move linearly
+    const startNode = findNodeOfPoint(this.nodes, start);
+    if (!startNode) return makeLinearPoints(start, end, speed);
 
-    return {
-      ...connection,
-      start: direction === 'startToEnd' ? connection.start : connection.end,
-      end: direction === 'startToEnd' ? connection.end : connection.start,
-      points:
-        direction === 'startToEnd'
-          ? connection.points
-          : [...connection.points].reverse(),
-    };
-  }
+    const endNode = findNodeOfPoint(this.nodes, end);
 
-  private makeConnectionPoints(path: NodeId[], speed: number) {
-    const connections = path.reduce<Connection[]>((acc, nodeId, index) => {
-      const isLast = index === path.length - 1;
-      if (isLast) return acc;
+    // If node not destination, check if connection
+    if (!endNode) {
+      const connectionOfPoint = findConnectionOfPoint(this.connections, end);
 
-      const nextNodeId = path[index + 1];
-
-      return [...acc, this.getConnection(nodeId, nextNodeId)];
-    }, []);
-
-    return connections.reduce<Point[]>((acc, connection, index) => {
-      const isLast = index === connections.length - 1;
-      if (isLast) return [...acc, ...connection.points];
-
-      const nextConnection = connections[index + 1];
-
-      const pointsToNextConnection = makeLinearPoints(
-        connection.end,
-        nextConnection.start,
-        speed
-      );
-
-      return [...acc, ...connection.points, ...pointsToNextConnection];
-    }, []);
-  }
-
-  private makePathPoints(
-    path: NodeId[],
-    start: Point,
-    end: Point,
-    speed: number
-  ) {
-    if (!path.length) return [];
-
-    if (path.length === 1) {
-      return makeLinearPoints(start, end, speed);
+      return connectionOfPoint
+        ? makeLinearPoints(start, end, speed)
+        : makeLinearPoints(start, end, speed);
     }
 
-    const pointsWithinFirstNode = makeLinearPoints(
-      start,
-      this.getConnection(path[0], path[1]).start,
-      speed
-    );
-
-    const pointsWithinLastNode = makeLinearPoints(
-      this.getConnection(path[path.length - 2], path[path.length - 1]).end,
-      end,
-      speed
-    );
-
-    const pointsBetweenNodes = this.makeConnectionPoints(path, speed);
-
-    return [
-      ...pointsWithinFirstNode,
-      ...pointsBetweenNodes,
-      ...pointsWithinLastNode,
-    ];
+    return makePath(this.network, start, end, startNode.id, endNode.id, speed);
   }
 
   public isPointOnNetwork(point: Point) {
-    return Boolean(findNodeOfPoint(this.nodes, point));
-  }
-
-  public makePath(start: Point, end: Point, speed = DEFAULT_SPEED) {
-    const startNode = findNodeOfPoint(this.nodes, start);
-    const endNode = findNodeOfPoint(this.nodes, end);
-
-    // Movement not with in network is simply linear
-    if (!startNode || !endNode) return makeLinearPoints(start, end, speed);
-
-    const shortestPath = makeShortestPath(
-      makeWeightedGraph(this.nodes),
-      startNode.id,
-      endNode.id
+    return Boolean(
+      findNodeOfPoint(this.nodes, point) ||
+        findConnectionOfPoint(this.connections, point)
     );
-
-    return this.makePathPoints(shortestPath, start, end, speed);
   }
 
   public draw(ctx: CanvasRenderingContext2D) {
