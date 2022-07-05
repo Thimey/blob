@@ -4,6 +4,7 @@ import {
   isPointWithinEllipse,
   isPointWithinCircle,
   minMax,
+  makeDistance,
 } from 'game/lib/math';
 
 import { Connection, NodeMap, ConnectionMap } from './types';
@@ -42,4 +43,18 @@ export function findNodeOfPoint(nodes: NodeMap, point: Point) {
   return Object.values(nodes).find(({ centre, radiusX, radiusY }) =>
     isPointWithinEllipse({ ...centre, radiusX, radiusY }, point)
   );
+}
+
+export function findNearestNode(nodes: NodeMap, point: Point) {
+  const nodesValues = Object.values(nodes);
+  return nodesValues.reduce(
+    (acc, node) => {
+      const distance = makeDistance(node.centre, point);
+      return distance < acc.distance ? { node, distance } : acc;
+    },
+    {
+      node: nodesValues[0],
+      distance: Infinity,
+    }
+  ).node;
 }

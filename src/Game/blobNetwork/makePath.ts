@@ -50,7 +50,7 @@ function makeConnectionPoints(network: Network, path: NodeId[], speed: number) {
   }, []);
 }
 
-function makePathPoints(
+export function makePathPoints(
   network: Network,
   path: NodeId[],
   start: Point,
@@ -88,7 +88,7 @@ function makeWeight(node1: Node, node2: Node) {
   return makeDistance(node1.centre, node2.centre);
 }
 
-function makeWeightedGraph(nodes: NodeMap) {
+export function makeWeightedGraph(nodes: NodeMap) {
   return Object.values(nodes).reduce(
     (graph, node) => ({
       ...graph,

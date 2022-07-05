@@ -12,10 +12,21 @@ import {
   makeRandomNumber,
 } from 'game/lib/math';
 
-import { Node, Connection, NodeMap, ConnectionMap, Network } from './types';
+import {
+  Node,
+  Connection,
+  NodeMap,
+  ConnectionMap,
+  Network,
+  NodeId,
+} from './types';
 import { drawNode, drawConnection } from './draw';
 import { makePath } from './makePath';
-import { findNodeOfPoint, findConnectionOfPoint } from './checkPointOnNetwork';
+import {
+  findNodeOfPoint,
+  findConnectionOfPoint,
+  findNearestNode,
+} from './checkPointOnNetwork';
 
 function toMap<T extends { id: string }>(items: T[]) {
   return items.reduce<Record<T['id'], T>>(
@@ -24,17 +35,20 @@ function toMap<T extends { id: string }>(items: T[]) {
   );
 }
 
-function getEndNodeFromConnection(
-  nodes: NodeMap,
-  startNode: Node,
-  connection: Connection
+function findEndPointConnectionNode(
+  { nodes, connections }: Network,
+  startNodeId: NodeId,
+  end: Point
 ) {
-  const connectionEndNode = findNodeOfPoint(nodes, connection.end);
+  const connectionOfPoint = findConnectionOfPoint(connections, end);
+  if (!connectionOfPoint) return null;
+
+  const connectionEndNode = findNodeOfPoint(nodes, connectionOfPoint.end);
   if (!connectionEndNode) return null;
-  if (connectionEndNode.id !== startNode.id) return connectionEndNode;
 
-  const connectionStartNode = findNodeOfPoint(nodes, connection.start);
+  if (connectionEndNode.id !== startNodeId) return connectionEndNode;
 
+  const connectionStartNode = findNodeOfPoint(nodes, connectionOfPoint.start);
   if (!connectionStartNode) return null;
 
   return connectionStartNode;
@@ -55,38 +69,48 @@ export class BlobNetwork {
   }
 
   public makePath(start: Point, end: Point, speed = DEFAULT_SPEED) {
-    // If not starting on network, move linearly
-    const startNode = findNodeOfPoint(this.nodes, start);
-    if (!startNode) return makeLinearPoints(start, end, speed);
+    const startPointNode = findNodeOfPoint(this.nodes, start);
+    const endPointNode = findNodeOfPoint(this.nodes, end);
 
-    const endNode = findNodeOfPoint(this.nodes, end);
+    // If moving outside network, move linearly
+    if (!startPointNode && !endPointNode)
+      return makeLinearPoints(start, end, speed);
 
-    // If destination not on a node, check if on a connection
-    if (!endNode) {
-      // If not on connection, move linearly
-      const connectionOfPoint = findConnectionOfPoint(this.connections, end);
-      if (!connectionOfPoint) return makeLinearPoints(start, end, speed);
+    const startNode = startPointNode || findNearestNode(this.nodes, start);
 
-      const connectionEndNode = getEndNodeFromConnection(
-        this.nodes,
-        startNode,
-        connectionOfPoint
+    if (!endPointNode) {
+      // Check if end point leads to a node via a connection
+      const connectionEndNode = findEndPointConnectionNode(
+        this.network,
+        startNode.id,
+        end
       );
 
-      // Otherise move to center of connection end
-      return connectionEndNode
-        ? makePath(
-            this.network,
-            start,
-            connectionEndNode.centre,
-            startNode.id,
-            connectionEndNode.id,
-            speed
-          )
-        : makeLinearPoints(start, end, speed);
+      // If can't determine end node, move linearly
+      if (!connectionEndNode) {
+        return makeLinearPoints(start, end, speed);
+      }
+
+      // Otherwise, make path to center of connection end node
+      return makePath(
+        this.network,
+        start,
+        connectionEndNode.centre,
+        startNode.id,
+        connectionEndNode.id,
+        speed
+      );
     }
 
-    return makePath(this.network, start, end, startNode.id, endNode.id, speed);
+    // Happy path - started and ended in nodes
+    return makePath(
+      this.network,
+      start,
+      end,
+      startNode.id,
+      endPointNode.id,
+      speed
+    );
   }
 
   public isPointOnNetwork(point: Point) {
