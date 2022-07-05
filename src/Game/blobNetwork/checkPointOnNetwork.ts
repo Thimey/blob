@@ -21,8 +21,10 @@ function couldPointBeOnConnection({ start, end }: Connection, { x, y }: Point) {
 }
 
 function pointIsOnConnection({ points }: Connection, point: Point) {
+  // Can check if point is on a connection by checking if in circle at each points
   return points.some(
     (connectionPoint, i) =>
+      // Points will always be close enough to only check every second
       i % 2 === 0 &&
       isPointWithinCircle(connectionPoint, CONNECTION_WIDTH / 2, point)
   );
