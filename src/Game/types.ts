@@ -29,3 +29,8 @@ export type UpdateEvent = {
   lastUpdateAt: number;
   currentUpdateAt: number;
 };
+
+export interface Movement {
+  path: Point[];
+  pathIndex: number;
+}

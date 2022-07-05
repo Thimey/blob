@@ -26,6 +26,7 @@ export interface Context {
   spawnOptions: SpawnOptions;
   blobQueen: BlobQueenActor | null;
   bloblets: BlobletActor[];
+  bloblongs: any[];
   blobLarvae: BlobLarvaActor[];
   shrubs: ShrubActor[];
 }

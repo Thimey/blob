@@ -1,12 +1,13 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
-import { Point, PersistedActor, DrawEvent, UpdateEvent } from 'game/types';
+import {
+  Point,
+  PersistedActor,
+  DrawEvent,
+  UpdateEvent,
+  Movement,
+} from 'game/types';
 
-export type { UpdateEvent, DrawEvent };
-
-export interface Movement {
-  path: Point[];
-  pathIndex: number;
-}
+export type { UpdateEvent, DrawEvent, Movement };
 
 export type Context = {
   id: string;

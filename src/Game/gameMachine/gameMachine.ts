@@ -1,4 +1,4 @@
-import { assign, createMachine, spawn } from 'xstate';
+import { createMachine } from 'xstate';
 
 import { LARVA_SPAWN_TIME_MS } from 'game/paramaters';
 import { animationMachine } from 'game/animations/animationMachine';
@@ -8,9 +8,11 @@ import {
   initialiseQueen,
   initialiseBloblets,
   initialiseShrubs,
+  initialiseBloblongs,
   drawQueen,
   drawBloblets,
   drawLarvae,
+  drawBloblongs,
   spawnBlobLarva,
   shouldSpawnLarva,
   spawnBlob,
@@ -44,6 +46,7 @@ export function makeGameMachine({
       blobQueen: null,
       bloblets: [],
       blobLarvae: [],
+      bloblongs: [],
       shrubs: [],
     },
     on: {
@@ -54,6 +57,7 @@ export function makeGameMachine({
           drawLarvae,
           drawShrubs,
           drawBloblets,
+          drawBloblongs,
         ],
       },
       UPDATE: {
@@ -75,6 +79,7 @@ export function makeGameMachine({
           initialiseQueen,
           initialiseShrubs(shrubs),
           initialiseBloblets(bloblets),
+          initialiseBloblongs(),
         ],
         always: { target: 'ready' },
       },
