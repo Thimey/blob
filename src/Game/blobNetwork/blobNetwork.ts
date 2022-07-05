@@ -68,6 +68,10 @@ export class BlobNetwork {
     this.connections = toMap(connections);
   }
 
+  /**
+   * Makes a path the minimises distance off blob network.
+   * Will move linearly if moving from outside -> outside.
+   */
   public makePath(start: Point, end: Point, speed = DEFAULT_SPEED) {
     const startPointNode = findNodeOfPoint(this.nodes, start);
     const endPointNode = findNodeOfPoint(this.nodes, end);
@@ -86,7 +90,7 @@ export class BlobNetwork {
         end
       );
 
-      // If no connection end node, find the closest one
+      // If no connection end node, find the closest one to end position
       if (!connectionEndNode) {
         const nearestEndNode = findNearestNode(this.nodes, end);
         return makePath(
