@@ -4,10 +4,8 @@ import { Point, PersistedActor, DrawEvent, UpdateEvent } from 'game/types';
 export type { UpdateEvent, DrawEvent };
 
 export interface Movement {
-  destination: Point;
-  stepX: number;
-  stepY: number;
-  speed: number;
+  path: Point[];
+  pathIndex: number;
 }
 
 export type Context = {
@@ -32,7 +30,7 @@ export type BlobClickEvent = {
 
 export type MapClickEvent = {
   type: 'MAP_CLICKED';
-  coordinates: Point;
+  point: Point;
 };
 
 export type ShrubClickEvent = {

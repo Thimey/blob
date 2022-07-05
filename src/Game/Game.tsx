@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useContext } from 'react';
 
+import { network } from './blobNetwork';
 import { GameContext } from './GameProvider';
 import { sandColor } from './colors';
 import { WORLD_HEIGHT, WORLD_WIDTH } from './paramaters';
@@ -36,6 +37,7 @@ function gameLoop(gameService: any, gameCtx: CanvasRenderingContext2D) {
     loop += 1;
   }
 
+  network.draw(gameCtx);
   gameService.send('DRAW', { ctx: gameCtx });
 
   window.requestAnimationFrame(() => gameLoop(gameService, gameCtx));
@@ -66,7 +68,7 @@ export const Game = () => {
     if (gameServices.gameService && geometry) {
       const { x, y } = geometry;
       gameServices.gameService.send('CLICKED', {
-        coordinates: { x: clientX - x, y: clientY - y },
+        point: { x: clientX - x, y: clientY - y },
       });
     }
   };

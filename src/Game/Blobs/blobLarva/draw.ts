@@ -1,5 +1,5 @@
 import memoize from 'fast-memoize';
-import { Coordinates, DrawEventCtx } from 'src/types';
+import { Point, DrawEventCtx } from 'game/types';
 import { isPointWithinCircle, isPointWithinEllipse } from 'game/lib/math';
 import { drawCircle, drawSelectedOutline } from 'game/lib/draw';
 import { blobLarvaColor, blobPupaColor, progressBarColor } from 'game/colors';
@@ -223,7 +223,7 @@ export function drawProgressBar(
 
 export function blobLarvaClicked(
   larva: BlobLarvaActor,
-  { coordinates }: { coordinates: Coordinates }
+  { point }: { point: Point }
 ) {
   const larvaContext = larva.getSnapshot()?.context;
 
@@ -246,7 +246,7 @@ export function blobLarvaClicked(
   );
 
   return (
-    isPointWithinCircle({ x: headX, y: headY }, larvaHeadRadius, coordinates) ||
+    isPointWithinCircle({ x: headX, y: headY }, larvaHeadRadius, point) ||
     isPointWithinEllipse(
       {
         x,
@@ -254,7 +254,7 @@ export function blobLarvaClicked(
         radiusX: larvaBodyRadiusX,
         radiusY: larvaBodyRadiusY,
       },
-      coordinates
+      point
     )
   );
 }

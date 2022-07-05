@@ -1,7 +1,8 @@
+import { v4 } from 'uuid';
 import { Point } from '../types';
 
 export function generateId() {
-  return Date.now().toString();
+  return v4();
 }
 
 export function roundTo(number: number, decimalPlaces: number) {
@@ -12,6 +13,13 @@ export function roundTo(number: number, decimalPlaces: number) {
 
 export function closestToZero(x1: number, x2: number) {
   return Math.abs(x1) < Math.abs(x2) ? x1 : x2;
+}
+
+export function minMax(x1: number, x2: number) {
+  return {
+    min: Math.min(x1, x2),
+    max: Math.max(x1, x2),
+  };
 }
 
 export function makeDistance({ x: x1, y: y1 }: Point, { x: x2, y: y2 }: Point) {
@@ -100,6 +108,57 @@ export function isPointWithinRectangle(rect: Rectangle, { x, y }: Point) {
     y >= rect.y &&
     y <= rect.y + rect.height
   );
+}
+
+export function makeCubicBezierPoints(
+  p0: Point,
+  p1: Point,
+  p2: Point,
+  p3: Point,
+  step: number
+) {
+  const cx = 3 * (p1.x - p0.x);
+  const bx = 3 * (p2.x - p1.x) - cx;
+  const ax = p3.x - p0.x - cx - bx;
+
+  const cy = 3 * (p1.y - p0.y);
+  const by = 3 * (p2.y - p1.y) - cy;
+  const ay = p3.y - p0.y - cy - by;
+
+  let t = 0;
+  const points: Point[] = [];
+
+  while (t <= 1) {
+    const x = ax * t ** 3 + bx * t ** 2 + cx * t + p0.x;
+    const y = ay * t ** 3 + by * t ** 2 + cy * t + p0.y;
+
+    points.push({ x, y });
+    t += 1 / step;
+  }
+
+  return points;
+}
+
+export function makeLinearPoints(start: Point, end: Point, step = 2) {
+  const totalDistance = makeDistance(start, end);
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const xDir = Math.sign(dx);
+  const yDir = Math.sign(dy);
+  const angle = Math.atan(Math.abs(dy / dx));
+
+  let distance = 0;
+  const points = [];
+  while (distance < totalDistance) {
+    const x = start.x + xDir * distance * Math.cos(angle);
+    const y = start.y + yDir * distance * Math.sin(angle);
+
+    points.push({ x, y });
+    distance += Math.min(step, totalDistance - distance);
+  }
+  points.push(end);
+
+  return points;
 }
 
 interface Diamond {

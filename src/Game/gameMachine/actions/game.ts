@@ -16,9 +16,9 @@ export function updateBlobs(
 
 export function propagateMapClicked(
   { bloblets }: Context,
-  { coordinates }: ClickedEvent
+  { point }: ClickedEvent
 ) {
   bloblets.forEach((blob) => {
-    blob.send({ type: 'MAP_CLICKED', coordinates });
+    blob.send({ type: 'MAP_CLICKED', point });
   });
 }

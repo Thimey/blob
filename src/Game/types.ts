@@ -16,7 +16,7 @@ export interface DrawEventCtx {
 
 export type ClickedEvent = {
   type: 'CLICKED';
-  coordinates: Point;
+  point: Point;
 };
 
 export type DrawEvent = {

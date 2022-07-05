@@ -1,4 +1,4 @@
-import { createMachine } from 'xstate';
+import { assign, createMachine, spawn } from 'xstate';
 
 import { LARVA_SPAWN_TIME_MS } from 'game/paramaters';
 import { animationMachine } from 'game/animations/animationMachine';
@@ -49,8 +49,8 @@ export function makeGameMachine({
     on: {
       DRAW: {
         actions: [
-          (_, e) => animationMachine.send(e),
           drawQueen,
+          (_, e) => animationMachine.send(e),
           drawLarvae,
           drawShrubs,
           drawBloblets,

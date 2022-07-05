@@ -65,7 +65,7 @@ export function drawShrubs({ shrubs }: Context, { ctx }: DrawEvent) {
   shrubs.forEach((shrub) => shrub.send({ type: 'DRAW', ctx }));
 }
 
-function shrubClicked(shrub: ShrubActor, { coordinates }: ClickedEvent) {
+function shrubClicked(shrub: ShrubActor, { point }: ClickedEvent) {
   const shrubContext = shrub.getSnapshot()?.context;
 
   return (
@@ -73,7 +73,7 @@ function shrubClicked(shrub: ShrubActor, { coordinates }: ClickedEvent) {
     shrubContext.leafPositions.some((position) =>
       isPointWithinDiamond(
         { position, width: LEAF_WIDTH, height: LEAF_HEIGHT },
-        coordinates
+        point
       )
     )
   );
@@ -95,7 +95,7 @@ export function propagateShrubClicked(
         type: 'SHRUB_CLICKED',
         shrubId: id,
         harvestRate,
-        clickCoordinates: event.coordinates,
+        clickCoordinates: event.point,
         shrubPosition: position,
         leafPositions,
         amount,

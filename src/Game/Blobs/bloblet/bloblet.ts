@@ -2,11 +2,7 @@ import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
-import {
-  makeDistance,
-  closestToZero,
-  selectRandomElementFromArray,
-} from 'game/lib/math';
+import { selectRandomElementFromArray } from 'game/lib/math';
 import {
   QUEEN_POSITION,
   BLOBLET_HARVEST_INTERVAL,
@@ -15,6 +11,8 @@ import {
   SHRUB_HARVEST_DROP_DWELL_TIME_MS,
 } from 'game/paramaters';
 import { Point } from 'game/types';
+
+import { network } from 'game/blobNetwork';
 import { drawSelectedOutline } from 'game/lib/draw';
 import { makeRemainingLeafPositions } from 'game/resources/shrub';
 import { drawBloblet, drawCarryingShrub } from './draw';
@@ -32,32 +30,24 @@ import {
 
 const { pure } = actions;
 
-const DEFAULT_SPEED = 2;
-
 function makeMovement({
   position,
   destination,
-  speed = DEFAULT_SPEED,
+  speed,
 }: {
   position: Point;
   destination: Point;
   speed?: number;
 }): Movement {
-  const dxTotal = destination.x - position.x;
-  const dyTotal = destination.y - position.y;
-  const totalDistance = makeDistance(position, destination);
-
   return {
-    destination,
-    stepX: (dxTotal / totalDistance) * speed,
-    stepY: (dyTotal / totalDistance) * speed,
-    speed,
+    path: network.makePath(position, destination, speed),
+    pathIndex: 0,
   };
 }
 
-const setDestination = assign(
-  ({ position }: Context, { coordinates }: MapClickEvent) => ({
-    movement: makeMovement({ position, destination: coordinates }),
+const setMovement = assign(
+  ({ position }: Context, { point }: MapClickEvent) => ({
+    movement: makeMovement({ position, destination: point }),
   })
 );
 
@@ -72,19 +62,17 @@ const setHarvestingShrub = assign(
       leafPositions,
       amount,
     }: ShrubClickEvent
-  ) => {
-    return {
-      movement: makeMovement({ position, destination: clickCoordinates }),
-      harvestingShrub: {
-        startAt: Date.now(),
-        shrubId,
-        harvestRate,
-        position: shrubPosition,
-        leafPositions,
-        amount,
-      },
-    };
-  }
+  ) => ({
+    movement: makeMovement({ position, destination: clickCoordinates }),
+    harvestingShrub: {
+      startAt: Date.now(),
+      shrubId,
+      harvestRate,
+      position: shrubPosition,
+      leafPositions,
+      amount,
+    },
+  })
 );
 
 const setDestinationAsQueen = assign<Context, any>(({ position }) => ({
@@ -111,6 +99,18 @@ const setDestinationAsShrub = pure<Context, Event>(
   }
 );
 
+const stepToDestination = assign<Context, UpdateEvent>(({ movement }) => {
+  if (!movement) return {};
+
+  return {
+    position: movement.path[movement.pathIndex],
+    movement: {
+      ...movement,
+      pathIndex: movement.pathIndex + 1,
+    },
+  };
+});
+
 const drift = assign<Context, Event>(({ position: { x, y } }: Context) => {
   const angle = Math.random() * 2 * Math.PI;
 
@@ -121,37 +121,16 @@ const drift = assign<Context, Event>(({ position: { x, y } }: Context) => {
         x: x + BLOBLET_DRIFT_DISTANCE * Math.cos(angle),
         y: y + BLOBLET_DRIFT_DISTANCE * Math.sin(angle),
       },
-      speed: 0.05,
+      speed: 0.1,
     }),
   };
 });
 
-function hasReachedDestination({ position, movement }: Context) {
+function hasReachedDestination({ movement }: Context) {
   if (!movement) return true;
 
-  return (
-    Math.abs(position.x - movement.destination.x) <= 1 &&
-    Math.abs(position.y - movement.destination.y) <= 1
-  );
+  return movement.pathIndex >= movement.path.length;
 }
-
-const stepToDestination = assign<Context, UpdateEvent>(
-  ({ position, movement }: Context) => {
-    if (movement) {
-      const remainingX = movement.destination.x - position.x;
-      const remainingY = movement.destination.y - position.y;
-
-      return {
-        position: {
-          x: position.x + closestToZero(movement.stepX, remainingX),
-          y: position.y + closestToZero(movement.stepY, remainingY),
-        },
-      };
-    }
-
-    return { position };
-  }
-);
 
 const harvestShrub = pure<Context, UpdateEvent>(
   ({ harvestingShrub }, { currentUpdateAt, lastUpdateAt }) => {
@@ -227,7 +206,7 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                   MAP_CLICKED: [
                     {
                       target: '#mapMoving',
-                      actions: [setDestination],
+                      actions: [setMovement],
                     },
                   ],
                   SHRUB_CLICKED: {
@@ -280,13 +259,13 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                   },
                 },
                 states: {
-                  feedingQueen: {
-                    on: {
-                      UPDATE: {
-                        actions: [harvestShrub],
-                      },
-                    },
-                  },
+                  // feedingQueen: {
+                  //   on: {
+                  //     UPDATE: {
+                  //       actions: [harvestShrub],
+                  //     },
+                  //   },
+                  // },
                   harvestingMoving: {
                     initial: 'movingToShrub',
                     states: {
@@ -333,7 +312,14 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                           {
                             delay: SHRUB_HARVEST_DROP_DWELL_TIME_MS,
                             target: 'movingToShrub',
-                            actions: [setDestinationAsShrub],
+                            actions: [
+                              setDestinationAsShrub,
+                              sendParent(({ harvestingShrub }) => ({
+                                type: 'HARVEST_SHRUB',
+                                shrubId: harvestingShrub?.shrubId,
+                                harvestCount: 1,
+                              })),
+                            ],
                           },
                         ],
                       },

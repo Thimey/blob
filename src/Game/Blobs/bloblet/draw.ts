@@ -57,16 +57,12 @@ export function drawCarryingShrub(
 
 export function blobletClicked(
   bloblet: BlobletActor,
-  { coordinates }: { coordinates: Point }
+  { point }: { point: Point }
 ) {
   const blobletContext = bloblet.getSnapshot()?.context;
 
   return (
     blobletContext &&
-    isPointWithinCircle(
-      blobletContext.position,
-      blobletContext.radius,
-      coordinates
-    )
+    isPointWithinCircle(blobletContext.position, blobletContext.radius, point)
   );
 }

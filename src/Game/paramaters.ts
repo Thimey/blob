@@ -12,8 +12,8 @@ export const QUEEN_POSITION = {
   x: WORLD_WIDTH / 2,
   y: WORLD_HEIGHT / 2,
 };
-export const QUEEN_RADIUS_X = 60;
-export const QUEEN_RADIUS_Y = 40;
+export const QUEEN_RADIUS_X = 160;
+export const QUEEN_RADIUS_Y = 80;
 
 // Larvae
 export const MAX_LARVAE = 4;
@@ -37,3 +37,11 @@ export const RADIUS_INCREMENT_X = 5;
 export const RADIUS_INCREMENT_Y = 3;
 export const SHRUB_HARVEST_DWELL_TIME_MS = 1_000;
 export const SHRUB_HARVEST_DROP_DWELL_TIME_MS = 300;
+
+// Network
+export const CONNECTION_WALL_WIDTH = 3;
+export const CONNECTION_WIDTH = 20;
+export const ENTRANCE_RADIUS_X = 20;
+export const ENTRANCE_RADIUS_Y = 20;
+
+export const DEFAULT_SPEED = 1.2;

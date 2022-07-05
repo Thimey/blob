@@ -1,0 +1,55 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`math makeLinearPath should get correct path 1`] = `
+Array [
+  Object {
+    "x": 4,
+    "y": 3,
+  },
+  Object {
+    "x": 3.2,
+    "y": 2.4,
+  },
+  Object {
+    "x": 2.4,
+    "y": 1.8,
+  },
+  Object {
+    "x": 1.5999999999999996,
+    "y": 1.2000000000000002,
+  },
+  Object {
+    "x": 0.7999999999999998,
+    "y": 0.6000000000000001,
+  },
+  Object {
+    "x": 0,
+    "y": 0,
+  },
+]
+`;
+
+exports[`math makeLinearPath should get correct path 2`] = `
+Array [
+  Object {
+    "x": 0,
+    "y": 3,
+  },
+  Object {
+    "x": 0.5547001962252291,
+    "y": 2.1679497056621564,
+  },
+  Object {
+    "x": 1.1094003924504583,
+    "y": 1.3358994113243128,
+  },
+  Object {
+    "x": 1.6641005886756874,
+    "y": 0.5038491169864692,
+  },
+  Object {
+    "x": 2,
+    "y": 0,
+  },
+]
+`;
