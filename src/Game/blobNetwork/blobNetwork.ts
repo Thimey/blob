@@ -86,9 +86,17 @@ export class BlobNetwork {
         end
       );
 
-      // If can't determine end node, move linearly
+      // If no connection end node, find the closest one
       if (!connectionEndNode) {
-        return makeLinearPoints(start, end, speed);
+        const nearestEndNode = findNearestNode(this.nodes, end);
+        return makePath(
+          this.network,
+          start,
+          end,
+          startNode.id,
+          nearestEndNode.id,
+          speed
+        );
       }
 
       // Otherwise, make path to center of connection end node
