@@ -4,21 +4,18 @@ import {
   QUEEN_RADIUS_X,
   QUEEN_RADIUS_Y,
   DEFAULT_SPEED,
-  CONNECTION_WIDTH,
 } from 'game/paramaters';
 import {
-  isPointWithinEllipse,
-  isPointWithinCircle,
   makeLinearPoints,
   makeCubicBezierPoints,
   generateId,
   makeRandomNumber,
-  minMax,
 } from 'game/lib/math';
 
-import { Node, Connection, NodeMap, ConnectionMap } from './types';
+import { Node, Connection, NodeMap, ConnectionMap, Network } from './types';
 import { drawNode, drawConnection } from './draw';
 import { makePath } from './makePath';
+import { findNodeOfPoint, findConnectionOfPoint } from './checkPointOnNetwork';
 
 function toMap<T extends { id: string }>(items: T[]) {
   return items.reduce<Record<T['id'], T>>(
@@ -27,37 +24,20 @@ function toMap<T extends { id: string }>(items: T[]) {
   );
 }
 
-function findNodeOfPoint(nodes: NodeMap, point: Point) {
-  return Object.values(nodes).find(({ centre, radiusX, radiusY }) =>
-    isPointWithinEllipse({ ...centre, radiusX, radiusY }, point)
-  );
-}
+function getEndNodeFromConnection(
+  nodes: NodeMap,
+  startNode: Node,
+  connection: Connection
+) {
+  const connectionEndNode = findNodeOfPoint(nodes, connection.end);
+  if (!connectionEndNode) return null;
+  if (connectionEndNode.id !== startNode.id) return connectionEndNode;
 
-function couldPointBeOnConnection({ start, end }: Connection, { x, y }: Point) {
-  const { min: minX, max: maxX } = minMax(start.x, end.x);
-  const { min: minY, max: maxY } = minMax(start.y, end.y);
-  return (
-    x > minX - CONNECTION_WIDTH &&
-    x < maxX + CONNECTION_WIDTH &&
-    y > minY - CONNECTION_WIDTH &&
-    y < maxY + CONNECTION_WIDTH
-  );
-}
+  const connectionStartNode = findNodeOfPoint(nodes, connection.start);
 
-function pointIsOnConnection({ points }: Connection, point: Point) {
-  return points.some(
-    (connectionPoint, i) =>
-      i % 2 === 0 &&
-      isPointWithinCircle(connectionPoint, CONNECTION_WIDTH / 2, point)
-  );
-}
+  if (!connectionStartNode) return null;
 
-function findConnectionOfPoint(connections: ConnectionMap, point: Point) {
-  return Object.values(connections).find(
-    (connection) =>
-      couldPointBeOnConnection(connection, point) &&
-      pointIsOnConnection(connection, point)
-  );
+  return connectionStartNode;
 }
 
 export class BlobNetwork {
@@ -65,7 +45,7 @@ export class BlobNetwork {
 
   private connections: ConnectionMap;
 
-  private get network() {
+  private get network(): Network {
     return { nodes: this.nodes, connections: this.connections };
   }
 
@@ -75,18 +55,34 @@ export class BlobNetwork {
   }
 
   public makePath(start: Point, end: Point, speed = DEFAULT_SPEED) {
-    // If not already on network, move linearly
+    // If not starting on network, move linearly
     const startNode = findNodeOfPoint(this.nodes, start);
     if (!startNode) return makeLinearPoints(start, end, speed);
 
     const endNode = findNodeOfPoint(this.nodes, end);
 
-    // If node not destination, check if connection
+    // If destination not on a node, check if on a connection
     if (!endNode) {
+      // If not on connection, move linearly
       const connectionOfPoint = findConnectionOfPoint(this.connections, end);
+      if (!connectionOfPoint) return makeLinearPoints(start, end, speed);
 
-      return connectionOfPoint
-        ? makeLinearPoints(start, end, speed)
+      const connectionEndNode = getEndNodeFromConnection(
+        this.nodes,
+        startNode,
+        connectionOfPoint
+      );
+
+      // Otherise move to center of connection end
+      return connectionEndNode
+        ? makePath(
+            this.network,
+            start,
+            connectionEndNode.centre,
+            startNode.id,
+            connectionEndNode.id,
+            speed
+          )
         : makeLinearPoints(start, end, speed);
     }
 

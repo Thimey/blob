@@ -1,14 +1,9 @@
 import { Point } from 'game/types';
 import { makeLinearPoints, makeDistance } from 'game/lib/math';
 
-import { NodeMap, ConnectionMap, NodeId, Connection, Node } from './types';
+import { NodeMap, Network, NodeId, Connection, Node } from './types';
 
 import { makeShortestPath } from './shortestPath';
-
-interface Network {
-  nodes: NodeMap;
-  connections: ConnectionMap;
-}
 
 function getConnection(
   { nodes, connections }: Network,
