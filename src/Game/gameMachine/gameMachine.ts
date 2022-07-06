@@ -26,10 +26,12 @@ import {
   propagateBlobletClicked,
   propagateMapClicked,
   propagateShrubClicked,
+  propagateLarvaClicked,
+  propagateBloblongClicked,
   didClickOnBloblet,
   didClickOnShrub,
-  propagateLarvaClicked,
   didClickOnBlobLarva,
+  didClickOnBloblong,
 } from './actions';
 
 export function makeGameMachine({
@@ -94,6 +96,10 @@ export function makeGameMachine({
             {
               actions: [propagateBlobletClicked],
               cond: didClickOnBloblet,
+            },
+            {
+              actions: [propagateBloblongClicked],
+              cond: didClickOnBloblong,
             },
             {
               actions: [propagateShrubClicked],

@@ -30,6 +30,11 @@ export type UpdateEvent = {
   currentUpdateAt: number;
 };
 
+export type MapClickEvent = {
+  type: 'MAP_CLICKED';
+  point: Point;
+};
+
 export interface Movement {
   path: Point[];
   pathIndex: number;

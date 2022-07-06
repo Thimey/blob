@@ -1,6 +1,11 @@
-import { drawCircle, drawDiamond } from 'game/lib/draw';
-import { DrawEvent, Point } from 'game/types';
-import { Context } from './types';
+import { drawCircle, drawDiamond, drawSelectedOutline } from 'game/lib/draw';
+import {
+  isPointWithinDiamond,
+  isPointWithinEllipse,
+  isPointWithinCircle,
+} from 'game/lib/math';
+import { Point, DrawEventCtx } from 'game/types';
+import { Context, BloblongActor } from './types';
 
 // Heads
 const BLOBLONG_HEAD_RADIUS = 14;
@@ -31,72 +36,78 @@ function makePoint({ x, y }: Point, offset: number, rotation: number) {
   };
 }
 
-export function drawBloblong(
-  { position: { x, y }, rotation }: Context,
-  { ctx }: DrawEvent
-) {
-  const { x: head1X, y: head1Y } = makePoint(
-    { x, y },
-    -BLOBLONG_HEAD_OFFSET,
-    rotation
-  );
-  const { x: head2X, y: head2Y } = makePoint(
-    { x, y },
-    BLOBLONG_HEAD_OFFSET,
-    rotation
-  );
-  const { x: head1LeftEyeX, y: head1LeftEyeY } = makePoint(
-    { x, y },
-    BLOBLONG_HEAD1_EYE_OFFSET,
-    rotation - BLOBLONG_EYE_ANGLE
-  );
-  const { x: head1RightEyeX, y: head1RightEyeY } = makePoint(
-    { x, y },
-    BLOBLONG_HEAD1_EYE_OFFSET,
-    rotation + BLOBLONG_EYE_ANGLE
-  );
+function makeHead1Position({ position: { x, y }, rotation }: Context) {
+  return makePoint({ x, y }, -BLOBLONG_HEAD_OFFSET, rotation);
+}
 
-  const { x: head2LeftEyeX, y: head2LeftEyeY } = makePoint(
-    { x, y },
-    BLOBLONG_HEAD2_EYE_OFFSET,
-    rotation - BLOBLONG_EYE_ANGLE
-  );
-  const { x: head2RightEyeX, y: head2RightEyeY } = makePoint(
-    { x, y },
-    BLOBLONG_HEAD2_EYE_OFFSET,
-    rotation + BLOBLONG_EYE_ANGLE
-  );
+function makeHead2Position({ position: { x, y }, rotation }: Context) {
+  return makePoint({ x, y }, BLOBLONG_HEAD_OFFSET, rotation);
+}
 
-  const fins = [
-    {
-      position: makePoint(
-        { x, y },
-        -BLOBLONG_FIN_OFFSET,
-        rotation + BLOBLONG_FIN_ANGLE
-      ),
-    },
-    {
-      position: makePoint(
-        { x, y },
-        -BLOBLONG_FIN_OFFSET,
-        rotation - BLOBLONG_FIN_ANGLE
-      ),
-    },
-    {
-      position: makePoint(
-        { x, y },
-        BLOBLONG_FIN_OFFSET,
-        rotation + BLOBLONG_FIN_ANGLE
-      ),
-    },
-    {
-      position: makePoint(
-        { x, y },
-        BLOBLONG_FIN_OFFSET,
-        rotation - BLOBLONG_FIN_ANGLE
-      ),
-    },
-  ];
+function makeHead1EyePositions({ position: { x, y }, rotation }: Context) {
+  return {
+    left: makePoint(
+      { x, y },
+      BLOBLONG_HEAD1_EYE_OFFSET,
+      rotation - BLOBLONG_EYE_ANGLE
+    ),
+    right: makePoint(
+      { x, y },
+      BLOBLONG_HEAD1_EYE_OFFSET,
+      rotation + BLOBLONG_EYE_ANGLE
+    ),
+  };
+}
+
+function makeHead2EyePositions({ position: { x, y }, rotation }: Context) {
+  return {
+    left: makePoint(
+      { x, y },
+      BLOBLONG_HEAD2_EYE_OFFSET,
+      rotation - BLOBLONG_EYE_ANGLE
+    ),
+    right: makePoint(
+      { x, y },
+      BLOBLONG_HEAD2_EYE_OFFSET,
+      rotation + BLOBLONG_EYE_ANGLE
+    ),
+  };
+}
+
+function makeFins({ position: { x, y }, rotation }: Context) {
+  return [
+    { xDir: 1, yDir: 1 },
+    { xDir: -1, yDir: -1 },
+    { xDir: 1, yDir: -1 },
+    { xDir: -1, yDir: 1 },
+  ].map(({ xDir, yDir }) => ({
+    position: makePoint(
+      { x, y },
+      Math.sign(xDir) * BLOBLONG_FIN_OFFSET,
+      rotation + Math.sign(yDir) * BLOBLONG_FIN_ANGLE
+    ),
+  }));
+}
+
+export function drawBloblong(context: Context, { ctx }: DrawEventCtx) {
+  const {
+    position: { x, y },
+    rotation,
+  } = context;
+  const { x: head1X, y: head1Y } = makeHead1Position(context);
+  const { x: head2X, y: head2Y } = makeHead2Position(context);
+
+  const {
+    left: { x: head1LeftEyeX, y: head1LeftEyeY },
+    right: { x: head1RightEyeX, y: head1RightEyeY },
+  } = makeHead1EyePositions(context);
+
+  const {
+    left: { x: head2LeftEyeX, y: head2LeftEyeY },
+    right: { x: head2RightEyeX, y: head2RightEyeY },
+  } = makeHead2EyePositions(context);
+
+  const fins = makeFins(context);
 
   // Head 1
   ctx.beginPath();
@@ -160,4 +171,60 @@ export function drawBloblong(
   ctx.fill();
   ctx.stroke();
   ctx.closePath();
+}
+
+export function drawBloblongSelectedOutline(
+  { position }: Context,
+  { ctx }: DrawEventCtx
+) {
+  ctx.beginPath();
+  drawSelectedOutline(
+    { position, radius: BLOBLONG_BODY_RADIUS_X + BLOBLONG_HEAD_RADIUS + 4 },
+    { ctx }
+  );
+  ctx.closePath();
+}
+
+export function bloblongClicked(
+  bloblong: BloblongActor,
+  { point }: { point: Point }
+) {
+  const context = bloblong.getSnapshot()?.context;
+  if (!context) return false;
+
+  const {
+    position: { x, y },
+  } = context;
+
+  return (
+    isPointWithinEllipse(
+      {
+        x,
+        y,
+        radiusX: BLOBLONG_BODY_RADIUS_X,
+        radiusY: BLOBLONG_BODY_RADIUS_Y,
+      },
+      point
+    ) ||
+    isPointWithinCircle(
+      makeHead1Position(context),
+      BLOBLONG_HEAD_RADIUS,
+      point
+    ) ||
+    isPointWithinCircle(
+      makeHead2Position(context),
+      BLOBLONG_HEAD_RADIUS,
+      point
+    ) ||
+    makeFins(context).some(({ position }) =>
+      isPointWithinDiamond(
+        {
+          position,
+          height: BLOBLONG_FIN_HEIGHT,
+          width: BLOBLONG_FIN_WIDTH,
+        },
+        point
+      )
+    )
+  );
 }
