@@ -10,6 +10,18 @@ export interface Ellipse {
   radiusX: number;
   radiusY: number;
 }
+export type Rectangle = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type Diamond = {
+  position: Point;
+  width: number;
+  height: number;
+};
 
 export type PersistedActor<T, U> = {
   context: T;
@@ -22,6 +34,20 @@ export interface DrawEventCtx {
 
 export type ClickedEvent = {
   type: 'CLICKED';
+  point: Point;
+};
+
+export type MouseDownEvent = {
+  type: 'MOUSE_DOWN';
+  point: Point;
+};
+
+export type MouseUpEvent = {
+  type: 'MOUSE_UP';
+};
+
+export type MouseMoveEvent = {
+  type: 'MOUSE_MOVE';
   point: Point;
 };
 

@@ -26,6 +26,7 @@ type SpawnOptions = Record<SpawnType, SpawnOptionDetails>;
 export interface Context {
   mass: number;
   spawnOptions: SpawnOptions;
+  multiSelect: any;
   blobQueen: BlobQueenActor | null;
   bloblets: BlobletActor[];
   blobalongs: BlobalongActor[];

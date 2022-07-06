@@ -6,6 +6,7 @@ import {
   makeChoosingConnectionMachine,
   DoneEvent as ChoosingConnectionDoneEvent,
 } from 'game/blobNetwork/choosingNewConnection/choosingConnectionMachine';
+import { makeMultiSelect } from 'game/multiSelect';
 
 import { DrawEvent } from 'game/types';
 import { makeConnection } from 'game/blobNetwork/makeConnection';
@@ -60,6 +61,7 @@ export function makeGameMachine({
     context: {
       mass,
       spawnOptions,
+      multiSelect: null,
       blobQueen: null,
       bloblets: [],
       blobLarvae: [],
@@ -69,6 +71,7 @@ export function makeGameMachine({
     on: {
       DRAW: {
         actions: [
+          ({ multiSelect }, e) => multiSelect.send(e),
           drawQueen,
           (_, e) => animationMachine.send(e),
           drawLarvae,
@@ -80,6 +83,19 @@ export function makeGameMachine({
             ctx,
           })),
         ],
+      },
+      MOUSE_UP: {
+        actions: ({ multiSelect }, e) => multiSelect.send(e),
+      },
+      MOUSE_DOWN: {
+        actions: ({ multiSelect }, e) => {
+          multiSelect.send(e);
+        },
+      },
+      MOUSE_MOVE: {
+        actions: ({ multiSelect }, e) => {
+          multiSelect.send(e);
+        },
       },
       UPDATE: {
         actions: [(_, e) => animationMachine.send(e), updateBlobs],
@@ -97,6 +113,9 @@ export function makeGameMachine({
     states: {
       initialising: {
         entry: [
+          assign({
+            multiSelect: spawn(makeMultiSelect()),
+          }),
           initialiseQueen,
           initialiseShrubs(shrubs),
           initialiseBloblets(bloblets),
