@@ -8,17 +8,7 @@ import { Context } from '../types';
 
 export function initialiseBloblongs() {
   return assign(() => ({
-    bloblongs: [
-      spawn(
-        makeBloblong({
-          id: generateId(),
-          position: { x: 60, y: 60 },
-          rotation: 0,
-          finRotation: 0,
-          finRotationDir: 1,
-        })
-      ),
-    ],
+    bloblongs: [],
   }));
 }
 

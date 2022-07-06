@@ -1,4 +1,4 @@
-export type BlobType = 'bloblet';
+export type BlobType = 'bloblet' | 'bloblong';
 
 export type Point = {
   x: number;

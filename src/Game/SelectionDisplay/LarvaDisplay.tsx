@@ -3,17 +3,19 @@ import React, { useContext } from 'react';
 import { GameContext } from 'game/GameProvider';
 import { drawLarva } from 'game/blobs/blobLarva/draw';
 import { drawBloblet } from 'game/blobs/bloblet/draw';
+import { drawBloblongSpawnProfile } from 'game/blobs/bloblong/draw';
 import {
   BLOB_LARVA_HEAD_RADIUS,
   BLOB_LARVA_BODY_RADIUS_X,
   BLOB_LARVA_BODY_RADIUS_Y,
   BLOBLET_MASS_COST,
   BLOBLET_SPAWN_TIME_MS,
+  BLOBLONG_MASS_COST,
+  BLOBLONG_SPAWN_TIME_MS,
 } from 'game/paramaters';
 
 import { BlobType } from 'game/types';
 import { Canvas, DrawOptions } from 'src/components/Canvas';
-import { GameService } from 'game/gameMachine/types';
 import { drawCircle } from 'game/lib/draw';
 
 const PROFILE_CANVAS_HEIGHT = 100;
@@ -67,6 +69,17 @@ function drawBlobletSpawn({ ctx, canvasHeight, canvasWidth }: DrawOptions) {
   );
   ctx.closePath();
 }
+function drawBloblongSpawn({ ctx, canvasHeight, canvasWidth }: DrawOptions) {
+  ctx.beginPath();
+  drawBloblongSpawnProfile(
+    {
+      position: { x: canvasWidth / 2, y: canvasHeight / 2 },
+      radius: canvasWidth / 2 - 4,
+    },
+    { ctx }
+  );
+  ctx.closePath();
+}
 
 function drawUnknown({ ctx, canvasHeight, canvasWidth }: DrawOptions) {
   ctx.beginPath();
@@ -88,7 +101,12 @@ const spawnSelection: (BlobSpawn | UnknownSpawn)[] = [
     durationMs: BLOBLET_SPAWN_TIME_MS,
     draw: drawBlobletSpawn,
   },
-  { type: 'unknown', draw: drawUnknown },
+  {
+    type: 'bloblong',
+    massCost: BLOBLONG_MASS_COST,
+    durationMs: BLOBLONG_SPAWN_TIME_MS,
+    draw: drawBloblongSpawn,
+  },
   { type: 'unknown', draw: drawUnknown },
   { type: 'unknown', draw: drawUnknown },
   { type: 'unknown', draw: drawUnknown },

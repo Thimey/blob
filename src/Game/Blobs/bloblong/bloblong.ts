@@ -2,11 +2,10 @@ import { createMachine, send, assign } from 'xstate';
 
 import { Point, Movement, MapClickEvent, UpdateEvent } from 'game/types';
 import { network } from 'game/blobNetwork';
-import { generateId } from 'game/lib/math';
 import { Context, Event, State } from './types';
 import { drawBloblong, drawBloblongSelectedOutline } from './draw';
 
-const BLOBLONG_SPEED = 0.7;
+const BLOBLONG_SPEED = 0.5;
 
 function makeMovement({
   position,

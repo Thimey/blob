@@ -71,7 +71,7 @@ export type SpawnBlobSelectedEvent = {
 
 export type BlobHatchedEvent = {
   type: 'BLOB_HATCHED';
-  blob: 'bloblet';
+  blob: BlobType;
   position: Point;
   larvaId: string;
 };

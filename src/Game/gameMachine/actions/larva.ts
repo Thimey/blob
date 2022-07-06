@@ -17,6 +17,7 @@ import {
   DrawEvent,
 } from 'game/blobs/blobLarva';
 import { makeBloblet } from 'game/blobs/bloblet';
+import { makeBloblong } from 'game/blobs/bloblong';
 import {
   Context,
   ClickedEvent,
@@ -73,21 +74,43 @@ export function propagateLarvaClicked(
 
 export const spawnBlob = assign(
   (context: Context, { blob, position, larvaId }: BlobHatchedEvent) => {
+    const blobLarvae = context.blobLarvae.filter(
+      (larva) => larva?.getSnapshot()?.context.id !== larvaId
+    );
     if (blob === 'bloblet') {
-      const machine = makeBloblet({
-        context: {
-          id: generateId(),
-          position,
-          radius: BLOBLET_RADIUS,
-        },
-        value: ['deselected'],
-      });
-
       return {
-        bloblets: [...context.bloblets, spawn(machine)],
-        blobLarvae: context.blobLarvae.filter(
-          (larva) => larva?.getSnapshot()?.context.id !== larvaId
-        ),
+        bloblets: [
+          ...context.bloblets,
+          spawn(
+            makeBloblet({
+              context: {
+                id: generateId(),
+                position,
+                radius: BLOBLET_RADIUS,
+              },
+              value: ['deselected'],
+            })
+          ),
+        ],
+        blobLarvae,
+      };
+    }
+
+    if (blob === 'bloblong') {
+      return {
+        bloblongs: [
+          ...context.bloblongs,
+          spawn(
+            makeBloblong({
+              id: generateId(),
+              position,
+              rotation: 0,
+              finRotation: 0,
+              finRotationDir: 1,
+            })
+          ),
+        ],
+        blobLarvae,
       };
     }
 

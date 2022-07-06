@@ -7,6 +7,11 @@ import {
 import { Point, DrawEventCtx } from 'game/types';
 import { Context, BloblongActor } from './types';
 
+type BloblongDrawContext = Pick<
+  Context,
+  'position' | 'rotation' | 'finRotation' | 'finRotationDir'
+>;
+
 // Heads
 const BLOBLONG_HEAD_RADIUS = 14;
 const BLOBLONG_HEAD_OFFSET = 25;
@@ -36,15 +41,24 @@ function makePoint({ x, y }: Point, offset: number, rotation: number) {
   };
 }
 
-function makeHead1Position({ position: { x, y }, rotation }: Context) {
+function makeHead1Position({
+  position: { x, y },
+  rotation,
+}: BloblongDrawContext) {
   return makePoint({ x, y }, -BLOBLONG_HEAD_OFFSET, rotation);
 }
 
-function makeHead2Position({ position: { x, y }, rotation }: Context) {
+function makeHead2Position({
+  position: { x, y },
+  rotation,
+}: BloblongDrawContext) {
   return makePoint({ x, y }, BLOBLONG_HEAD_OFFSET, rotation);
 }
 
-function makeHead1EyePositions({ position: { x, y }, rotation }: Context) {
+function makeHead1EyePositions({
+  position: { x, y },
+  rotation,
+}: BloblongDrawContext) {
   return {
     left: makePoint(
       { x, y },
@@ -59,7 +73,10 @@ function makeHead1EyePositions({ position: { x, y }, rotation }: Context) {
   };
 }
 
-function makeHead2EyePositions({ position: { x, y }, rotation }: Context) {
+function makeHead2EyePositions({
+  position: { x, y },
+  rotation,
+}: BloblongDrawContext) {
   return {
     left: makePoint(
       { x, y },
@@ -74,7 +91,11 @@ function makeHead2EyePositions({ position: { x, y }, rotation }: Context) {
   };
 }
 
-function makeFins({ position: { x, y }, rotation, finRotation }: Context) {
+function makeFins({
+  position: { x, y },
+  rotation,
+  finRotation,
+}: BloblongDrawContext) {
   return [
     { xDir: 1, yDir: 1 },
     { xDir: -1, yDir: -1 },
@@ -90,7 +111,10 @@ function makeFins({ position: { x, y }, rotation, finRotation }: Context) {
   }));
 }
 
-export function drawBloblong(context: Context, { ctx }: DrawEventCtx) {
+export function drawBloblong(
+  context: BloblongDrawContext,
+  { ctx }: DrawEventCtx
+) {
   const {
     position: { x, y },
     rotation,
@@ -177,7 +201,7 @@ export function drawBloblong(context: Context, { ctx }: DrawEventCtx) {
 }
 
 export function drawBloblongSelectedOutline(
-  { position }: Context,
+  { position }: BloblongDrawContext,
   { ctx }: DrawEventCtx
 ) {
   ctx.beginPath();
@@ -186,6 +210,42 @@ export function drawBloblongSelectedOutline(
     { ctx }
   );
   ctx.closePath();
+}
+
+export function drawBloblongProfileHead(
+  { position: { x, y }, radius }: { position: Point; radius: number },
+  { ctx }: DrawEventCtx
+) {
+  // Body
+  ctx.beginPath();
+  drawCircle(ctx, x, y, radius, BLOBLONG_HEAD_COLOR);
+  ctx.strokeStyle = 'black';
+  ctx.stroke();
+  ctx.closePath();
+
+  // Left eye
+  ctx.beginPath();
+  drawCircle(ctx, x - 2, y - 5, 1, 'black');
+  ctx.closePath();
+
+  // Right eye
+  ctx.beginPath();
+  drawCircle(ctx, x + 2, y - 5, 1, 'black');
+  ctx.closePath();
+}
+
+export function drawBloblongSpawnProfile(
+  { position: { x, y }, radius }: { position: Point; radius: number },
+  { ctx }: DrawEventCtx
+) {
+  drawBloblongProfileHead(
+    { position: { x: x - 5, y: y - 5 }, radius },
+    { ctx }
+  );
+  drawBloblongProfileHead(
+    { position: { x: x + 5, y: y + 5 }, radius },
+    { ctx }
+  );
 }
 
 export function bloblongClicked(
