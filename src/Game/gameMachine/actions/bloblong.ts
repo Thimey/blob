@@ -13,8 +13,35 @@ export function initialiseBloblongs() {
         makeBloblong({
           id: generateId(),
           position: { x: 60, y: 60 },
-          rotation: Math.PI / 4,
-          // rotation: 0,
+          rotation: 0 * ((Math.PI * 2) / 360),
+        })
+      ),
+      spawn(
+        makeBloblong({
+          id: generateId(),
+          position: { x: 160, y: 60 },
+          rotation: 45 * ((Math.PI * 2) / 360),
+        })
+      ),
+      spawn(
+        makeBloblong({
+          id: generateId(),
+          position: { x: 260, y: 60 },
+          rotation: 90 * ((Math.PI * 2) / 360),
+        })
+      ),
+      spawn(
+        makeBloblong({
+          id: generateId(),
+          position: { x: 360, y: 60 },
+          rotation: 135 * ((Math.PI * 2) / 360),
+        })
+      ),
+      spawn(
+        makeBloblong({
+          id: generateId(),
+          position: { x: 460, y: 60 },
+          rotation: 180 * ((Math.PI * 2) / 360),
         })
       ),
     ],

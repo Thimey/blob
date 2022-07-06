@@ -1,7 +1,72 @@
-import { createMachine, send } from 'xstate';
+import { createMachine, send, assign } from 'xstate';
 
+import { Point, Movement, MapClickEvent, UpdateEvent } from 'game/types';
+import { network } from 'game/blobNetwork';
 import { Context, Event, State } from './types';
 import { drawBloblong, drawBloblongSelectedOutline } from './draw';
+
+const BLOBLONG_SPEED = 0.7;
+
+function makeMovement({
+  position,
+  destination,
+  speed = BLOBLONG_SPEED,
+}: {
+  position: Point;
+  destination: Point;
+  speed?: number;
+}): Movement {
+  return {
+    path: network.makePath(position, destination, speed),
+    pathIndex: 0,
+  };
+}
+
+const setMovement = assign(
+  ({ position }: Context, { point }: MapClickEvent) => ({
+    movement: makeMovement({ position, destination: point }),
+  })
+);
+
+const stepToDestination = assign<Context, UpdateEvent>(({ movement }) => {
+  if (!movement) return {};
+
+  return {
+    position: movement.path[movement.pathIndex],
+    movement: {
+      ...movement,
+      pathIndex: movement.pathIndex + 1,
+    },
+  };
+});
+
+const adjustRotation = assign<Context, UpdateEvent>(
+  ({ position, movement }) => {
+    if (!movement) return {};
+
+    const isLastUpdate = movement.pathIndex >= movement.path.length - 1;
+
+    if (isLastUpdate) return {};
+
+    const nextPosition = movement.path[movement.pathIndex + 1];
+
+    const dx = nextPosition.x - position.x;
+    const dy = nextPosition.y - position.y;
+
+    const angle = Math.atan(dy / dx);
+    const rotation = angle < 0 ? Math.PI + angle : angle;
+
+    return {
+      rotation,
+    };
+  }
+);
+
+function hasReachedDestination({ movement }: Context) {
+  if (!movement) return true;
+
+  return movement.pathIndex >= movement.path.length;
+}
 
 export function makeBloblong(context: Context) {
   return createMachine<Context, Event, State>({
@@ -41,6 +106,12 @@ export function makeBloblong(context: Context) {
                   BLOBLONG_CLICK: {
                     target: 'deselected',
                   },
+                  MAP_CLICKED: [
+                    {
+                      target: '#mapMoving',
+                      actions: [setMovement],
+                    },
+                  ],
                 },
               },
             },
@@ -49,7 +120,20 @@ export function makeBloblong(context: Context) {
             initial: 'stationary',
             states: {
               stationary: {},
-              moving: {},
+              moving: {
+                id: 'mapMoving',
+                on: {
+                  UPDATE: [
+                    {
+                      target: 'stationary',
+                      cond: hasReachedDestination,
+                    },
+                    {
+                      actions: [stepToDestination, adjustRotation],
+                    },
+                  ],
+                },
+              },
             },
           },
         },
