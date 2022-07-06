@@ -28,8 +28,13 @@ export function drawDiamond(
   width: number,
   height: number,
   fill: string,
-  stroke?: string
+  stroke = 'black',
+  rotation = 0
 ) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  ctx.translate(-x, -y);
   ctx.beginPath();
 
   ctx.moveTo(x - width / 2, y);
@@ -46,6 +51,7 @@ export function drawDiamond(
   }
 
   ctx.closePath();
+  ctx.restore();
 }
 
 export function drawSelectedOutline(
