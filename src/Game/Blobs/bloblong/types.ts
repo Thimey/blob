@@ -11,6 +11,8 @@ export interface Context {
   id: string;
   position: Point;
   rotation: number;
+  finRotation: number;
+  finRotationDir: 1 | -1;
   movement?: Movement;
 }
 

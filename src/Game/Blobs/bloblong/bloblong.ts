@@ -2,6 +2,7 @@ import { createMachine, send, assign } from 'xstate';
 
 import { Point, Movement, MapClickEvent, UpdateEvent } from 'game/types';
 import { network } from 'game/blobNetwork';
+import { generateId } from 'game/lib/math';
 import { Context, Event, State } from './types';
 import { drawBloblong, drawBloblongSelectedOutline } from './draw';
 
@@ -40,24 +41,49 @@ const stepToDestination = assign<Context, UpdateEvent>(({ movement }) => {
   };
 });
 
-const adjustRotation = assign<Context, UpdateEvent>(
-  ({ position, movement }) => {
+const rotateBody = assign<Context, UpdateEvent>(({ position, movement }) => {
+  if (!movement) return {};
+
+  const isLastUpdate = movement.pathIndex >= movement.path.length - 1;
+
+  if (isLastUpdate) return {};
+
+  const nextPosition = movement.path[movement.pathIndex + 1];
+
+  const dx = nextPosition.x - position.x;
+  const dy = nextPosition.y - position.y;
+
+  const angle = Math.atan(dy / dx);
+  const rotation = angle < 0 ? Math.PI + angle : angle;
+
+  return {
+    rotation,
+  };
+});
+
+const BLOBLONG_FIN_ROTATION = Math.PI / 4;
+
+function switchDirection(dir: 1 | -1) {
+  return dir === 1 ? -1 : 1;
+}
+
+const rotateFin = assign<Context, UpdateEvent>(
+  ({ finRotation, finRotationDir, movement }) => {
     if (!movement) return {};
 
-    const isLastUpdate = movement.pathIndex >= movement.path.length - 1;
+    const shouldRotate = movement.pathIndex % 5 === 0;
+    if (!shouldRotate) return {};
 
-    if (isLastUpdate) return {};
-
-    const nextPosition = movement.path[movement.pathIndex + 1];
-
-    const dx = nextPosition.x - position.x;
-    const dy = nextPosition.y - position.y;
-
-    const angle = Math.atan(dy / dx);
-    const rotation = angle < 0 ? Math.PI + angle : angle;
+    const changeDirection =
+      finRotationDir === 1
+        ? finRotation >= BLOBLONG_FIN_ROTATION
+        : finRotation <= -BLOBLONG_FIN_ROTATION;
 
     return {
-      rotation,
+      finRotation: finRotation + (finRotationDir * Math.PI) / 80,
+      finRotationDir: changeDirection
+        ? switchDirection(finRotationDir)
+        : finRotationDir,
     };
   }
 );
@@ -129,7 +155,7 @@ export function makeBloblong(context: Context) {
                       cond: hasReachedDestination,
                     },
                     {
-                      actions: [stepToDestination, adjustRotation],
+                      actions: [stepToDestination, rotateBody, rotateFin],
                     },
                   ],
                 },

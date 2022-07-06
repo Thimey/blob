@@ -74,7 +74,7 @@ function makeHead2EyePositions({ position: { x, y }, rotation }: Context) {
   };
 }
 
-function makeFins({ position: { x, y }, rotation }: Context) {
+function makeFins({ position: { x, y }, rotation, finRotation }: Context) {
   return [
     { xDir: 1, yDir: 1 },
     { xDir: -1, yDir: -1 },
@@ -86,6 +86,7 @@ function makeFins({ position: { x, y }, rotation }: Context) {
       Math.sign(xDir) * BLOBLONG_FIN_OFFSET,
       rotation + Math.sign(yDir) * BLOBLONG_FIN_ANGLE
     ),
+    rotation: rotation + yDir * xDir * finRotation,
   }));
 }
 
@@ -140,20 +141,22 @@ export function drawBloblong(context: Context, { ctx }: DrawEventCtx) {
   ctx.closePath();
 
   // Fins
-  fins.forEach(({ position: { x: finX, y: finY } }) => {
-    ctx.beginPath();
-    drawDiamond(
-      ctx,
-      finX,
-      finY,
-      BLOBLONG_FIN_WIDTH,
-      BLOBLONG_FIN_HEIGHT,
-      BLOBLONG_HEAD_COLOR,
-      'black',
-      rotation
-    );
-    ctx.closePath();
-  });
+  fins.forEach(
+    ({ position: { x: finX, y: finY }, rotation: singleFinRotation }) => {
+      ctx.beginPath();
+      drawDiamond(
+        ctx,
+        finX,
+        finY,
+        BLOBLONG_FIN_WIDTH,
+        BLOBLONG_FIN_HEIGHT,
+        BLOBLONG_HEAD_COLOR,
+        'black',
+        singleFinRotation
+      );
+      ctx.closePath();
+    }
+  );
 
   // Body
   ctx.beginPath();
