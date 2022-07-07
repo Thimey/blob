@@ -22,6 +22,10 @@ export function minMax(x1: number, x2: number) {
   };
 }
 
+export function multipleOf(multiple: number, n: number) {
+  return n % multiple === 0;
+}
+
 export function makeDistance({ x: x1, y: y1 }: Point, { x: x2, y: y2 }: Point) {
   return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
@@ -197,4 +201,15 @@ export function makePointsOnEllipse(
   }
 
   return points;
+}
+
+export function makeRelativePoint(
+  { x, y }: Point,
+  offset: number,
+  rotation: number
+) {
+  return {
+    x: x + offset * Math.cos(rotation),
+    y: y + offset * Math.sin(rotation),
+  };
 }

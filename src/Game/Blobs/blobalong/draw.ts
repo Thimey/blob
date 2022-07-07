@@ -3,6 +3,7 @@ import {
   isPointWithinDiamond,
   isPointWithinEllipse,
   isPointWithinCircle,
+  makeRelativePoint,
 } from 'game/lib/math';
 import { Point, DrawEventCtx } from 'game/types';
 import { Context, BlobalongActor } from './types';
@@ -34,25 +35,18 @@ const BLOBALONG_HEAD1_EYE_OFFSET = -30;
 const BLOBALONG_HEAD2_EYE_OFFSET = 30;
 const BLOBALONG_EYE_RADIUS = 1.5;
 
-function makePoint({ x, y }: Point, offset: number, rotation: number) {
-  return {
-    x: x + offset * Math.cos(rotation),
-    y: y + offset * Math.sin(rotation),
-  };
-}
-
 function makeHead1Position({
   position: { x, y },
   rotation,
 }: BlobalongDrawContext) {
-  return makePoint({ x, y }, -BLOBALONG_HEAD_OFFSET, rotation);
+  return makeRelativePoint({ x, y }, -BLOBALONG_HEAD_OFFSET, rotation);
 }
 
 function makeHead2Position({
   position: { x, y },
   rotation,
 }: BlobalongDrawContext) {
-  return makePoint({ x, y }, BLOBALONG_HEAD_OFFSET, rotation);
+  return makeRelativePoint({ x, y }, BLOBALONG_HEAD_OFFSET, rotation);
 }
 
 function makeHead1EyePositions({
@@ -60,12 +54,12 @@ function makeHead1EyePositions({
   rotation,
 }: BlobalongDrawContext) {
   return {
-    left: makePoint(
+    left: makeRelativePoint(
       { x, y },
       BLOBALONG_HEAD1_EYE_OFFSET,
       rotation - BLOBALONG_EYE_ANGLE
     ),
-    right: makePoint(
+    right: makeRelativePoint(
       { x, y },
       BLOBALONG_HEAD1_EYE_OFFSET,
       rotation + BLOBALONG_EYE_ANGLE
@@ -78,12 +72,12 @@ function makeHead2EyePositions({
   rotation,
 }: BlobalongDrawContext) {
   return {
-    left: makePoint(
+    left: makeRelativePoint(
       { x, y },
       BLOBALONG_HEAD2_EYE_OFFSET,
       rotation - BLOBALONG_EYE_ANGLE
     ),
-    right: makePoint(
+    right: makeRelativePoint(
       { x, y },
       BLOBALONG_HEAD2_EYE_OFFSET,
       rotation + BLOBALONG_EYE_ANGLE
@@ -102,7 +96,7 @@ function makeFins({
     { xDir: 1, yDir: -1 },
     { xDir: -1, yDir: 1 },
   ].map(({ xDir, yDir }) => ({
-    position: makePoint(
+    position: makeRelativePoint(
       { x, y },
       Math.sign(xDir) * BLOBALONG_FIN_OFFSET,
       rotation + Math.sign(yDir) * BLOBALONG_FIN_ANGLE

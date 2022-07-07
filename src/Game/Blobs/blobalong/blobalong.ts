@@ -1,6 +1,7 @@
 import { createMachine, send, assign } from 'xstate';
 
 import { Point, Movement, MapClickEvent, UpdateEvent } from 'game/types';
+import { multipleOf } from 'game/lib/math';
 import { network } from 'game/blobNetwork';
 import { Context, Event, State } from './types';
 import { drawBlobalong, drawBlobalongSelectedOutline } from './draw';
@@ -70,7 +71,7 @@ const rotateFin = assign<Context, UpdateEvent>(
   ({ finRotation, finRotationDir, movement }) => {
     if (!movement) return {};
 
-    const shouldRotate = movement.pathIndex % 5 === 0;
+    const shouldRotate = multipleOf(5, movement.pathIndex);
     if (!shouldRotate) return {};
 
     const changeDirection =
