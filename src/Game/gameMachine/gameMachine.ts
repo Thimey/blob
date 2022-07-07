@@ -1,4 +1,4 @@
-import { assign, createMachine, spawn } from 'xstate';
+import { createMachine } from 'xstate';
 
 import { LARVA_SPAWN_TIME_MS } from 'game/paramaters';
 import { animationMachine } from 'game/animations/animationMachine';
@@ -8,9 +8,11 @@ import {
   initialiseQueen,
   initialiseBloblets,
   initialiseShrubs,
+  initialiseBlobalongs,
   drawQueen,
   drawBloblets,
   drawLarvae,
+  drawBlobalongs,
   spawnBlobLarva,
   shouldSpawnLarva,
   spawnBlob,
@@ -24,10 +26,12 @@ import {
   propagateBlobletClicked,
   propagateMapClicked,
   propagateShrubClicked,
+  propagateLarvaClicked,
+  propagateBlobalongClicked,
   didClickOnBloblet,
   didClickOnShrub,
-  propagateLarvaClicked,
   didClickOnBlobLarva,
+  didClickOnBlobalong,
 } from './actions';
 
 export function makeGameMachine({
@@ -44,6 +48,7 @@ export function makeGameMachine({
       blobQueen: null,
       bloblets: [],
       blobLarvae: [],
+      blobalongs: [],
       shrubs: [],
     },
     on: {
@@ -54,6 +59,7 @@ export function makeGameMachine({
           drawLarvae,
           drawShrubs,
           drawBloblets,
+          drawBlobalongs,
         ],
       },
       UPDATE: {
@@ -75,6 +81,7 @@ export function makeGameMachine({
           initialiseQueen,
           initialiseShrubs(shrubs),
           initialiseBloblets(bloblets),
+          initialiseBlobalongs(),
         ],
         always: { target: 'ready' },
       },
@@ -89,6 +96,10 @@ export function makeGameMachine({
             {
               actions: [propagateBlobletClicked],
               cond: didClickOnBloblet,
+            },
+            {
+              actions: [propagateBlobalongClicked],
+              cond: didClickOnBlobalong,
             },
             {
               actions: [propagateShrubClicked],

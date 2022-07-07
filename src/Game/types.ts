@@ -1,4 +1,4 @@
-export type BlobType = 'bloblet';
+export type BlobType = 'bloblet' | 'blobalong';
 
 export type Point = {
   x: number;
@@ -29,3 +29,13 @@ export type UpdateEvent = {
   lastUpdateAt: number;
   currentUpdateAt: number;
 };
+
+export type MapClickEvent = {
+  type: 'MAP_CLICKED';
+  point: Point;
+};
+
+export interface Movement {
+  path: Point[];
+  pathIndex: number;
+}

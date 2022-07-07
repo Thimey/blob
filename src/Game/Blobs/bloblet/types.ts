@@ -1,12 +1,14 @@
 import { ActorRefFrom, StateMachine } from 'xstate';
-import { Point, PersistedActor, DrawEvent, UpdateEvent } from 'game/types';
+import {
+  Point,
+  PersistedActor,
+  DrawEvent,
+  UpdateEvent,
+  MapClickEvent,
+  Movement,
+} from 'game/types';
 
-export type { UpdateEvent, DrawEvent };
-
-export interface Movement {
-  path: Point[];
-  pathIndex: number;
-}
+export type { UpdateEvent, DrawEvent, MapClickEvent, Movement };
 
 export type Context = {
   id: string;
@@ -23,14 +25,9 @@ export type Context = {
   };
 };
 
-export type BlobClickEvent = {
+export type BlobletClickEvent = {
   type: 'BLOBLET_CLICKED';
   id: string;
-};
-
-export type MapClickEvent = {
-  type: 'MAP_CLICKED';
-  point: Point;
 };
 
 export type ShrubClickEvent = {
@@ -74,7 +71,7 @@ export type State = {
 };
 
 export type Event =
-  | BlobClickEvent
+  | BlobletClickEvent
   | MapClickEvent
   | DrawEvent
   | UpdateEvent

@@ -26,6 +26,7 @@ export interface Context {
   spawnOptions: SpawnOptions;
   blobQueen: BlobQueenActor | null;
   bloblets: BlobletActor[];
+  blobalongs: any[];
   blobLarvae: BlobLarvaActor[];
   shrubs: ShrubActor[];
 }
@@ -70,7 +71,7 @@ export type SpawnBlobSelectedEvent = {
 
 export type BlobHatchedEvent = {
   type: 'BLOB_HATCHED';
-  blob: 'bloblet';
+  blob: BlobType;
   position: Point;
   larvaId: string;
 };
