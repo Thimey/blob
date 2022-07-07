@@ -71,7 +71,6 @@ export function makeGameMachine({
     on: {
       DRAW: {
         actions: [
-          ({ multiSelect }, e) => multiSelect.send(e),
           drawQueen,
           (_, e) => animationMachine.send(e),
           drawLarvae,
@@ -83,19 +82,6 @@ export function makeGameMachine({
             ctx,
           })),
         ],
-      },
-      MOUSE_UP: {
-        actions: ({ multiSelect }, e) => multiSelect.send(e),
-      },
-      MOUSE_DOWN: {
-        actions: ({ multiSelect }, e) => {
-          multiSelect.send(e);
-        },
-      },
-      MOUSE_MOVE: {
-        actions: ({ multiSelect }, e) => {
-          multiSelect.send(e);
-        },
       },
       UPDATE: {
         actions: [(_, e) => animationMachine.send(e), updateBlobs],
@@ -113,9 +99,6 @@ export function makeGameMachine({
     states: {
       initialising: {
         entry: [
-          assign({
-            multiSelect: spawn(makeMultiSelect()),
-          }),
           initialiseQueen,
           initialiseShrubs(shrubs),
           initialiseBloblets(bloblets),
@@ -164,17 +147,20 @@ export function makeGameMachine({
             actions: [spawnBlob],
           },
         },
-        invoke: {
-          src: () => (cb) => {
-            const spawnLarvaeInterval = setInterval(() => {
-              cb('SPAWN_LARVA');
-            }, LARVA_SPAWN_TIME_MS);
+        invoke: [
+          {
+            src: () => (cb) => {
+              const spawnLarvaeInterval = setInterval(() => {
+                cb('SPAWN_LARVA');
+              }, LARVA_SPAWN_TIME_MS);
 
-            return () => {
-              clearInterval(spawnLarvaeInterval);
-            };
+              return () => {
+                clearInterval(spawnLarvaeInterval);
+              };
+            },
           },
-        },
+          { src: makeMultiSelect() },
+        ],
         states: {
           itemSelection: {
             initial: 'idle',

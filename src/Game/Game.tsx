@@ -64,26 +64,6 @@ export const Game = () => {
     // window.addEventListener('beforeunload', () =>
     //   persistGameState(gameService as any)
     // );
-
-    const geometry = gameCanvasRef.current?.getBoundingClientRect();
-
-    window.addEventListener('mousedown', ({ clientX, clientY }) => {
-      if (gameServices.gameService && geometry) {
-        const { x, y } = geometry;
-        gameServices.gameService.send('MOUSE_DOWN', {
-          point: { x: clientX - x, y: clientY - y },
-        });
-      }
-    });
-
-    window.addEventListener('mousemove', ({ clientX, clientY }) => {
-      if (gameServices.gameService && geometry) {
-        const { x, y } = geometry;
-        gameServices.gameService.send('MOUSE_MOVE', {
-          point: { x: clientX - x, y: clientY - y },
-        });
-      }
-    });
   }, [gameServices.gameService]);
 
   const handleMainGameClick = ({ clientX, clientY }: React.MouseEvent) => {

@@ -17,36 +17,103 @@ type State = {
 };
 
 type Context = {
-  mouseDownPoint: Point;
-  mouseMovePoint: Point;
+  gameCtx: CanvasRenderingContext2D | null;
+  mouseDownPoint: Point | null;
+  mouseMovePoint: Point | null;
 };
 
 type Event = DrawEvent | MouseDownEvent | MouseUpEvent | MouseMoveEvent;
 
 function drawSelectBox(
-  { mouseDownPoint, mouseMovePoint }: Context,
-  { ctx }: DrawEvent
+  { gameCtx, mouseDownPoint, mouseMovePoint }: Context,
+  { point }: MouseMoveEvent
 ) {
-  const { x, y, width, height } = makeRectangle(mouseDownPoint, mouseMovePoint);
-  ctx.rect(x, y, width, height);
-  ctx.fillStyle = 'blue';
-  ctx.fill();
+  console.log('gameCtx', gameCtx);
+  console.log('mouseDownPoint', mouseDownPoint);
+  console.log('mouseMovePoint', mouseMovePoint);
+  if (gameCtx && mouseDownPoint && mouseMovePoint) {
+    const { x, y, width, height } = makeRectangle(
+      mouseDownPoint,
+      mouseMovePoint
+    );
+    console.log(' x, y, width, height', x, y, width, height);
+    gameCtx.beginPath();
+    // eslint-disable-next-line no-param-reassign
+    gameCtx.fillStyle = 'blue';
+    gameCtx.fillRect(50, 50, 50, 50);
+    gameCtx.fillRect(x, y, width, height);
+    gameCtx.closePath();
+  }
+}
+
+function waitForElm(elementId: string) {
+  return new Promise((resolve) => {
+    const gameCanvas = document.getElementById(elementId);
+    console.log('gameCanvas - 1', gameCanvas);
+
+    if (gameCanvas) {
+      resolve(gameCanvas);
+    }
+
+    const observer = new MutationObserver(() => {
+      const canvas = document.getElementById(elementId);
+      console.log('canvas - 2', canvas);
+      if (canvas) {
+        resolve(canvas);
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(document, {
+      childList: true,
+      subtree: true,
+    });
+  });
 }
 
 export function makeMultiSelect() {
   return createMachine<Context, Event, State>({
-    initial: 'inactive',
+    initial: 'initialising',
     context: {
+      gameCtx: null,
       mouseDownPoint: null,
       mouseMovePoint: null,
     },
     states: {
+      initialising: {
+        invoke: {
+          src: () => waitForElm('game-canvas'),
+          onDone: {
+            target: 'inactive',
+            actions: assign((_, { data }) => {
+              const gameCtx = data.getContext('2d') as CanvasRenderingContext2D;
+
+              return {
+                gameCtx,
+              };
+            }),
+          },
+        },
+      },
       inactive: {
+        invoke: {
+          src: () => (sendBack) => {
+            function handleMouseDown({ offsetX, offsetY }: MouseEvent) {
+              sendBack({
+                type: 'MOUSE_DOWN',
+                point: { x: offsetX, y: offsetY },
+              });
+            }
+
+            window.addEventListener('mousedown', handleMouseDown);
+            return () =>
+              window.removeEventListener('mousedown', handleMouseDown);
+          },
+        },
         on: {
           MOUSE_DOWN: {
             target: 'active',
             actions: [
-              () => console.log('herer'),
               assign((_, { point }) => ({
                 mouseDownPoint: point,
               })),
@@ -55,16 +122,38 @@ export function makeMultiSelect() {
         },
       },
       active: {
-        on: {
-          DRAW: {
-            actions: [drawSelectBox],
+        invoke: {
+          src: () => (sendBack) => {
+            function handleMouseUp({ offsetX, offsetY }: MouseEvent) {
+              sendBack({
+                type: 'MOUSE_UP',
+              });
+            }
+
+            function handleMouseMove({ offsetX, offsetY }: MouseEvent) {
+              sendBack({
+                type: 'MOUSE_MOVE',
+                point: { x: offsetX, y: offsetY },
+              });
+            }
+
+            window.addEventListener('mouseup', handleMouseUp);
+            window.addEventListener('mousemove', handleMouseMove);
+
+            return () => {
+              window.removeEventListener('mouseup', handleMouseUp);
+              window.removeEventListener('mousemove', handleMouseMove);
+            };
           },
+        },
+        on: {
           MOUSE_UP: { target: 'inactive' },
           MOUSE_MOVE: {
             actions: [
               assign((_, { point }) => ({
                 mouseMovePoint: point,
               })),
+              drawSelectBox,
             ],
           },
         },
