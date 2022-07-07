@@ -3,14 +3,14 @@ import { createMachine, send, assign } from 'xstate';
 import { Point, Movement, MapClickEvent, UpdateEvent } from 'game/types';
 import { network } from 'game/blobNetwork';
 import { Context, Event, State } from './types';
-import { drawBloblong, drawBloblongSelectedOutline } from './draw';
+import { drawBlobalong, drawBlobalongSelectedOutline } from './draw';
 
-const BLOBLONG_SPEED = 0.5;
+const BLOBALONG_SPEED = 0.5;
 
 function makeMovement({
   position,
   destination,
-  speed = BLOBLONG_SPEED,
+  speed = BLOBALONG_SPEED,
 }: {
   position: Point;
   destination: Point;
@@ -60,7 +60,7 @@ const rotateBody = assign<Context, UpdateEvent>(({ position, movement }) => {
   };
 });
 
-const BLOBLONG_FIN_ROTATION = Math.PI / 4;
+const BLOBALONG_FIN_ROTATION = Math.PI / 4;
 
 function switchDirection(dir: 1 | -1) {
   return dir === 1 ? -1 : 1;
@@ -75,8 +75,8 @@ const rotateFin = assign<Context, UpdateEvent>(
 
     const changeDirection =
       finRotationDir === 1
-        ? finRotation >= BLOBLONG_FIN_ROTATION
-        : finRotation <= -BLOBLONG_FIN_ROTATION;
+        ? finRotation >= BLOBALONG_FIN_ROTATION
+        : finRotation <= -BLOBALONG_FIN_ROTATION;
 
     return {
       finRotation: finRotation + (finRotationDir * Math.PI) / 80,
@@ -93,7 +93,7 @@ function hasReachedDestination({ movement }: Context) {
   return movement.pathIndex >= movement.path.length;
 }
 
-export function makeBloblong(context: Context) {
+export function makeBlobalong(context: Context) {
   return createMachine<Context, Event, State>({
     initial: 'initialising',
     context,
@@ -106,7 +106,7 @@ export function makeBloblong(context: Context) {
         on: {
           DRAW: {
             actions: [
-              drawBloblong,
+              drawBlobalong,
               send((_, { ctx }) => ({ type: 'DRAW_SELECTED', ctx })),
             ],
           },
@@ -117,7 +117,7 @@ export function makeBloblong(context: Context) {
             states: {
               deselected: {
                 on: {
-                  BLOBLONG_CLICK: {
+                  BLOBALONG_CLICK: {
                     target: 'selected',
                     cond: ({ id }, { id: clickedId }) => id === clickedId,
                   },
@@ -126,9 +126,9 @@ export function makeBloblong(context: Context) {
               selected: {
                 on: {
                   DRAW_SELECTED: {
-                    actions: [drawBloblongSelectedOutline],
+                    actions: [drawBlobalongSelectedOutline],
                   },
-                  BLOBLONG_CLICK: {
+                  BLOBALONG_CLICK: {
                     target: 'deselected',
                   },
                   MAP_CLICKED: [

@@ -2,7 +2,7 @@ import { UpdateEvent } from 'game/types';
 import { Context, ClickedEvent } from '../types';
 
 export function updateBlobs(
-  { blobQueen, bloblets, bloblongs, blobLarvae }: Context,
+  { blobQueen, bloblets, blobalongs, blobLarvae }: Context,
   event: UpdateEvent
 ) {
   blobQueen?.send(event);
@@ -12,19 +12,19 @@ export function updateBlobs(
   blobLarvae.forEach((larva) => {
     larva.send(event);
   });
-  bloblongs.forEach((blob) => {
+  blobalongs.forEach((blob) => {
     blob.send(event);
   });
 }
 
 export function propagateMapClicked(
-  { bloblets, bloblongs }: Context,
+  { bloblets, blobalongs }: Context,
   { point }: ClickedEvent
 ) {
   bloblets.forEach((blob) => {
     blob.send({ type: 'MAP_CLICKED', point });
   });
-  bloblongs.forEach((blob) => {
+  blobalongs.forEach((blob) => {
     blob.send({ type: 'MAP_CLICKED', point });
   });
 }

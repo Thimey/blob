@@ -17,7 +17,7 @@ import {
   DrawEvent,
 } from 'game/blobs/blobLarva';
 import { makeBloblet } from 'game/blobs/bloblet';
-import { makeBloblong } from 'game/blobs/bloblong';
+import { makeBlobalong } from 'game/blobs/blobalong';
 import {
   Context,
   ClickedEvent,
@@ -96,12 +96,12 @@ export const spawnBlob = assign(
       };
     }
 
-    if (blob === 'bloblong') {
+    if (blob === 'blobalong') {
       return {
-        bloblongs: [
-          ...context.bloblongs,
+        blobalongs: [
+          ...context.blobalongs,
           spawn(
-            makeBloblong({
+            makeBlobalong({
               id: generateId(),
               position,
               rotation: 0,

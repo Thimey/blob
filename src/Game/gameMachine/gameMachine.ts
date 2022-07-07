@@ -8,11 +8,11 @@ import {
   initialiseQueen,
   initialiseBloblets,
   initialiseShrubs,
-  initialiseBloblongs,
+  initialiseBlobalongs,
   drawQueen,
   drawBloblets,
   drawLarvae,
-  drawBloblongs,
+  drawBlobalongs,
   spawnBlobLarva,
   shouldSpawnLarva,
   spawnBlob,
@@ -27,11 +27,11 @@ import {
   propagateMapClicked,
   propagateShrubClicked,
   propagateLarvaClicked,
-  propagateBloblongClicked,
+  propagateBlobalongClicked,
   didClickOnBloblet,
   didClickOnShrub,
   didClickOnBlobLarva,
-  didClickOnBloblong,
+  didClickOnBlobalong,
 } from './actions';
 
 export function makeGameMachine({
@@ -48,7 +48,7 @@ export function makeGameMachine({
       blobQueen: null,
       bloblets: [],
       blobLarvae: [],
-      bloblongs: [],
+      blobalongs: [],
       shrubs: [],
     },
     on: {
@@ -59,7 +59,7 @@ export function makeGameMachine({
           drawLarvae,
           drawShrubs,
           drawBloblets,
-          drawBloblongs,
+          drawBlobalongs,
         ],
       },
       UPDATE: {
@@ -81,7 +81,7 @@ export function makeGameMachine({
           initialiseQueen,
           initialiseShrubs(shrubs),
           initialiseBloblets(bloblets),
-          initialiseBloblongs(),
+          initialiseBlobalongs(),
         ],
         always: { target: 'ready' },
       },
@@ -98,8 +98,8 @@ export function makeGameMachine({
               cond: didClickOnBloblet,
             },
             {
-              actions: [propagateBloblongClicked],
-              cond: didClickOnBloblong,
+              actions: [propagateBlobalongClicked],
+              cond: didClickOnBlobalong,
             },
             {
               actions: [propagateShrubClicked],

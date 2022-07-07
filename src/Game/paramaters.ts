@@ -30,9 +30,9 @@ export const BLOBLET_SPAWN_TIME_MS = 10_00;
 export const BLOBLET_HARVEST_INTERVAL = 5_000;
 export const BLOBLET_DRIFT_DISTANCE = 10;
 
-// Bloblong
-export const BLOBLONG_MASS_COST = 20;
-export const BLOBLONG_SPAWN_TIME_MS = 20_00;
+// Blobalong
+export const BLOBALONG_MASS_COST = 20;
+export const BLOBALONG_SPAWN_TIME_MS = 20_00;
 
 // Shrubs
 export const LEAF_HEIGHT = 12;

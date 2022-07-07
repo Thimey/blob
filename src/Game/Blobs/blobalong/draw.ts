@@ -5,34 +5,34 @@ import {
   isPointWithinCircle,
 } from 'game/lib/math';
 import { Point, DrawEventCtx } from 'game/types';
-import { Context, BloblongActor } from './types';
+import { Context, BlobalongActor } from './types';
 
-type BloblongDrawContext = Pick<
+type BlobalongDrawContext = Pick<
   Context,
   'position' | 'rotation' | 'finRotation' | 'finRotationDir'
 >;
 
 // Heads
-const BLOBLONG_HEAD_RADIUS = 14;
-const BLOBLONG_HEAD_OFFSET = 25;
-const BLOBLONG_HEAD_COLOR = '#228be6';
+const BLOBALONG_HEAD_RADIUS = 14;
+const BLOBALONG_HEAD_OFFSET = 25;
+const BLOBALONG_HEAD_COLOR = '#228be6';
 
 // Body
-const BLOBLONG_BODY_RADIUS_X = 22;
-const BLOBLONG_BODY_RADIUS_Y = 13;
-const BLOBLONG_BODY_COLOR = '#15aabf';
+const BLOBALONG_BODY_RADIUS_X = 22;
+const BLOBALONG_BODY_RADIUS_Y = 13;
+const BLOBALONG_BODY_COLOR = '#15aabf';
 
 // Fins
-const BLOBLONG_FIN_WIDTH = 12;
-const BLOBLONG_FIN_HEIGHT = 20;
-const BLOBLONG_FIN_OFFSET = 16;
-const BLOBLONG_FIN_ANGLE = Math.PI / 3;
+const BLOBALONG_FIN_WIDTH = 12;
+const BLOBALONG_FIN_HEIGHT = 20;
+const BLOBALONG_FIN_OFFSET = 16;
+const BLOBALONG_FIN_ANGLE = Math.PI / 3;
 
 // Eye params
-const BLOBLONG_EYE_ANGLE = Math.PI / 26;
-const BLOBLONG_HEAD1_EYE_OFFSET = -30;
-const BLOBLONG_HEAD2_EYE_OFFSET = 30;
-const BLOBLONG_EYE_RADIUS = 1.5;
+const BLOBALONG_EYE_ANGLE = Math.PI / 26;
+const BLOBALONG_HEAD1_EYE_OFFSET = -30;
+const BLOBALONG_HEAD2_EYE_OFFSET = 30;
+const BLOBALONG_EYE_RADIUS = 1.5;
 
 function makePoint({ x, y }: Point, offset: number, rotation: number) {
   return {
@@ -44,31 +44,31 @@ function makePoint({ x, y }: Point, offset: number, rotation: number) {
 function makeHead1Position({
   position: { x, y },
   rotation,
-}: BloblongDrawContext) {
-  return makePoint({ x, y }, -BLOBLONG_HEAD_OFFSET, rotation);
+}: BlobalongDrawContext) {
+  return makePoint({ x, y }, -BLOBALONG_HEAD_OFFSET, rotation);
 }
 
 function makeHead2Position({
   position: { x, y },
   rotation,
-}: BloblongDrawContext) {
-  return makePoint({ x, y }, BLOBLONG_HEAD_OFFSET, rotation);
+}: BlobalongDrawContext) {
+  return makePoint({ x, y }, BLOBALONG_HEAD_OFFSET, rotation);
 }
 
 function makeHead1EyePositions({
   position: { x, y },
   rotation,
-}: BloblongDrawContext) {
+}: BlobalongDrawContext) {
   return {
     left: makePoint(
       { x, y },
-      BLOBLONG_HEAD1_EYE_OFFSET,
-      rotation - BLOBLONG_EYE_ANGLE
+      BLOBALONG_HEAD1_EYE_OFFSET,
+      rotation - BLOBALONG_EYE_ANGLE
     ),
     right: makePoint(
       { x, y },
-      BLOBLONG_HEAD1_EYE_OFFSET,
-      rotation + BLOBLONG_EYE_ANGLE
+      BLOBALONG_HEAD1_EYE_OFFSET,
+      rotation + BLOBALONG_EYE_ANGLE
     ),
   };
 }
@@ -76,17 +76,17 @@ function makeHead1EyePositions({
 function makeHead2EyePositions({
   position: { x, y },
   rotation,
-}: BloblongDrawContext) {
+}: BlobalongDrawContext) {
   return {
     left: makePoint(
       { x, y },
-      BLOBLONG_HEAD2_EYE_OFFSET,
-      rotation - BLOBLONG_EYE_ANGLE
+      BLOBALONG_HEAD2_EYE_OFFSET,
+      rotation - BLOBALONG_EYE_ANGLE
     ),
     right: makePoint(
       { x, y },
-      BLOBLONG_HEAD2_EYE_OFFSET,
-      rotation + BLOBLONG_EYE_ANGLE
+      BLOBALONG_HEAD2_EYE_OFFSET,
+      rotation + BLOBALONG_EYE_ANGLE
     ),
   };
 }
@@ -95,7 +95,7 @@ function makeFins({
   position: { x, y },
   rotation,
   finRotation,
-}: BloblongDrawContext) {
+}: BlobalongDrawContext) {
   return [
     { xDir: 1, yDir: 1 },
     { xDir: -1, yDir: -1 },
@@ -104,15 +104,15 @@ function makeFins({
   ].map(({ xDir, yDir }) => ({
     position: makePoint(
       { x, y },
-      Math.sign(xDir) * BLOBLONG_FIN_OFFSET,
-      rotation + Math.sign(yDir) * BLOBLONG_FIN_ANGLE
+      Math.sign(xDir) * BLOBALONG_FIN_OFFSET,
+      rotation + Math.sign(yDir) * BLOBALONG_FIN_ANGLE
     ),
     rotation: rotation + yDir * xDir * finRotation,
   }));
 }
 
-export function drawBloblong(
-  context: BloblongDrawContext,
+export function drawBlobalong(
+  context: BlobalongDrawContext,
   { ctx }: DrawEventCtx
 ) {
   const {
@@ -136,32 +136,44 @@ export function drawBloblong(
 
   // Head 1
   ctx.beginPath();
-  drawCircle(ctx, head1X, head1Y, BLOBLONG_HEAD_RADIUS, BLOBLONG_HEAD_COLOR);
+  drawCircle(ctx, head1X, head1Y, BLOBALONG_HEAD_RADIUS, BLOBALONG_HEAD_COLOR);
   ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
   // Left eye
   ctx.beginPath();
-  drawCircle(ctx, head1LeftEyeX, head1LeftEyeY, BLOBLONG_EYE_RADIUS, 'black');
+  drawCircle(ctx, head1LeftEyeX, head1LeftEyeY, BLOBALONG_EYE_RADIUS, 'black');
   ctx.closePath();
   // Right eye
   ctx.beginPath();
-  drawCircle(ctx, head1RightEyeX, head1RightEyeY, BLOBLONG_EYE_RADIUS, 'black');
+  drawCircle(
+    ctx,
+    head1RightEyeX,
+    head1RightEyeY,
+    BLOBALONG_EYE_RADIUS,
+    'black'
+  );
   ctx.closePath();
 
   // Head 2
   ctx.beginPath();
-  drawCircle(ctx, head2X, head2Y, BLOBLONG_HEAD_RADIUS, BLOBLONG_HEAD_COLOR);
+  drawCircle(ctx, head2X, head2Y, BLOBALONG_HEAD_RADIUS, BLOBALONG_HEAD_COLOR);
   ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
   // Left eye
   ctx.beginPath();
-  drawCircle(ctx, head2LeftEyeX, head2LeftEyeY, BLOBLONG_EYE_RADIUS, 'black');
+  drawCircle(ctx, head2LeftEyeX, head2LeftEyeY, BLOBALONG_EYE_RADIUS, 'black');
   ctx.closePath();
   // Right eye
   ctx.beginPath();
-  drawCircle(ctx, head2RightEyeX, head2RightEyeY, BLOBLONG_EYE_RADIUS, 'black');
+  drawCircle(
+    ctx,
+    head2RightEyeX,
+    head2RightEyeY,
+    BLOBALONG_EYE_RADIUS,
+    'black'
+  );
   ctx.closePath();
 
   // Fins
@@ -172,9 +184,9 @@ export function drawBloblong(
         ctx,
         finX,
         finY,
-        BLOBLONG_FIN_WIDTH,
-        BLOBLONG_FIN_HEIGHT,
-        BLOBLONG_HEAD_COLOR,
+        BLOBALONG_FIN_WIDTH,
+        BLOBALONG_FIN_HEIGHT,
+        BLOBALONG_HEAD_COLOR,
         'black',
         singleFinRotation
       );
@@ -187,38 +199,38 @@ export function drawBloblong(
   ctx.ellipse(
     x,
     y,
-    BLOBLONG_BODY_RADIUS_X,
-    BLOBLONG_BODY_RADIUS_Y,
+    BLOBALONG_BODY_RADIUS_X,
+    BLOBALONG_BODY_RADIUS_Y,
     rotation,
     0,
     2 * Math.PI
   );
   ctx.strokeStyle = 'black';
-  ctx.fillStyle = BLOBLONG_BODY_COLOR;
+  ctx.fillStyle = BLOBALONG_BODY_COLOR;
   ctx.fill();
   ctx.stroke();
   ctx.closePath();
 }
 
-export function drawBloblongSelectedOutline(
-  { position }: BloblongDrawContext,
+export function drawBlobalongSelectedOutline(
+  { position }: BlobalongDrawContext,
   { ctx }: DrawEventCtx
 ) {
   ctx.beginPath();
   drawSelectedOutline(
-    { position, radius: BLOBLONG_BODY_RADIUS_X + BLOBLONG_HEAD_RADIUS + 4 },
+    { position, radius: BLOBALONG_BODY_RADIUS_X + BLOBALONG_HEAD_RADIUS + 4 },
     { ctx }
   );
   ctx.closePath();
 }
 
-export function drawBloblongProfileHead(
+export function drawBlobalongProfileHead(
   { position: { x, y }, radius }: { position: Point; radius: number },
   { ctx }: DrawEventCtx
 ) {
   // Body
   ctx.beginPath();
-  drawCircle(ctx, x, y, radius, BLOBLONG_HEAD_COLOR);
+  drawCircle(ctx, x, y, radius, BLOBALONG_HEAD_COLOR);
   ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
@@ -234,25 +246,25 @@ export function drawBloblongProfileHead(
   ctx.closePath();
 }
 
-export function drawBloblongSpawnProfile(
+export function drawBlobalongSpawnProfile(
   { position: { x, y }, radius }: { position: Point; radius: number },
   { ctx }: DrawEventCtx
 ) {
-  drawBloblongProfileHead(
+  drawBlobalongProfileHead(
     { position: { x: x - 5, y: y - 5 }, radius },
     { ctx }
   );
-  drawBloblongProfileHead(
+  drawBlobalongProfileHead(
     { position: { x: x + 5, y: y + 5 }, radius },
     { ctx }
   );
 }
 
-export function bloblongClicked(
-  bloblong: BloblongActor,
+export function blobalongClicked(
+  blobalong: BlobalongActor,
   { point }: { point: Point }
 ) {
-  const context = bloblong.getSnapshot()?.context;
+  const context = blobalong.getSnapshot()?.context;
   if (!context) return false;
 
   const {
@@ -264,27 +276,27 @@ export function bloblongClicked(
       {
         x,
         y,
-        radiusX: BLOBLONG_BODY_RADIUS_X,
-        radiusY: BLOBLONG_BODY_RADIUS_Y,
+        radiusX: BLOBALONG_BODY_RADIUS_X,
+        radiusY: BLOBALONG_BODY_RADIUS_Y,
       },
       point
     ) ||
     isPointWithinCircle(
       makeHead1Position(context),
-      BLOBLONG_HEAD_RADIUS,
+      BLOBALONG_HEAD_RADIUS,
       point
     ) ||
     isPointWithinCircle(
       makeHead2Position(context),
-      BLOBLONG_HEAD_RADIUS,
+      BLOBALONG_HEAD_RADIUS,
       point
     ) ||
     makeFins(context).some(({ position }) =>
       isPointWithinDiamond(
         {
           position,
-          height: BLOBLONG_FIN_HEIGHT,
-          width: BLOBLONG_FIN_WIDTH,
+          height: BLOBALONG_FIN_HEIGHT,
+          width: BLOBALONG_FIN_WIDTH,
         },
         point
       )

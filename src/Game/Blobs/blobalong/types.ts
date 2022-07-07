@@ -27,8 +27,8 @@ export type State = {
   context: Context;
 };
 
-export type BloblongClickEvent = {
-  type: 'BLOBLONG_CLICK';
+export type BlobalongClickEvent = {
+  type: 'BLOBALONG_CLICK';
   id: string;
 };
 
@@ -41,7 +41,7 @@ export type Event =
   | DrawEvent
   | UpdateEvent
   | MapClickEvent
-  | BloblongClickEvent
+  | BlobalongClickEvent
   | DrawSelectedEvent;
 
-export type BloblongActor = ActorRefFrom<StateMachine<Context, any, Event>>;
+export type BlobalongActor = ActorRefFrom<StateMachine<Context, any, Event>>;
