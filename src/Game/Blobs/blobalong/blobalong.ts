@@ -1,4 +1,4 @@
-import { createMachine, send, assign } from 'xstate';
+import { createMachine, send, assign, sendParent } from 'xstate';
 
 import { Point, Movement, MapClickEvent, UpdateEvent } from 'game/types';
 import { multipleOf } from 'game/lib/math';
@@ -121,6 +121,12 @@ export function makeBlobalong(context: Context) {
                   BLOBALONG_CLICK: {
                     target: 'selected',
                     cond: ({ id }, { id: clickedId }) => id === clickedId,
+                    actions: [
+                      sendParent(({ id }) => ({
+                        type: 'BLOBALONG_SELECTED',
+                        blobalongId: id,
+                      })),
+                    ],
                   },
                 },
               },
@@ -131,6 +137,12 @@ export function makeBlobalong(context: Context) {
                   },
                   BLOBALONG_CLICK: {
                     target: 'deselected',
+                    actions: [
+                      sendParent(({ id }) => ({
+                        type: 'BLOBALONG_DESELECTED',
+                        blobalongId: id,
+                      })),
+                    ],
                   },
                   MAP_CLICKED: [
                     {

@@ -13,6 +13,7 @@
     "@types/jest": "^28.1.1",
     "@types/uuid": "^8.3.4",
     "@xstate/react": "^3.0.0",
+    "debounce": "^1.2.1",
     "eslint": "^8.16.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.5.0",
@@ -30,6 +31,7 @@
     "xstate": "^4.32.1"
   },
   "devDependencies": {
+    "@types/debounce": "^1.2.1",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.26.0",

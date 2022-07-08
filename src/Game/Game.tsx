@@ -1,4 +1,5 @@
-import React, { useRef, useEffect, useContext } from 'react';
+import React, { useRef, useEffect, useContext, useCallback } from 'react';
+import debounce from 'debounce';
 
 import { network } from './blobNetwork';
 import { GameContext } from './GameProvider';
@@ -73,11 +74,26 @@ export const Game = () => {
     }
   };
 
+  const handleMainGameMouseMove = useCallback(
+    debounce(({ clientX, clientY }: React.MouseEvent) => {
+      const geometry = gameCanvasRef.current?.getBoundingClientRect();
+
+      if (gameServices.gameService && geometry) {
+        const { x, y } = geometry;
+        gameServices.gameService.send('MOUSE_MOVE', {
+          point: { x: clientX - x, y: clientY - y },
+        });
+      }
+    }, 500),
+    [gameServices.gameService]
+  );
+
   return (
     <>
       <canvas
         id="game-canvas"
         onClick={handleMainGameClick}
+        onMouseMove={handleMainGameMouseMove}
         ref={gameCanvasRef}
         style={{
           height: WORLD_HEIGHT,
