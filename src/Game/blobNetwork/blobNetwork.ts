@@ -20,7 +20,7 @@ import {
   Network,
   NodeId,
 } from './types';
-import { drawNode, drawConnection } from './draw';
+import { drawNode, drawConnection, drawNodeConnectionPoints } from './draw';
 import { makePath } from './makePath';
 import {
   findNodeOfPoint,
@@ -125,10 +125,17 @@ export class BlobNetwork {
     );
   }
 
+  public nodeOfPoint(point: Point) {
+    return findNodeOfPoint(this.nodes, point);
+  }
+
+  public isPointOnNode(point: Point) {
+    return Boolean(this.nodeOfPoint(point));
+  }
+
   public isPointOnNetwork(point: Point) {
     return Boolean(
-      findNodeOfPoint(this.nodes, point) ||
-        findConnectionOfPoint(this.connections, point)
+      this.nodeOfPoint(point) || findConnectionOfPoint(this.connections, point)
     );
   }
 
@@ -139,6 +146,12 @@ export class BlobNetwork {
     // Draw connections
     Object.values(this.connections).forEach((connection) =>
       drawConnection(ctx, connection)
+    );
+  }
+
+  public drawConnectionsStartPoints(ctx: CanvasRenderingContext2D) {
+    Object.values(this.nodes).forEach((node) =>
+      drawNodeConnectionPoints(ctx, node)
     );
   }
 }

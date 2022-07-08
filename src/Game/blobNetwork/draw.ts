@@ -94,3 +94,26 @@ export function drawConnection(
   ctx.closePath();
   ctx.restore();
 }
+
+const CONNECTION_POINT_FACTOR = 0.8;
+
+export function drawNodeConnectionPoints(
+  ctx: CanvasRenderingContext2D,
+  { centre, radiusX, radiusY }: Node
+) {
+  ctx.beginPath();
+  ctx.setLineDash([5, 6]);
+  ctx.ellipse(
+    centre.x,
+    centre.y,
+    radiusX * CONNECTION_POINT_FACTOR,
+    radiusY * CONNECTION_POINT_FACTOR,
+    0,
+    0,
+    2 * Math.PI
+  );
+  ctx.strokeStyle = blobQueenColor;
+  ctx.stroke();
+  ctx.closePath();
+  ctx.setLineDash([]);
+}

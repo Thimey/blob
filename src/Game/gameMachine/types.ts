@@ -84,6 +84,11 @@ export type BlobalongCancelConnectionEvent = {
   bobalongId: string;
 };
 
+export type DrawChoosingConnectionEvent = {
+  type: 'DRAW_CHOOSING_CONNECTION';
+  ctx: CanvasRenderingContext2D;
+};
+
 export type SpawnBlobSelectedEvent = {
   type: 'SPAWN_BLOB_SELECTED';
   blobToSpawn: BlobType;
@@ -112,6 +117,7 @@ export type State = {
 
 export type Event =
   | DrawEvent
+  | DrawChoosingConnectionEvent
   | UpdateEvent
   | ClickedEvent
   | MouseMoveEvent

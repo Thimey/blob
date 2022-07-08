@@ -4,8 +4,13 @@ import { LARVA_SPAWN_TIME_MS } from 'game/paramaters';
 import { animationMachine } from 'game/animations/animationMachine';
 import { makeChoosingConnectionMachine } from 'game/blobs/blobalong/choosingConnectionMachine';
 
-import { MouseMoveEvent } from 'game/types';
-import { Context, Event, State, PersistedGameState } from './types';
+import { DrawEvent } from 'game/types';
+import {
+  Context,
+  Event,
+  DrawChoosingConnectionEvent,
+  PersistedGameState,
+} from './types';
 import {
   initialiseQueen,
   initialiseBloblets,
@@ -66,6 +71,10 @@ export function makeGameMachine({
           drawShrubs,
           drawBloblets,
           drawBlobalongs,
+          send((_, { ctx }: DrawEvent) => ({
+            type: 'DRAW_CHOOSING_CONNECTION',
+            ctx,
+          })),
         ],
       },
       UPDATE: {
@@ -170,6 +179,17 @@ export function makeGameMachine({
                     on: {
                       CANCEL_CONNECTION: {
                         target: 'idle',
+                      },
+                      DRAW_CHOOSING_CONNECTION: {
+                        actions: send(
+                          (_, { ctx }: DrawChoosingConnectionEvent) => ({
+                            type: 'DRAW',
+                            ctx,
+                          }),
+                          {
+                            to: 'choosingConnection',
+                          }
+                        ),
                       },
                       CLICKED: {
                         actions: send((_, event) => event, {

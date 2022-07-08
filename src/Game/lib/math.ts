@@ -15,6 +15,14 @@ export function closestToZero(x1: number, x2: number) {
   return Math.abs(x1) < Math.abs(x2) ? x1 : x2;
 }
 
+export function degToRad(deg: number) {
+  return (deg * Math.PI) / 180;
+}
+
+export function radToDeg(rad: number) {
+  return (rad * 180) / Math.PI;
+}
+
 export function minMax(x1: number, x2: number) {
   return {
     min: Math.min(x1, x2),
@@ -203,6 +211,18 @@ export function makePointsOnEllipse(
   return points;
 }
 
+export function makePointOnEllipse(
+  position: Point,
+  radiusX: number,
+  radiusY: number,
+  angle: number
+) {
+  return {
+    x: position.x + radiusX * Math.cos(angle),
+    y: position.y + radiusY * Math.sin(angle),
+  };
+}
+
 export function makeRelativePoint(
   { x, y }: Point,
   offset: number,
@@ -212,4 +232,62 @@ export function makeRelativePoint(
     x: x + offset * Math.cos(rotation),
     y: y + offset * Math.sin(rotation),
   };
+}
+
+/**
+ * Gets the angle from point1 to point2 relative to horizontal line to x+
+ * Examples:
+ * Quadrant 1:
+ * p1-------
+ *  \ angle
+ *   \
+ *    \
+ *     \
+ *      \
+ *       p2
+ *
+ * Quadrant 2:
+ *        p1------
+ *       / angle
+ *      /
+ *     /
+ *    /
+ *   /
+ * p2
+ *
+ * Quandrant 3:
+ * p2
+ *  \
+ *   \
+ *    \
+ *     \
+ *      \
+ *       p1 -------
+ *      angle
+ *
+ * Quandrant 4:
+ *           p2
+ *         /
+ *        /
+ *       /
+ *      /
+ *     /
+ *    p1-------
+ * angle
+ */
+export function getAngleBetweenTwoPointsFromXHorizontal(
+  point1: Point,
+  point2: Point
+) {
+  const dx = point2.x - point1.x;
+  const dy = point2.y - point1.y;
+  const angle = Math.atan(Math.abs(dy / dx));
+
+  const quadrantAngleMap: Record<number, Record<number, number>> = {
+    0: { 0: 0, 1: angle, [-1]: Math.PI * 1.5 },
+    1: { 0: 0, 1: angle, [-1]: 2 * Math.PI - angle },
+    [-1]: { 0: Math.PI, 1: Math.PI - angle, [-1]: Math.PI + angle },
+  };
+
+  return quadrantAngleMap[Math.sign(dx)][Math.sign(dy)];
 }
