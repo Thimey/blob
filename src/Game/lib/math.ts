@@ -189,6 +189,19 @@ export function isPointWithinDiamond(
   return dx / width + dy / height <= 1;
 }
 
+export function makeRelativePoint(
+  { x, y }: Point,
+  offset: number,
+  rotation: number
+) {
+  return {
+    x: x + offset * Math.cos(rotation),
+    y: y + offset * Math.sin(rotation),
+  };
+}
+
+// Note this does make acurate points, but quickly adds points around ellipse circumference
+// Use makePointOnEllipse for accuracy
 export function makePointsOnEllipse(
   number: number,
   position: Point,
@@ -211,26 +224,32 @@ export function makePointsOnEllipse(
   return points;
 }
 
+/**
+ * Given ellipse and clockwise angle from positive x horzontal
+ * returns point on the ellipse.
+ *
+ * From here - https://math.stackexchange.com/a/22068
+ *
+ * Note the angle is opposite direction since the canvas y axis is flipped (positve down)
+ */
 export function makePointOnEllipse(
   position: Point,
   radiusX: number,
   radiusY: number,
   angle: number
 ) {
-  return {
-    x: position.x + radiusX * Math.cos(angle),
-    y: position.y + radiusY * Math.sin(angle),
-  };
-}
+  const x =
+    (radiusX * radiusY) /
+    Math.sqrt(radiusY ** 2 + radiusX ** 2 * Math.tan(angle) ** 2);
 
-export function makeRelativePoint(
-  { x, y }: Point,
-  offset: number,
-  rotation: number
-) {
+  const add =
+    angle <= Math.PI / 2 || (angle > 1.5 * Math.PI && angle <= 2 * Math.PI);
+
+  const xD = add ? x : -x;
+
   return {
-    x: x + offset * Math.cos(rotation),
-    y: y + offset * Math.sin(rotation),
+    x: position.x + xD,
+    y: position.y + xD * Math.tan(angle),
   };
 }
 

@@ -5,6 +5,7 @@ import {
   CONNECTION_WIDTH,
   ENTRANCE_RADIUS_X,
   ENTRANCE_RADIUS_Y,
+  CONNECTION_RADIUS_PERCENT,
 } from 'game/paramaters';
 
 import { Node, Connection } from './types';
@@ -95,9 +96,7 @@ export function drawConnection(
   ctx.restore();
 }
 
-const CONNECTION_POINT_FACTOR = 0.8;
-
-export function drawNodeConnectionPoints(
+export function drawNodeConnectionRadius(
   ctx: CanvasRenderingContext2D,
   { centre, radiusX, radiusY }: Node
 ) {
@@ -106,8 +105,8 @@ export function drawNodeConnectionPoints(
   ctx.ellipse(
     centre.x,
     centre.y,
-    radiusX * CONNECTION_POINT_FACTOR,
-    radiusY * CONNECTION_POINT_FACTOR,
+    radiusX * CONNECTION_RADIUS_PERCENT,
+    radiusY * CONNECTION_RADIUS_PERCENT,
     0,
     0,
     2 * Math.PI

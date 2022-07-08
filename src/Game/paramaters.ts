@@ -48,4 +48,6 @@ export const CONNECTION_WIDTH = 20;
 export const ENTRANCE_RADIUS_X = 20;
 export const ENTRANCE_RADIUS_Y = 20;
 
+export const CONNECTION_RADIUS_PERCENT = 0.8;
+
 export const DEFAULT_SPEED = 1.2;

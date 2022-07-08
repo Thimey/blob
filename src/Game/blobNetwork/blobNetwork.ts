@@ -20,7 +20,7 @@ import {
   Network,
   NodeId,
 } from './types';
-import { drawNode, drawConnection, drawNodeConnectionPoints } from './draw';
+import { drawNode, drawConnection, drawNodeConnectionRadius } from './draw';
 import { makePath } from './makePath';
 import {
   findNodeOfPoint,
@@ -149,9 +149,9 @@ export class BlobNetwork {
     );
   }
 
-  public drawConnectionsStartPoints(ctx: CanvasRenderingContext2D) {
+  public drawConnectionRadii(ctx: CanvasRenderingContext2D) {
     Object.values(this.nodes).forEach((node) =>
-      drawNodeConnectionPoints(ctx, node)
+      drawNodeConnectionRadius(ctx, node)
     );
   }
 }
