@@ -13,18 +13,12 @@ import { drawCircle } from 'game/lib/draw';
 interface Context {
   pendingPosition?: Point;
   start?: Point;
-  end?: PointerEvent;
+  end?: Point;
 }
 
-type DrawPointEvent = { type: 'DRAW_POINT'; ctx: CanvasRenderingContext2D };
+type Event = DrawEvent | MouseMoveEvent | ClickedEvent;
 
-type Event = DrawEvent | MouseMoveEvent | ClickedEvent | DrawPointEvent;
-
-function isValidStartingPosition(point: Point) {
-  return network.isPointOnNode(point);
-}
-
-const assignPendingPosition = assign(
+const assignNodePendingPoistion = assign(
   (_: Context, { point }: MouseMoveEvent) => {
     const node = network.nodeOfPoint(point);
     if (!node) return {};
@@ -48,17 +42,52 @@ const assignStartPosition = assign(
   })
 );
 
-function drawConnectionStartPoint(
-  { pendingPosition }: Context,
-  { ctx }: DrawPointEvent
-) {
-  if (!pendingPosition) return;
+const assignEndPosition = assign(
+  ({ pendingPosition }: Context, _: ClickedEvent) => ({
+    end: pendingPosition,
+  })
+);
 
+function drawConnectionPoint(ctx: CanvasRenderingContext2D, { x, y }: Point) {
   ctx.beginPath();
-  drawCircle(ctx, pendingPosition.x, pendingPosition.y, 14, blobQueenColor);
+  drawCircle(ctx, x, y, 14, blobQueenColor);
   ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
+}
+
+function drawConnectionLine(
+  ctx: CanvasRenderingContext2D,
+  start: Point,
+  end: Point
+) {
+  ctx.setLineDash([5, 15]);
+
+  ctx.beginPath();
+  ctx.moveTo(start.x, start.y);
+  ctx.lineTo(end.x, end.y);
+  ctx.stroke();
+  ctx.closePath();
+  ctx.setLineDash([]);
+}
+
+function drawConnectionStart({ pendingPosition }: Context, { ctx }: DrawEvent) {
+  if (!pendingPosition) return;
+
+  network.drawConnectionRadii(ctx);
+  drawConnectionPoint(ctx, pendingPosition);
+}
+
+function drawPendingConnection(
+  { pendingPosition, start }: Context,
+  { ctx }: DrawEvent
+) {
+  if (!pendingPosition || !start) return;
+
+  network.drawConnectionRadii(ctx);
+  drawConnectionPoint(ctx, start);
+  drawConnectionPoint(ctx, pendingPosition);
+  drawConnectionLine(ctx, start, pendingPosition);
 }
 
 export function makeChoosingConnectionMachine() {
@@ -77,7 +106,7 @@ export function makeChoosingConnectionMachine() {
             actions: [
               (_, { ctx }) => network.drawConnectionRadii(ctx),
               send((_: Context, { ctx }: DrawEvent) => ({
-                type: 'DRAW_POINT',
+                type: 'DRAW_START',
                 ctx,
               })),
             ],
@@ -88,37 +117,60 @@ export function makeChoosingConnectionMachine() {
             on: {
               MOUSE_MOVE: {
                 target: 'validPosition',
-                cond: (_, { point }) => isValidStartingPosition(point),
-                actions: assignPendingPosition,
+                cond: (_, { point }) => network.isPointOnNode(point),
+                actions: assignNodePendingPoistion,
               },
             },
           },
           validPosition: {
             on: {
-              DRAW_POINT: {
-                actions: drawConnectionStartPoint,
+              DRAW: {
+                actions: drawConnectionStart,
               },
               MOUSE_MOVE: [
                 {
                   target: 'invalidPosition',
-                  cond: (_, { point }) => !isValidStartingPosition(point),
+                  cond: (_, { point }) => !network.isPointOnNode(point),
                 },
                 {
-                  actions: assignPendingPosition,
+                  actions: assignNodePendingPoistion,
                 },
               ],
               CLICKED: {
-                target: '..choosingEnd',
+                target: '#choosingEnd',
                 actions: assignStartPosition,
               },
             },
           },
         },
       },
-      choosingEnd: {},
+      choosingEnd: {
+        id: 'choosingEnd',
+        on: {
+          DRAW: {
+            actions: drawPendingConnection,
+          },
+          MOUSE_MOVE: [
+            {
+              actions: assignNodePendingPoistion,
+              cond: (_, { point }) => network.isPointOnNode(point),
+            },
+            {
+              actions: assign((_: Context, { point }: MouseMoveEvent) => ({
+                pendingPosition: point,
+              })),
+            },
+          ],
+          CLICKED: {
+            target: 'done',
+            actions: assignEndPosition,
+          },
+        },
+      },
       adjustingEnd: {},
       done: {
         type: 'final',
+        data: ({ start, end }) => ({ start, end }),
       },
     },
   });

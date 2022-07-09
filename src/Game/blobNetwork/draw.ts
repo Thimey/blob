@@ -43,6 +43,7 @@ export function drawConnection(
   );
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.fill();
+  ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
 
@@ -59,6 +60,7 @@ export function drawConnection(
   );
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.fill();
+  ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
 
@@ -73,8 +75,8 @@ export function drawConnection(
     end.x,
     end.y
   );
-  ctx.strokeStyle = 'black';
   ctx.lineWidth = CONNECTION_WIDTH + CONNECTION_WALL_WIDTH;
+  ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
 

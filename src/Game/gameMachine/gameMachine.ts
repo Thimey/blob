@@ -205,10 +205,12 @@ export function makeGameMachine({
                     invoke: {
                       id: 'choosingConnection',
                       src: makeChoosingConnectionMachine,
-                      onDone: 'makeConnection',
+                      onDone: {
+                        target: 'idle',
+                        actions: (_, event) => console.log(event.data),
+                      },
                     },
                   },
-                  makeConnection: {},
                 },
               },
             },
