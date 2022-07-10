@@ -5,6 +5,7 @@ import {
   getAngleBetweenTwoPointsFromXHorizontal,
   makePointOnEllipse,
   makeDistance,
+  capLinearLine,
 } from 'game/lib/math';
 import {
   CONNECTION_RADIUS_PERCENT,
@@ -156,6 +157,17 @@ export function makeChoosingConnectionMachine() {
                 ({ start }, { point }) =>
                   !!start && connectionLessThanMaxLength(start, point),
                 (_, { point }) => !network.isPointOnNode(point)
+              ),
+            },
+            {
+              actions: assign(
+                ({ start }: Context, { point }: MouseMoveEvent) => ({
+                  pendingPosition: capLinearLine(
+                    start,
+                    point,
+                    CONNECTION_MAX_LENGTH
+                  ),
+                })
               ),
             },
           ],

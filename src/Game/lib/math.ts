@@ -310,3 +310,17 @@ export function getAngleBetweenTwoPointsFromXHorizontal(
 
   return quadrantAngleMap[Math.sign(dx)][Math.sign(dy)];
 }
+
+export function capLinearLine(start: Point, end: Point, max: number) {
+  if (makeDistance(start, end) <= max) return end;
+  console.log('cappin');
+
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const angle = Math.atan(Math.abs(dy / dx));
+
+  return {
+    x: start.x + max * Math.sign(dx) * Math.cos(angle),
+    y: start.y + max * Math.sign(dy) * Math.sin(angle),
+  };
+}
