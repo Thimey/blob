@@ -84,7 +84,7 @@ export const Game = () => {
           point: { x: clientX - x, y: clientY - y },
         });
       }
-    }, 300),
+    }, 0),
     [gameServices.gameService]
   );
 

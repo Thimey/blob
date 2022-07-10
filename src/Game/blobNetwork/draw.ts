@@ -7,8 +7,10 @@ import {
   ENTRANCE_RADIUS_Y,
   CONNECTION_RADIUS_PERCENT,
 } from 'game/paramaters';
+import { Point } from 'game/types';
+import { drawCircle } from 'game/lib/draw';
 
-import { Node, Connection } from './types';
+import { Node, Connection, NodeMap } from './types';
 
 const nodeColor = hexToRGB(blobQueenColor);
 
@@ -117,4 +119,56 @@ export function drawNodeConnectionRadius(
   ctx.stroke();
   ctx.closePath();
   ctx.setLineDash([]);
+}
+
+function drawNodeConnectionRadii(ctx: CanvasRenderingContext2D, nodes: Node[]) {
+  nodes.forEach((node) => drawNodeConnectionRadius(ctx, node));
+}
+
+function drawConnectionPoint(ctx: CanvasRenderingContext2D, { x, y }: Point) {
+  ctx.beginPath();
+  drawCircle(ctx, x, y, 14, blobQueenColor);
+  ctx.strokeStyle = 'black';
+  ctx.stroke();
+  ctx.closePath();
+}
+
+function drawPendingConnectionLine(
+  ctx: CanvasRenderingContext2D,
+  start: Point,
+  end: Point
+) {
+  ctx.setLineDash([5, 15]);
+
+  ctx.beginPath();
+  ctx.moveTo(start.x, start.y);
+  ctx.lineTo(end.x, end.y);
+  ctx.stroke();
+  ctx.closePath();
+  ctx.setLineDash([]);
+}
+
+export function drawConnectionStart(
+  ctx: CanvasRenderingContext2D,
+  nodes: Node[],
+  startPoint?: Point
+) {
+  if (!startPoint) return;
+
+  drawNodeConnectionRadii(ctx, nodes);
+  drawConnectionPoint(ctx, startPoint);
+}
+
+export function drawPendingConnection(
+  ctx: CanvasRenderingContext2D,
+  nodes: Node[],
+  start?: Point,
+  end?: Point
+) {
+  if (!start || !end) return;
+
+  drawNodeConnectionRadii(ctx, nodes);
+  drawConnectionPoint(ctx, start);
+  drawConnectionPoint(ctx, end);
+  drawPendingConnectionLine(ctx, start, end);
 }

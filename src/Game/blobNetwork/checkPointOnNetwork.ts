@@ -7,7 +7,7 @@ import {
   makeDistance,
 } from 'game/lib/math';
 
-import { Connection, NodeMap, ConnectionMap } from './types';
+import { Connection, NodeMap, ConnectionMap, Node } from './types';
 
 function couldPointBeOnConnection({ start, end }: Connection, { x, y }: Point) {
   const { min: minX, max: maxX } = minMax(start.x, end.x);
@@ -30,32 +30,28 @@ function pointIsOnConnection({ points }: Connection, point: Point) {
   );
 }
 
-export function findConnectionOfPoint(
-  connections: ConnectionMap,
-  point: Point
-) {
-  return Object.values(connections).find(
+export function findConnectionOfPoint(connections: Connection[], point: Point) {
+  return connections.find(
     (connection) =>
       couldPointBeOnConnection(connection, point) &&
       pointIsOnConnection(connection, point)
   );
 }
 
-export function findNodeOfPoint(nodes: NodeMap, point: Point) {
-  return Object.values(nodes).find(({ centre, radiusX, radiusY }) =>
+export function findNodeOfPoint(nodes: Node[], point: Point) {
+  return nodes.find(({ centre, radiusX, radiusY }) =>
     isPointWithinEllipse({ ...centre, radiusX, radiusY }, point)
   );
 }
 
-export function findNearestNode(nodes: NodeMap, point: Point) {
-  const nodesValues = Object.values(nodes);
-  return nodesValues.reduce(
+export function findNearestNode(nodes: Node[], point: Point) {
+  return nodes.reduce(
     (acc, node) => {
       const distance = makeDistance(node.centre, point);
       return distance < acc.distance ? { node, distance } : acc;
     },
     {
-      node: nodesValues[0],
+      node: nodes[0],
       distance: Infinity,
     }
   ).node;

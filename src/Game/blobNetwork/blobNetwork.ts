@@ -36,7 +36,8 @@ function toMap<T extends { id: string }>(items: T[]) {
 }
 
 function findEndPointConnectionNode(
-  { nodes, connections }: Network,
+  nodes: Node[],
+  connections: Connection[],
   startNodeId: NodeId,
   end: Point
 ) {
@@ -55,17 +56,25 @@ function findEndPointConnectionNode(
 }
 
 export class BlobNetwork {
-  private nodes: NodeMap;
+  private nodeMap: NodeMap;
 
-  private connections: ConnectionMap;
+  private connectionMap: ConnectionMap;
 
   private get network(): Network {
-    return { nodes: this.nodes, connections: this.connections };
+    return { nodes: this.nodeMap, connections: this.connectionMap };
   }
 
   constructor(nodes: Node[], connections: Connection[]) {
-    this.nodes = toMap(nodes);
-    this.connections = toMap(connections);
+    this.nodeMap = toMap(nodes);
+    this.connectionMap = toMap(connections);
+  }
+
+  public get nodes() {
+    return [...Object.values(this.nodeMap)];
+  }
+
+  public get connections() {
+    return [...Object.values(this.connectionMap)];
   }
 
   /**
@@ -85,7 +94,8 @@ export class BlobNetwork {
     if (!endPointNode) {
       // Check if end point leads to a node via a connection
       const connectionEndNode = findEndPointConnectionNode(
-        this.network,
+        this.nodes,
+        this.connections,
         startNode.id,
         end
       );
@@ -129,6 +139,14 @@ export class BlobNetwork {
     return findNodeOfPoint(this.nodes, point);
   }
 
+  public arePointsOnDifferentNodes(point1: Point, point2: Point) {
+    const node1 = this.nodeOfPoint(point1);
+    const node2 = this.nodeOfPoint(point2);
+    if (!node1 || !node2) return false;
+
+    return Boolean(node1.id !== node2.id);
+  }
+
   public isPointOnNode(point: Point) {
     return Boolean(this.nodeOfPoint(point));
   }
@@ -141,16 +159,16 @@ export class BlobNetwork {
 
   public draw(ctx: CanvasRenderingContext2D) {
     // Draw nodes
-    Object.values(this.nodes).forEach((node) => drawNode(ctx, node));
+    Object.values(this.nodeMap).forEach((node) => drawNode(ctx, node));
 
     // Draw connections
-    Object.values(this.connections).forEach((connection) =>
+    Object.values(this.connectionMap).forEach((connection) =>
       drawConnection(ctx, connection)
     );
   }
 
   public drawConnectionRadii(ctx: CanvasRenderingContext2D) {
-    Object.values(this.nodes).forEach((node) =>
+    Object.values(this.nodeMap).forEach((node) =>
       drawNodeConnectionRadius(ctx, node)
     );
   }

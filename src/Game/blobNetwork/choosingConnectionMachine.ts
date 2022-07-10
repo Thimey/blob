@@ -1,14 +1,19 @@
 import { assign, createMachine, send } from 'xstate';
 
-import { network } from 'game/blobNetwork';
 import { Point, DrawEvent, MouseMoveEvent, ClickedEvent } from 'game/types';
 import {
   getAngleBetweenTwoPointsFromXHorizontal,
   makePointOnEllipse,
+  makeDistance,
 } from 'game/lib/math';
-import { CONNECTION_RADIUS_PERCENT } from 'game/paramaters';
-import { blobQueenColor } from 'game/colors';
-import { drawCircle } from 'game/lib/draw';
+import {
+  CONNECTION_RADIUS_PERCENT,
+  CONNECTION_MAX_LENGTH,
+} from 'game/paramaters';
+
+import { Node } from './types';
+import { drawConnectionStart, drawPendingConnection } from './draw';
+import { network } from './blobNetwork';
 
 interface Context {
   pendingPosition?: Point;
@@ -18,21 +23,21 @@ interface Context {
 
 type Event = DrawEvent | MouseMoveEvent | ClickedEvent;
 
+function makePointOnNode(node: Node, point: Point) {
+  return makePointOnEllipse(
+    node.centre,
+    node.radiusX * CONNECTION_RADIUS_PERCENT,
+    node.radiusY * CONNECTION_RADIUS_PERCENT,
+    getAngleBetweenTwoPointsFromXHorizontal(node.centre, point)
+  );
+}
+
 const assignNodePendingPoistion = assign(
   (_: Context, { point }: MouseMoveEvent) => {
     const node = network.nodeOfPoint(point);
     if (!node) return {};
 
-    const angle = getAngleBetweenTwoPointsFromXHorizontal(node.centre, point);
-
-    return {
-      pendingPosition: makePointOnEllipse(
-        node.centre,
-        node.radiusX * CONNECTION_RADIUS_PERCENT,
-        node.radiusY * CONNECTION_RADIUS_PERCENT,
-        angle
-      ),
-    };
+    return { pendingPosition: makePointOnNode(node, point) };
   }
 );
 
@@ -48,46 +53,16 @@ const assignEndPosition = assign(
   })
 );
 
-function drawConnectionPoint(ctx: CanvasRenderingContext2D, { x, y }: Point) {
-  ctx.beginPath();
-  drawCircle(ctx, x, y, 14, blobQueenColor);
-  ctx.strokeStyle = 'black';
-  ctx.stroke();
-  ctx.closePath();
+function connectionLessThanMaxLength(start: Point, end: Point) {
+  if (!start) return false;
+  return makeDistance(start, end) <= CONNECTION_MAX_LENGTH;
 }
 
-function drawConnectionLine(
-  ctx: CanvasRenderingContext2D,
-  start: Point,
-  end: Point
+function and<T extends any[]>(
+  fn1: (...args: [...T]) => boolean,
+  fn2: (...args: [...T]) => boolean
 ) {
-  ctx.setLineDash([5, 15]);
-
-  ctx.beginPath();
-  ctx.moveTo(start.x, start.y);
-  ctx.lineTo(end.x, end.y);
-  ctx.stroke();
-  ctx.closePath();
-  ctx.setLineDash([]);
-}
-
-function drawConnectionStart({ pendingPosition }: Context, { ctx }: DrawEvent) {
-  if (!pendingPosition) return;
-
-  network.drawConnectionRadii(ctx);
-  drawConnectionPoint(ctx, pendingPosition);
-}
-
-function drawPendingConnection(
-  { pendingPosition, start }: Context,
-  { ctx }: DrawEvent
-) {
-  if (!pendingPosition || !start) return;
-
-  network.drawConnectionRadii(ctx);
-  drawConnectionPoint(ctx, start);
-  drawConnectionPoint(ctx, pendingPosition);
-  drawConnectionLine(ctx, start, pendingPosition);
+  return (...args: [...T]) => fn1(...args) && fn2(...args);
 }
 
 export function makeChoosingConnectionMachine() {
@@ -125,7 +100,8 @@ export function makeChoosingConnectionMachine() {
           validPosition: {
             on: {
               DRAW: {
-                actions: drawConnectionStart,
+                actions: ({ pendingPosition }, { ctx }) =>
+                  drawConnectionStart(ctx, network.nodes, pendingPosition),
               },
               MOUSE_MOVE: [
                 {
@@ -148,17 +124,39 @@ export function makeChoosingConnectionMachine() {
         id: 'choosingEnd',
         on: {
           DRAW: {
-            actions: drawPendingConnection,
+            actions: ({ start, pendingPosition }, { ctx }) =>
+              drawPendingConnection(ctx, network.nodes, start, pendingPosition),
           },
           MOUSE_MOVE: [
             {
               actions: assignNodePendingPoistion,
-              cond: (_, { point }) => network.isPointOnNode(point),
+              cond: and(
+                ({ start }: Context, { point }: MouseMoveEvent) =>
+                  !!start &&
+                  network.isPointOnNode(point) &&
+                  network.arePointsOnDifferentNodes(start, point),
+                ({ start }: Context, { point }: MouseMoveEvent) => {
+                  if (!start) return false;
+                  const node = network.nodeOfPoint(point);
+                  return Boolean(
+                    node &&
+                      connectionLessThanMaxLength(
+                        start,
+                        makePointOnNode(node, point)
+                      )
+                  );
+                }
+              ),
             },
             {
               actions: assign((_: Context, { point }: MouseMoveEvent) => ({
                 pendingPosition: point,
               })),
+              cond: and(
+                ({ start }, { point }) =>
+                  !!start && connectionLessThanMaxLength(start, point),
+                (_, { point }) => !network.isPointOnNode(point)
+              ),
             },
           ],
           CLICKED: {
