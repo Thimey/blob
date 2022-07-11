@@ -40,7 +40,7 @@ export function findConnectionOfPoint(connections: Connection[], point: Point) {
 
 export function findNodeOfPoint(nodes: Node[], point: Point) {
   return nodes.find(({ centre, radiusX, radiusY }) =>
-    isPointWithinEllipse({ ...centre, radiusX, radiusY }, point)
+    isPointWithinEllipse({ centre, radiusX, radiusY }, point)
   );
 }
 

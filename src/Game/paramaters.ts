@@ -43,6 +43,8 @@ export const SHRUB_HARVEST_DWELL_TIME_MS = 1_000;
 export const SHRUB_HARVEST_DROP_DWELL_TIME_MS = 300;
 
 // Network
+export const NODE_RADIUS_X = QUEEN_RADIUS_X * 1.5;
+export const NODE_RADIUS_Y = QUEEN_RADIUS_Y * 1.5;
 export const CONNECTION_WALL_WIDTH = 3;
 export const CONNECTION_WIDTH = 20;
 export const ENTRANCE_RADIUS_X = 20;

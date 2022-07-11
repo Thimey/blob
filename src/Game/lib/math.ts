@@ -1,5 +1,5 @@
 import { v4 } from 'uuid';
-import { Point } from '../types';
+import { Point, Ellipse } from '../types';
 
 export function generateId() {
   return v4();
@@ -81,18 +81,12 @@ export function hexToRGB(hex: string): RGB {
   return blackRGB;
 }
 
-interface Ellipse {
-  x: number;
-  y: number;
-  radiusX: number;
-  radiusY: number;
-}
-
-export function isPointWithinEllipse(ellipse: Ellipse, { x, y }: Point) {
+export function isPointWithinEllipse(
+  { centre, radiusX, radiusY }: Ellipse,
+  { x, y }: Point
+) {
   return (
-    (x - ellipse.x) ** 2 / ellipse.radiusX ** 2 +
-      (y - ellipse.y) ** 2 / ellipse.radiusY ** 2 <=
-    1
+    (x - centre.x) ** 2 / radiusX ** 2 + (y - centre.y) ** 2 / radiusY ** 2 <= 1
   );
 }
 
@@ -233,9 +227,7 @@ export function makePointsOnEllipse(
  * Note the angle is opposite direction since the canvas y axis is flipped (positve down)
  */
 export function makePointOnEllipse(
-  position: Point,
-  radiusX: number,
-  radiusY: number,
+  { centre, radiusX, radiusY }: Ellipse,
   angle: number
 ) {
   const x =
@@ -248,8 +240,8 @@ export function makePointOnEllipse(
   const xD = add ? x : -x;
 
   return {
-    x: position.x + xD,
-    y: position.y + xD * Math.tan(angle),
+    x: centre.x + xD,
+    y: centre.y + xD * Math.tan(angle),
   };
 }
 

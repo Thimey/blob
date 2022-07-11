@@ -5,6 +5,12 @@ export type Point = {
   y: number;
 };
 
+export interface Ellipse {
+  centre: Point;
+  radiusX: number;
+  radiusY: number;
+}
+
 export type PersistedActor<T, U> = {
   context: T;
   value: U;

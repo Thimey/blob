@@ -1,6 +1,12 @@
 import { assign, createMachine, send } from 'xstate';
 
-import { Point, DrawEvent, MouseMoveEvent, ClickedEvent } from 'game/types';
+import {
+  Point,
+  DrawEvent,
+  MouseMoveEvent,
+  ClickedEvent,
+  Ellipse,
+} from 'game/types';
 import {
   getAngleBetweenTwoPointsFromXHorizontal,
   makePointOnEllipse,
@@ -10,27 +16,42 @@ import {
 import {
   CONNECTION_RADIUS_PERCENT,
   CONNECTION_MAX_LENGTH,
+  NODE_RADIUS_X,
+  NODE_RADIUS_Y,
 } from 'game/paramaters';
 
 import { Node } from './types';
-import { drawConnectionStart, drawPendingConnection } from './draw';
+import { drawChoosingStart, drawChoosingEnd, drawAdjustingEnd } from './draw';
 import { network } from './blobNetwork';
 
 interface Context {
   pendingPosition?: Point;
   start?: Point;
   end?: Point;
+  endNodeCentre?: Point;
 }
 
 type Event = DrawEvent | MouseMoveEvent | ClickedEvent;
 
 function makePointOnNode(node: Node, point: Point) {
   return makePointOnEllipse(
-    node.centre,
-    node.radiusX * CONNECTION_RADIUS_PERCENT,
-    node.radiusY * CONNECTION_RADIUS_PERCENT,
+    {
+      ...node,
+      radiusX: node.radiusX * CONNECTION_RADIUS_PERCENT,
+      radiusY: node.radiusY * CONNECTION_RADIUS_PERCENT,
+    },
     getAngleBetweenTwoPointsFromXHorizontal(node.centre, point)
   );
+}
+
+function makeNodeCentre(point: Point, angle: number) {
+  const coreEllipse: Ellipse = {
+    centre: point,
+    radiusX: NODE_RADIUS_X * CONNECTION_RADIUS_PERCENT,
+    radiusY: NODE_RADIUS_Y * CONNECTION_RADIUS_PERCENT,
+  };
+
+  return makePointOnEllipse(coreEllipse, angle);
 }
 
 const assignNodePendingPoistion = assign(
@@ -38,7 +59,9 @@ const assignNodePendingPoistion = assign(
     const node = network.nodeOfPoint(point);
     if (!node) return {};
 
-    return { pendingPosition: makePointOnNode(node, point) };
+    return {
+      pendingPosition: makePointOnNode(node, point),
+    };
   }
 );
 
@@ -49,9 +72,18 @@ const assignStartPosition = assign(
 );
 
 const assignEndPosition = assign(
-  ({ pendingPosition }: Context, _: ClickedEvent) => ({
-    end: pendingPosition,
-  })
+  ({ start, pendingPosition }: Context, _: ClickedEvent) => {
+    if (!pendingPosition || !start) return {};
+    const angle = getAngleBetweenTwoPointsFromXHorizontal(
+      start,
+      pendingPosition
+    );
+
+    return {
+      end: pendingPosition,
+      endNodeCentre: makeNodeCentre(pendingPosition, angle),
+    };
+  }
 );
 
 function connectionLessThanMaxLength(start: Point, end: Point) {
@@ -64,6 +96,10 @@ function and<T extends any[]>(
   fn2: (...args: [...T]) => boolean
 ) {
   return (...args: [...T]) => fn1(...args) && fn2(...args);
+}
+
+function not<T extends any[]>(fn: (...args: [...T]) => boolean) {
+  return (...args: [...T]) => !fn(...args);
 }
 
 export function makeChoosingConnectionMachine() {
@@ -102,7 +138,7 @@ export function makeChoosingConnectionMachine() {
             on: {
               DRAW: {
                 actions: ({ pendingPosition }, { ctx }) =>
-                  drawConnectionStart(ctx, network.nodes, pendingPosition),
+                  drawChoosingStart(ctx, network.nodes, pendingPosition),
               },
               MOUSE_MOVE: [
                 {
@@ -126,7 +162,7 @@ export function makeChoosingConnectionMachine() {
         on: {
           DRAW: {
             actions: ({ start, pendingPosition }, { ctx }) =>
-              drawPendingConnection(ctx, network.nodes, start, pendingPosition),
+              drawChoosingEnd(ctx, network.nodes, start, pendingPosition),
           },
           MOUSE_MOVE: [
             {
@@ -161,26 +197,54 @@ export function makeChoosingConnectionMachine() {
             },
             {
               actions: assign(
-                ({ start }: Context, { point }: MouseMoveEvent) => ({
-                  pendingPosition: capLinearLine(
+                ({ start }: Context, { point }: MouseMoveEvent) => {
+                  if (!start) return {};
+                  const pendingPosition = capLinearLine(
                     start,
                     point,
                     CONNECTION_MAX_LENGTH
-                  ),
-                })
+                  );
+
+                  return {
+                    pendingPosition,
+                  };
+                }
               ),
             },
           ],
           CLICKED: {
-            target: 'done',
+            target: 'adjustingEnd',
             actions: assignEndPosition,
           },
         },
       },
-      adjustingEnd: {},
+      adjustingEnd: {
+        on: {
+          DRAW: {
+            actions: ({ start, end, endNodeCentre }, { ctx }) =>
+              drawAdjustingEnd(ctx, network.nodes, start, end, endNodeCentre),
+          },
+          MOUSE_MOVE: {
+            actions: assign(({ end }: Context, { point }: MouseMoveEvent) => {
+              if (!end) return {};
+              const angle = getAngleBetweenTwoPointsFromXHorizontal(end, point);
+              return {
+                endNodeCentre: makeNodeCentre(end, angle),
+              };
+            }),
+          },
+          CLICKED: {
+            target: 'done',
+          },
+        },
+      },
       done: {
         type: 'final',
-        data: ({ start, end }) => ({ start, end }),
+        data: ({ start, end, endNodeCentre }) => ({
+          start,
+          end,
+          endNodeCentre,
+        }),
       },
     },
   });

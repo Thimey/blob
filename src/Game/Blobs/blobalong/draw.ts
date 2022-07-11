@@ -268,8 +268,7 @@ export function blobalongClicked(
   return (
     isPointWithinEllipse(
       {
-        x,
-        y,
+        centre: { x, y },
         radiusX: BLOBALONG_BODY_RADIUS_X,
         radiusY: BLOBALONG_BODY_RADIUS_Y,
       },

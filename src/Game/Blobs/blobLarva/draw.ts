@@ -249,8 +249,7 @@ export function blobLarvaClicked(
     isPointWithinCircle({ x: headX, y: headY }, larvaHeadRadius, point) ||
     isPointWithinEllipse(
       {
-        x,
-        y,
+        centre: { x, y },
         radiusX: larvaBodyRadiusX,
         radiusY: larvaBodyRadiusY,
       },

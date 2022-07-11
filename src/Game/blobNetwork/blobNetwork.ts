@@ -4,6 +4,8 @@ import {
   QUEEN_RADIUS_X,
   QUEEN_RADIUS_Y,
   DEFAULT_SPEED,
+  NODE_RADIUS_X,
+  NODE_RADIUS_Y,
 } from 'game/paramaters';
 import {
   makeLinearPoints,
@@ -199,8 +201,8 @@ function makeConnection(start: Point, end: Point): Connection {
 const node1: Node = {
   id: 'a',
   centre: QUEEN_POSITION,
-  radiusX: QUEEN_RADIUS_X * 1.5,
-  radiusY: QUEEN_RADIUS_Y * 1.5,
+  radiusX: NODE_RADIUS_X,
+  radiusY: NODE_RADIUS_Y,
   connections: {},
 };
 
@@ -210,8 +212,8 @@ const node2: Node = {
     x: QUEEN_POSITION.x - QUEEN_RADIUS_X * 4,
     y: QUEEN_POSITION.y - QUEEN_RADIUS_Y * 2,
   },
-  radiusX: QUEEN_RADIUS_X * 1.5,
-  radiusY: QUEEN_RADIUS_Y * 1.5,
+  radiusX: NODE_RADIUS_X,
+  radiusY: NODE_RADIUS_Y,
   connections: {},
 };
 
@@ -221,8 +223,8 @@ const node3: Node = {
     x: QUEEN_POSITION.x,
     y: QUEEN_POSITION.y - QUEEN_RADIUS_Y * 6,
   },
-  radiusX: QUEEN_RADIUS_X * 1.5,
-  radiusY: QUEEN_RADIUS_Y * 1.5,
+  radiusX: NODE_RADIUS_X,
+  radiusY: NODE_RADIUS_Y,
   connections: {},
 };
 
@@ -232,8 +234,8 @@ const node4: Node = {
     x: QUEEN_POSITION.x + QUEEN_RADIUS_X * 5,
     y: QUEEN_POSITION.y - QUEEN_RADIUS_Y * 1.4,
   },
-  radiusX: QUEEN_RADIUS_X * 1.5,
-  radiusY: QUEEN_RADIUS_Y * 1.5,
+  radiusX: NODE_RADIUS_X,
+  radiusY: NODE_RADIUS_Y,
   connections: {},
 };
 

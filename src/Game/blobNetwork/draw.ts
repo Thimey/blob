@@ -6,8 +6,10 @@ import {
   ENTRANCE_RADIUS_X,
   ENTRANCE_RADIUS_Y,
   CONNECTION_RADIUS_PERCENT,
+  NODE_RADIUS_X,
+  NODE_RADIUS_Y,
 } from 'game/paramaters';
-import { Point } from 'game/types';
+import { Ellipse, Point } from 'game/types';
 import { drawCircle } from 'game/lib/draw';
 
 import { Node, Connection, NodeMap } from './types';
@@ -16,7 +18,7 @@ const nodeColor = hexToRGB(blobQueenColor);
 
 export function drawNode(
   ctx: CanvasRenderingContext2D,
-  { centre, radiusX, radiusY }: Node
+  { centre, radiusX, radiusY }: Ellipse
 ) {
   ctx.beginPath();
   ctx.ellipse(centre.x, centre.y, radiusX, radiusY, 0, 0, 2 * Math.PI);
@@ -102,7 +104,7 @@ export function drawConnection(
 
 export function drawNodeConnectionRadius(
   ctx: CanvasRenderingContext2D,
-  { centre, radiusX, radiusY }: Node
+  { centre, radiusX, radiusY }: Ellipse
 ) {
   ctx.beginPath();
   ctx.setLineDash([5, 6]);
@@ -148,7 +150,7 @@ function drawPendingConnectionLine(
   ctx.setLineDash([]);
 }
 
-export function drawConnectionStart(
+export function drawChoosingStart(
   ctx: CanvasRenderingContext2D,
   nodes: Node[],
   startPoint?: Point
@@ -159,7 +161,7 @@ export function drawConnectionStart(
   drawConnectionPoint(ctx, startPoint);
 }
 
-export function drawPendingConnection(
+export function drawChoosingEnd(
   ctx: CanvasRenderingContext2D,
   nodes: Node[],
   start?: Point,
@@ -171,4 +173,32 @@ export function drawPendingConnection(
   drawConnectionPoint(ctx, start);
   drawConnectionPoint(ctx, end);
   drawPendingConnectionLine(ctx, start, end);
+}
+
+export function drawAdjustingEnd(
+  ctx: CanvasRenderingContext2D,
+  nodes: Node[],
+  start?: Point,
+  end?: Point,
+  endNodeCentre?: Point
+) {
+  if (!start || !end) return;
+
+  drawNodeConnectionRadii(ctx, nodes);
+  drawConnectionPoint(ctx, start);
+  drawConnectionPoint(ctx, end);
+  drawPendingConnectionLine(ctx, start, end);
+
+  if (endNodeCentre) {
+    drawNode(ctx, {
+      centre: endNodeCentre,
+      radiusX: NODE_RADIUS_X,
+      radiusY: NODE_RADIUS_Y,
+    });
+    drawNodeConnectionRadius(ctx, {
+      centre: endNodeCentre,
+      radiusX: NODE_RADIUS_X,
+      radiusY: NODE_RADIUS_Y,
+    });
+  }
 }
