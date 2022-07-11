@@ -141,12 +141,12 @@ export class BlobNetwork {
     return findNodeOfPoint(this.nodes, point);
   }
 
-  public arePointsOnDifferentNodes(point1: Point, point2: Point) {
+  public arePointsOnSameNode(point1: Point, point2: Point) {
     const node1 = this.nodeOfPoint(point1);
     const node2 = this.nodeOfPoint(point2);
-    if (!node1 || !node2) return false;
+    if (!node1 && !node2) return false;
 
-    return Boolean(node1.id !== node2.id);
+    return Boolean(node1?.id === node2?.id);
   }
 
   public isPointOnNode(point: Point) {

@@ -1,4 +1,4 @@
-import { assign, createMachine, send } from 'xstate';
+import { assign, createMachine } from 'xstate';
 
 import {
   Point,
@@ -54,11 +54,11 @@ function isMouseOnNode(_: Context, { point }: MouseMoveEvent) {
   return network.isPointOnNode(point);
 }
 
-function isMouseOnDifferentNodeFromStart(
+function isMouseOnSameNodeAsStart(
   { start }: Context,
   { point }: MouseMoveEvent
 ) {
-  return !!start && network.arePointsOnDifferentNodes(start, point);
+  return !!start && network.arePointsOnSameNode(start, point);
 }
 
 function isEndOnNode({ end }: Context) {
@@ -87,6 +87,10 @@ function isConnectionToExistingNodeLessThanMaxLength(
   );
 }
 
+/**
+ * Gets the centre of the node (ellipse) that has the given point on it's connection cirumferance.
+ * The angle (0 - 2 * PI) adjusts where the centre is relative to point.
+ */
 function makeNodeCentre(point: Point, angle: number) {
   const coreEllipse: Ellipse = {
     centre: point,
@@ -207,10 +211,12 @@ export function makeChoosingConnectionMachine() {
           },
           MOUSE_MOVE: [
             {
+              cond: isMouseOnSameNodeAsStart,
+            },
+            {
               actions: assignNodePendingPoistion,
               cond: and(
                 isMouseOnNode,
-                isMouseOnDifferentNodeFromStart,
                 isConnectionToExistingNodeLessThanMaxLength
               ),
             },
