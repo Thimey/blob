@@ -150,7 +150,14 @@ function drawPendingConnectionLine(
   ctx.setLineDash([]);
 }
 
-export function drawChoosingStart(
+export function drawChoosingInvalidStart(
+  ctx: CanvasRenderingContext2D,
+  nodes: Node[]
+) {
+  drawNodeConnectionRadii(ctx, nodes);
+}
+
+export function drawChoosingValidStart(
   ctx: CanvasRenderingContext2D,
   nodes: Node[],
   startPoint?: Point
@@ -185,8 +192,10 @@ export function drawAdjustingEnd(
   if (!start || !end) return;
 
   drawNodeConnectionRadii(ctx, nodes);
+
   drawConnectionPoint(ctx, start);
   drawConnectionPoint(ctx, end);
+
   drawPendingConnectionLine(ctx, start, end);
 
   if (endNodeCentre) {

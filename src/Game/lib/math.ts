@@ -305,7 +305,6 @@ export function getAngleBetweenTwoPointsFromXHorizontal(
 
 export function capLinearLine(start: Point, end: Point, max: number) {
   if (makeDistance(start, end) <= max) return end;
-  console.log('cappin');
 
   const dx = end.x - start.x;
   const dy = end.y - start.y;

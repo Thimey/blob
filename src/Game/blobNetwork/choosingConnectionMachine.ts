@@ -13,6 +13,7 @@ import {
   makeDistance,
   capLinearLine,
 } from 'game/lib/math';
+import { and, not } from 'game/lib/utils';
 import {
   CONNECTION_RADIUS_PERCENT,
   CONNECTION_MAX_LENGTH,
@@ -21,7 +22,12 @@ import {
 } from 'game/paramaters';
 
 import { Node } from './types';
-import { drawChoosingStart, drawChoosingEnd, drawAdjustingEnd } from './draw';
+import {
+  drawChoosingInvalidStart,
+  drawChoosingValidStart,
+  drawChoosingEnd,
+  drawAdjustingEnd,
+} from './draw';
 import { network } from './blobNetwork';
 
 interface Context {
@@ -41,6 +47,43 @@ function makePointOnNode(node: Node, point: Point) {
       radiusY: node.radiusY * CONNECTION_RADIUS_PERCENT,
     },
     getAngleBetweenTwoPointsFromXHorizontal(node.centre, point)
+  );
+}
+
+function isMouseOnNode(_: Context, { point }: MouseMoveEvent) {
+  return network.isPointOnNode(point);
+}
+
+function isMouseOnDifferentNodeFromStart(
+  { start }: Context,
+  { point }: MouseMoveEvent
+) {
+  return !!start && network.arePointsOnDifferentNodes(start, point);
+}
+
+function isEndOnNode({ end }: Context) {
+  return !!end && network.isPointOnNode(end);
+}
+
+function isConnectionLessThanMaxLength(
+  { start }: Context,
+  { point: end }: MouseMoveEvent
+) {
+  if (!start) return false;
+  return makeDistance(start, end) <= CONNECTION_MAX_LENGTH;
+}
+
+function isConnectionToExistingNodeLessThanMaxLength(
+  context: Context,
+  event: MouseMoveEvent
+) {
+  const node = network.nodeOfPoint(event.point);
+  return Boolean(
+    node &&
+      isConnectionLessThanMaxLength(context, {
+        ...event,
+        point: makePointOnNode(node, event.point),
+      })
   );
 }
 
@@ -86,21 +129,26 @@ const assignEndPosition = assign(
   }
 );
 
-function connectionLessThanMaxLength(start: Point, end: Point) {
-  if (!start) return false;
-  return makeDistance(start, end) <= CONNECTION_MAX_LENGTH;
-}
+const assignCappedEndPosition = assign(
+  ({ start }: Context, { point }: MouseMoveEvent) => {
+    if (!start) return {};
+    const pendingPosition = capLinearLine(start, point, CONNECTION_MAX_LENGTH);
 
-function and<T extends any[]>(
-  fn1: (...args: [...T]) => boolean,
-  fn2: (...args: [...T]) => boolean
-) {
-  return (...args: [...T]) => fn1(...args) && fn2(...args);
-}
+    return {
+      pendingPosition,
+    };
+  }
+);
 
-function not<T extends any[]>(fn: (...args: [...T]) => boolean) {
-  return (...args: [...T]) => !fn(...args);
-}
+const assignEndNodeCentre = assign(
+  ({ end }: Context, { point }: MouseMoveEvent) => {
+    if (!end) return {};
+    const angle = getAngleBetweenTwoPointsFromXHorizontal(end, point);
+    return {
+      endNodeCentre: makeNodeCentre(end, angle),
+    };
+  }
+);
 
 export function makeChoosingConnectionMachine() {
   return createMachine({
@@ -113,23 +161,16 @@ export function makeChoosingConnectionMachine() {
     states: {
       choosingStart: {
         initial: 'invalidPosition',
-        on: {
-          DRAW: {
-            actions: [
-              (_, { ctx }) => network.drawConnectionRadii(ctx),
-              send((_: Context, { ctx }: DrawEvent) => ({
-                type: 'DRAW_START',
-                ctx,
-              })),
-            ],
-          },
-        },
         states: {
           invalidPosition: {
             on: {
+              DRAW: {
+                actions: (_, { ctx }) =>
+                  drawChoosingInvalidStart(ctx, network.nodes),
+              },
               MOUSE_MOVE: {
                 target: 'validPosition',
-                cond: (_, { point }) => network.isPointOnNode(point),
+                cond: isMouseOnNode,
                 actions: assignNodePendingPoistion,
               },
             },
@@ -138,12 +179,12 @@ export function makeChoosingConnectionMachine() {
             on: {
               DRAW: {
                 actions: ({ pendingPosition }, { ctx }) =>
-                  drawChoosingStart(ctx, network.nodes, pendingPosition),
+                  drawChoosingValidStart(ctx, network.nodes, pendingPosition),
               },
               MOUSE_MOVE: [
                 {
                   target: 'invalidPosition',
-                  cond: (_, { point }) => !network.isPointOnNode(point),
+                  cond: not(isMouseOnNode),
                 },
                 {
                   actions: assignNodePendingPoistion,
@@ -168,48 +209,19 @@ export function makeChoosingConnectionMachine() {
             {
               actions: assignNodePendingPoistion,
               cond: and(
-                ({ start }: Context, { point }: MouseMoveEvent) =>
-                  !!start &&
-                  network.isPointOnNode(point) &&
-                  network.arePointsOnDifferentNodes(start, point),
-                ({ start }: Context, { point }: MouseMoveEvent) => {
-                  if (!start) return false;
-                  const node = network.nodeOfPoint(point);
-                  return Boolean(
-                    node &&
-                      connectionLessThanMaxLength(
-                        start,
-                        makePointOnNode(node, point)
-                      )
-                  );
-                }
+                isMouseOnNode,
+                isMouseOnDifferentNodeFromStart,
+                isConnectionToExistingNodeLessThanMaxLength
               ),
             },
             {
               actions: assign((_: Context, { point }: MouseMoveEvent) => ({
                 pendingPosition: point,
               })),
-              cond: and(
-                ({ start }, { point }) =>
-                  !!start && connectionLessThanMaxLength(start, point),
-                (_, { point }) => !network.isPointOnNode(point)
-              ),
+              cond: and(isConnectionLessThanMaxLength, not(isMouseOnNode)),
             },
             {
-              actions: assign(
-                ({ start }: Context, { point }: MouseMoveEvent) => {
-                  if (!start) return {};
-                  const pendingPosition = capLinearLine(
-                    start,
-                    point,
-                    CONNECTION_MAX_LENGTH
-                  );
-
-                  return {
-                    pendingPosition,
-                  };
-                }
-              ),
+              actions: assignCappedEndPosition,
             },
           ],
           CLICKED: {
@@ -219,19 +231,14 @@ export function makeChoosingConnectionMachine() {
         },
       },
       adjustingEnd: {
+        always: { target: 'done', cond: isEndOnNode },
         on: {
           DRAW: {
             actions: ({ start, end, endNodeCentre }, { ctx }) =>
               drawAdjustingEnd(ctx, network.nodes, start, end, endNodeCentre),
           },
           MOUSE_MOVE: {
-            actions: assign(({ end }: Context, { point }: MouseMoveEvent) => {
-              if (!end) return {};
-              const angle = getAngleBetweenTwoPointsFromXHorizontal(end, point);
-              return {
-                endNodeCentre: makeNodeCentre(end, angle),
-              };
-            }),
+            actions: assignEndNodeCentre,
           },
           CLICKED: {
             target: 'done',
