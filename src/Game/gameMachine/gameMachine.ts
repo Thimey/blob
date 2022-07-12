@@ -2,7 +2,7 @@ import { createMachine, send } from 'xstate';
 
 import { LARVA_SPAWN_TIME_MS } from 'game/paramaters';
 import { animationMachine } from 'game/animations/animationMachine';
-import { makeChoosingConnectionMachine } from 'game/blobNetwork/choosingConnectionMachine';
+import { makeChoosingConnectionMachine } from 'game/blobNetwork/choosingNewConnection/choosingConnectionMachine';
 
 import { DrawEvent } from 'game/types';
 import {

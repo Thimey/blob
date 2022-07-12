@@ -20,9 +20,9 @@ import {
   NODE_RADIUS_Y,
 } from 'game/paramaters';
 
-import { Node } from './types';
+import { Node } from '../types';
 import { drawChoosingStart, drawChoosingEnd, drawAdjustingEnd } from './draw';
-import { network } from './blobNetwork';
+import { network } from '../blobNetwork';
 
 interface Context {
   endOnNode?: boolean;
@@ -156,6 +156,7 @@ export function makeChoosingConnectionMachine() {
               ...makeStartPoint(point),
             })),
           },
+          // Never rely on mouse move to get points as user could be using mobile
           CLICKED: {
             target: 'choosingEnd',
             actions: assign((_: Context, { point }: ClickedEvent) => ({
@@ -184,16 +185,13 @@ export function makeChoosingConnectionMachine() {
               })
             ),
           },
-          CLICKED: [
-            {
-              target: 'adjustingEnd',
-              actions: assign(
-                ({ start }: Context, { point }: ClickedEvent) => ({
-                  ...makeEndPoint(start, point),
-                })
-              ),
-            },
-          ],
+          // Never rely on mouse move to get points as user could be using mobile
+          CLICKED: {
+            target: 'adjustingEnd',
+            actions: assign(({ start }: Context, { point }: ClickedEvent) => ({
+              ...makeEndPoint(start, point),
+            })),
+          },
         },
       },
       adjustingEnd: {
