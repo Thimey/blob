@@ -207,6 +207,9 @@ export function makeGameMachine({
                       src: makeChoosingConnectionMachine,
                       onDone: {
                         target: 'idle',
+                        actions: (_, event) => {
+                          console.log(event.data);
+                        },
                       },
                     },
                   },
