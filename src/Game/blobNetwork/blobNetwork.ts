@@ -7,12 +7,8 @@ import {
   NODE_RADIUS_X,
   NODE_RADIUS_Y,
 } from 'game/paramaters';
-import {
-  makeLinearPoints,
-  makeCubicBezierPoints,
-  generateId,
-  makeRandomNumber,
-} from 'game/lib/math';
+import { generateId, makeRandomNumber } from 'game/lib/utils';
+import { makeLinearPoints, makeCubicBezierPoints } from 'game/lib/geometry';
 
 import {
   Node,

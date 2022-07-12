@@ -2,7 +2,7 @@ import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
-import { selectRandomElementFromArray } from 'game/lib/math';
+import { selectRandomElementFromArray } from 'game/lib/utils';
 import {
   QUEEN_POSITION,
   BLOBLET_HARVEST_INTERVAL,

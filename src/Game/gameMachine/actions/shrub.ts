@@ -8,7 +8,7 @@ import {
   LEAF_HEIGHT,
   LEAF_WIDTH,
 } from 'game/paramaters';
-import { isPointWithinDiamond } from 'game/lib/math';
+import { isPointWithinDiamond } from 'game/lib/geometry';
 import { animationMachine } from 'game/animations';
 import {
   makeShrub,

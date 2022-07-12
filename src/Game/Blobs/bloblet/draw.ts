@@ -1,5 +1,5 @@
 import { blobletColor, shrubColor } from 'game/colors';
-import { isPointWithinCircle } from 'game/lib/math';
+import { isPointWithinCircle } from 'game/lib/geometry';
 import { drawCircle, drawDiamond } from 'game/lib/draw';
 import { Point, DrawEventCtx } from 'game/types';
 

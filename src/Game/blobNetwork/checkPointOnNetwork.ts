@@ -1,11 +1,11 @@
 import { Point } from 'game/types';
 import { CONNECTION_WIDTH } from 'game/paramaters';
+import { minMax } from 'game/lib/utils';
 import {
   isPointWithinEllipse,
   isPointWithinCircle,
-  minMax,
   makeDistance,
-} from 'game/lib/math';
+} from 'game/lib/geometry';
 
 import { Connection, Node } from './types';
 

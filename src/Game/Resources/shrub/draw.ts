@@ -6,13 +6,13 @@ import {
   RADIUS_INCREMENT_Y,
   QUEEN_POSITION,
 } from 'game/paramaters';
+import { shuffleArray } from 'game/lib/utils';
 import {
   makeRandomAngle,
   makePointsOnEllipse,
   makePerimeterOfEllipse,
   shiftRandomPosition,
-  shuffleArray,
-} from 'game/lib/math';
+} from 'game/lib/geometry';
 import { drawDiamond } from 'game/lib/draw';
 
 import { shrubColor } from 'game/colors';

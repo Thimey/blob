@@ -1,7 +1,7 @@
 import { createMachine, send, assign, sendParent } from 'xstate';
 
 import { Point, Movement, MapClickEvent, UpdateEvent } from 'game/types';
-import { multipleOf } from 'game/lib/math';
+import { multipleOf } from 'game/lib/utils';
 import { network } from 'game/blobNetwork';
 import { Context, Event, State } from './types';
 import { drawBlobalong, drawBlobalongSelectedOutline } from './draw';

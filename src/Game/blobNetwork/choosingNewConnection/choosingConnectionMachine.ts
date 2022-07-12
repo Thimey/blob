@@ -12,7 +12,7 @@ import {
   makePointOnEllipse,
   makeDistance,
   capLinearLine,
-} from 'game/lib/math';
+} from 'game/lib/geometry';
 import {
   CONNECTION_RADIUS_PERCENT,
   CONNECTION_MAX_LENGTH,

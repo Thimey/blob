@@ -3,9 +3,9 @@ import {
   getAngleBetweenTwoPointsFromXHorizontal,
   degToRad,
   radToDeg,
-} from './math';
+} from './geometry';
 
-describe('math', () => {
+describe('geometry', () => {
   describe('degToRad', () => {
     it('should conver deg to rad correctly', () => {
       expect(degToRad(45)).toBe(Math.PI / 4);
@@ -15,6 +15,7 @@ describe('math', () => {
       expect(degToRad(135)).toBe(Math.PI / 2 + Math.PI / 4);
     });
   });
+
   describe('makeLinearPath', () => {
     it('should get correct path', () => {
       /*

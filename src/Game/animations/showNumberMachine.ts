@@ -6,7 +6,7 @@ import {
   StateMachine,
 } from 'xstate';
 import { Point, DrawEvent, UpdateEvent } from 'game/types';
-import { hexToRGB, RGB, generateId } from '../lib/math';
+import { generateId, hexToRGB, RGB } from 'game/lib/utils';
 
 const FLOAT_TIME_MS = 1500;
 interface Context {

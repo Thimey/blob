@@ -1,7 +1,7 @@
 import { assign, createMachine } from 'xstate';
 import { sendParent, send } from 'xstate/lib/actions';
 
-import { makeRandomNumber } from 'game/lib/math';
+import { makeRandomNumber } from 'game/lib/utils';
 import { QUEEN_POSITION } from 'game/paramaters';
 import { UpdateEvent } from 'game/types';
 import {

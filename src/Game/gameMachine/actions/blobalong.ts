@@ -4,7 +4,7 @@ import { QUEEN_POSITION } from 'game/paramaters';
 import { DrawEvent, ClickedEvent } from 'game/types';
 import { blobalongClicked, makeBlobalong } from 'game/blobs/blobalong';
 
-import { generateId } from 'game/lib/math';
+import { generateId } from 'game/lib/utils';
 import { Context } from '../types';
 
 export function initialiseBlobalongs() {

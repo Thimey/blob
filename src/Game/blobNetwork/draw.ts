@@ -1,11 +1,10 @@
 import { blobQueenColor } from 'game/colors';
-import { hexToRGB } from 'game/lib/math';
+import { hexToRGB } from 'game/lib/utils';
 import {
   CONNECTION_WALL_WIDTH,
   CONNECTION_WIDTH,
   ENTRANCE_RADIUS_X,
   ENTRANCE_RADIUS_Y,
-  CONNECTION_RADIUS_PERCENT,
 } from 'game/paramaters';
 import { Ellipse } from 'game/types';
 

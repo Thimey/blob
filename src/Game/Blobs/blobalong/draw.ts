@@ -4,7 +4,7 @@ import {
   isPointWithinEllipse,
   isPointWithinCircle,
   makeRelativePoint,
-} from 'game/lib/math';
+} from 'game/lib/geometry';
 import { Point, DrawEventCtx } from 'game/types';
 import { Context, BlobalongActor } from './types';
 

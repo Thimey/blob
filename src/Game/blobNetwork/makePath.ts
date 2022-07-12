@@ -1,5 +1,5 @@
 import { Point } from 'game/types';
-import { makeLinearPoints, makeDistance } from 'game/lib/math';
+import { makeLinearPoints, makeDistance } from 'game/lib/geometry';
 
 import { NodeMap, Network, NodeId, Connection, Node } from './types';
 
