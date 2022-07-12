@@ -7,7 +7,7 @@ import {
   makeDistance,
 } from 'game/lib/math';
 
-import { Connection, NodeMap, ConnectionMap, Node } from './types';
+import { Connection, Node } from './types';
 
 function couldPointBeOnConnection({ start, end }: Connection, { x, y }: Point) {
   const { min: minX, max: maxX } = minMax(start.x, end.x);
