@@ -127,9 +127,13 @@ function drawNodeConnectionRadii(ctx: CanvasRenderingContext2D, nodes: Node[]) {
   nodes.forEach((node) => drawNodeConnectionRadius(ctx, node));
 }
 
-function drawConnectionPoint(ctx: CanvasRenderingContext2D, { x, y }: Point) {
+function drawConnectionPoint(
+  ctx: CanvasRenderingContext2D,
+  { x, y }: Point,
+  color = blobQueenColor
+) {
   ctx.beginPath();
-  drawCircle(ctx, x, y, 14, blobQueenColor);
+  drawCircle(ctx, x, y, 14, color);
   ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
@@ -138,48 +142,55 @@ function drawConnectionPoint(ctx: CanvasRenderingContext2D, { x, y }: Point) {
 function drawPendingConnectionLine(
   ctx: CanvasRenderingContext2D,
   start: Point,
-  end: Point
+  end: Point,
+  color = 'black'
 ) {
   ctx.setLineDash([5, 15]);
 
   ctx.beginPath();
   ctx.moveTo(start.x, start.y);
   ctx.lineTo(end.x, end.y);
+  ctx.strokeStyle = color;
   ctx.stroke();
   ctx.closePath();
   ctx.setLineDash([]);
 }
 
-export function drawChoosingInvalidStart(
-  ctx: CanvasRenderingContext2D,
-  nodes: Node[]
-) {
-  drawNodeConnectionRadii(ctx, nodes);
-}
-
-export function drawChoosingValidStart(
+export function drawChoosingStart(
   ctx: CanvasRenderingContext2D,
   nodes: Node[],
   startPoint?: Point
 ) {
-  if (!startPoint) return;
-
   drawNodeConnectionRadii(ctx, nodes);
-  drawConnectionPoint(ctx, startPoint);
+
+  if (startPoint) {
+    drawConnectionPoint(ctx, startPoint);
+  }
+}
+
+function makeColor(isOnNode?: boolean, isValid?: boolean) {
+  if (!isValid) return 'red';
+  return isOnNode ? blobQueenColor : 'black';
 }
 
 export function drawChoosingEnd(
   ctx: CanvasRenderingContext2D,
   nodes: Node[],
   start?: Point,
-  end?: Point
+  end?: Point,
+  isOnNode?: boolean,
+  isValid?: boolean
 ) {
-  if (!start || !end) return;
+  if (!start) return;
+  const color = makeColor(isOnNode, isValid);
 
   drawNodeConnectionRadii(ctx, nodes);
   drawConnectionPoint(ctx, start);
-  drawConnectionPoint(ctx, end);
-  drawPendingConnectionLine(ctx, start, end);
+
+  if (end) {
+    drawConnectionPoint(ctx, end, color);
+    drawPendingConnectionLine(ctx, start, end, color);
+  }
 }
 
 export function drawAdjustingEnd(
