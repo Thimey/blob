@@ -25,10 +25,10 @@ import { drawChoosingStart, drawChoosingEnd, drawAdjustingEnd } from './draw';
 import { network } from '../blobNetwork';
 
 interface Context {
-  endOnNode?: boolean;
-  endIsValid?: boolean;
   start?: Point;
   end?: Point;
+  endOnNode?: boolean;
+  endIsValid?: boolean;
   endNodeCentre?: Point;
 }
 
