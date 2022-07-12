@@ -98,24 +98,3 @@ export function drawConnection(
   ctx.closePath();
   ctx.restore();
 }
-
-export function drawNodeConnectionRadius(
-  ctx: CanvasRenderingContext2D,
-  { centre, radiusX, radiusY }: Ellipse
-) {
-  ctx.beginPath();
-  ctx.setLineDash([5, 6]);
-  ctx.ellipse(
-    centre.x,
-    centre.y,
-    radiusX * CONNECTION_RADIUS_PERCENT,
-    radiusY * CONNECTION_RADIUS_PERCENT,
-    0,
-    0,
-    2 * Math.PI
-  );
-  ctx.strokeStyle = blobQueenColor;
-  ctx.stroke();
-  ctx.closePath();
-  ctx.setLineDash([]);
-}
