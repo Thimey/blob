@@ -9,6 +9,7 @@ import {
 } from 'game/paramaters';
 import { generateId, makeRandomNumber } from 'game/lib/utils';
 import { makeLinearPoints, makeCubicBezierPoints } from 'game/lib/geometry';
+import { makeConnection } from './makeConnection';
 
 import {
   Node,
@@ -167,26 +168,6 @@ export class BlobNetwork {
 }
 
 // SETUP TEST NETWORK CODE (Will be moved else where in upcoming work) -->
-
-function makeConnection(start: Point, end: Point): Connection {
-  const bezierP1 = {
-    x: makeRandomNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
-    y: makeRandomNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
-  };
-  const bezierP2 = {
-    x: makeRandomNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
-    y: makeRandomNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
-  };
-
-  return {
-    id: generateId(),
-    start,
-    end,
-    bezierP1,
-    bezierP2,
-    points: makeCubicBezierPoints(start, bezierP1, bezierP2, end, 200),
-  };
-}
 
 const node1: Node = {
   id: 'a',

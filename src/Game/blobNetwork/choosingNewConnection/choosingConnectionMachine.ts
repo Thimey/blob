@@ -1,4 +1,4 @@
-import { assign, createMachine } from 'xstate';
+import { assign, createMachine, DoneInvokeEvent } from 'xstate';
 
 import {
   Point,
@@ -33,6 +33,13 @@ interface Context {
 }
 
 type Event = DrawEvent | MouseMoveEvent | ClickedEvent;
+
+interface DoneEventData {
+  start: Point;
+  end: Point;
+  endNodeCentre?: Point;
+}
+export type DoneEvent = DoneInvokeEvent<DoneEventData>;
 
 function makePointOnNode(node: Node, point: Point, reverse = false) {
   const angle = getAngleBetweenTwoPointsFromXHorizontal(node.centre, point);
@@ -220,9 +227,9 @@ export function makeChoosingConnectionMachine() {
       },
       done: {
         type: 'final',
-        data: ({ start, end, endNodeCentre }) => ({
-          start,
-          end,
+        data: ({ start, end, endNodeCentre }): DoneEventData => ({
+          start: start as Point,
+          end: end as Point,
           endNodeCentre,
         }),
       },
