@@ -1,5 +1,5 @@
 import { v4 } from 'uuid';
-import { Point } from '../types';
+import { Point, Ellipse } from '../types';
 
 export function generateId() {
   return v4();
@@ -13,6 +13,14 @@ export function roundTo(number: number, decimalPlaces: number) {
 
 export function closestToZero(x1: number, x2: number) {
   return Math.abs(x1) < Math.abs(x2) ? x1 : x2;
+}
+
+export function degToRad(deg: number) {
+  return (deg * Math.PI) / 180;
+}
+
+export function radToDeg(rad: number) {
+  return (rad * 180) / Math.PI;
 }
 
 export function minMax(x1: number, x2: number) {
@@ -73,18 +81,12 @@ export function hexToRGB(hex: string): RGB {
   return blackRGB;
 }
 
-interface Ellipse {
-  x: number;
-  y: number;
-  radiusX: number;
-  radiusY: number;
-}
-
-export function isPointWithinEllipse(ellipse: Ellipse, { x, y }: Point) {
+export function isPointWithinEllipse(
+  { centre, radiusX, radiusY }: Ellipse,
+  { x, y }: Point
+) {
   return (
-    (x - ellipse.x) ** 2 / ellipse.radiusX ** 2 +
-      (y - ellipse.y) ** 2 / ellipse.radiusY ** 2 <=
-    1
+    (x - centre.x) ** 2 / radiusX ** 2 + (y - centre.y) ** 2 / radiusY ** 2 <= 1
   );
 }
 
@@ -181,6 +183,19 @@ export function isPointWithinDiamond(
   return dx / width + dy / height <= 1;
 }
 
+export function makeRelativePoint(
+  { x, y }: Point,
+  offset: number,
+  rotation: number
+) {
+  return {
+    x: x + offset * Math.cos(rotation),
+    y: y + offset * Math.sin(rotation),
+  };
+}
+
+// Note this does make acurate points, but quickly adds points around ellipse circumference
+// Use makePointOnEllipse for accuracy
 export function makePointsOnEllipse(
   number: number,
   position: Point,
@@ -203,13 +218,100 @@ export function makePointsOnEllipse(
   return points;
 }
 
-export function makeRelativePoint(
-  { x, y }: Point,
-  offset: number,
-  rotation: number
+/**
+ * Given ellipse and clockwise angle from positive x horzontal
+ * returns point on the ellipse.
+ *
+ * From here - https://math.stackexchange.com/a/22068
+ *
+ * Note the angle is opposite direction since the canvas y axis is flipped (positve down)
+ */
+export function makePointOnEllipse(
+  { centre, radiusX, radiusY }: Ellipse,
+  angle: number
 ) {
+  const x =
+    (radiusX * radiusY) /
+    Math.sqrt(radiusY ** 2 + radiusX ** 2 * Math.tan(angle) ** 2);
+
+  const add =
+    angle <= Math.PI / 2 || (angle > 1.5 * Math.PI && angle <= 2 * Math.PI);
+
+  const xD = add ? x : -x;
+
   return {
-    x: x + offset * Math.cos(rotation),
-    y: y + offset * Math.sin(rotation),
+    x: centre.x + xD,
+    y: centre.y + xD * Math.tan(angle),
+  };
+}
+
+/**
+ * Gets the angle from point1 to point2 relative to horizontal line to x+
+ * Examples:
+ * Quadrant 1:
+ * p1-------
+ *  \ angle
+ *   \
+ *    \
+ *     \
+ *      \
+ *       p2
+ *
+ * Quadrant 2:
+ *        p1------
+ *       / angle
+ *      /
+ *     /
+ *    /
+ *   /
+ * p2
+ *
+ * Quandrant 3:
+ * p2
+ *  \
+ *   \
+ *    \
+ *     \
+ *      \
+ *       p1 -------
+ *      angle
+ *
+ * Quandrant 4:
+ *           p2
+ *         /
+ *        /
+ *       /
+ *      /
+ *     /
+ *    p1-------
+ * angle
+ */
+export function getAngleBetweenTwoPointsFromXHorizontal(
+  point1: Point,
+  point2: Point
+) {
+  const dx = point2.x - point1.x;
+  const dy = point2.y - point1.y;
+  const angle = Math.atan(Math.abs(dy / dx));
+
+  const quadrantAngleMap: Record<number, Record<number, number>> = {
+    0: { 0: 0, 1: angle, [-1]: Math.PI * 1.5 },
+    1: { 0: 0, 1: angle, [-1]: 2 * Math.PI - angle },
+    [-1]: { 0: Math.PI, 1: Math.PI - angle, [-1]: Math.PI + angle },
+  };
+
+  return quadrantAngleMap[Math.sign(dx)][Math.sign(dy)];
+}
+
+export function capLinearLine(start: Point, end: Point, max: number) {
+  if (makeDistance(start, end) <= max) return end;
+
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const angle = Math.atan(Math.abs(dy / dx));
+
+  return {
+    x: start.x + max * Math.sign(dx) * Math.cos(angle),
+    y: start.y + max * Math.sign(dy) * Math.sin(angle),
   };
 }

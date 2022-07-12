@@ -5,15 +5,17 @@ import {
   CONNECTION_WIDTH,
   ENTRANCE_RADIUS_X,
   ENTRANCE_RADIUS_Y,
+  CONNECTION_RADIUS_PERCENT,
 } from 'game/paramaters';
+import { Ellipse } from 'game/types';
 
-import { Node, Connection } from './types';
+import { Connection } from './types';
 
 const nodeColor = hexToRGB(blobQueenColor);
 
 export function drawNode(
   ctx: CanvasRenderingContext2D,
-  { centre, radiusX, radiusY }: Node
+  { centre, radiusX, radiusY }: Ellipse
 ) {
   ctx.beginPath();
   ctx.ellipse(centre.x, centre.y, radiusX, radiusY, 0, 0, 2 * Math.PI);
@@ -42,6 +44,7 @@ export function drawConnection(
   );
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.fill();
+  ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
 
@@ -58,6 +61,7 @@ export function drawConnection(
   );
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.fill();
+  ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
 
@@ -72,8 +76,8 @@ export function drawConnection(
     end.x,
     end.y
   );
-  ctx.strokeStyle = 'black';
   ctx.lineWidth = CONNECTION_WIDTH + CONNECTION_WALL_WIDTH;
+  ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();
 

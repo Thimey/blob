@@ -4,6 +4,8 @@ import {
   QUEEN_RADIUS_X,
   QUEEN_RADIUS_Y,
   DEFAULT_SPEED,
+  NODE_RADIUS_X,
+  NODE_RADIUS_Y,
 } from 'game/paramaters';
 import {
   makeLinearPoints,
@@ -36,7 +38,8 @@ function toMap<T extends { id: string }>(items: T[]) {
 }
 
 function findEndPointConnectionNode(
-  { nodes, connections }: Network,
+  nodes: Node[],
+  connections: Connection[],
   startNodeId: NodeId,
   end: Point
 ) {
@@ -55,17 +58,25 @@ function findEndPointConnectionNode(
 }
 
 export class BlobNetwork {
-  private nodes: NodeMap;
+  private nodeMap: NodeMap;
 
-  private connections: ConnectionMap;
+  private connectionMap: ConnectionMap;
 
   private get network(): Network {
-    return { nodes: this.nodes, connections: this.connections };
+    return { nodes: this.nodeMap, connections: this.connectionMap };
   }
 
   constructor(nodes: Node[], connections: Connection[]) {
-    this.nodes = toMap(nodes);
-    this.connections = toMap(connections);
+    this.nodeMap = toMap(nodes);
+    this.connectionMap = toMap(connections);
+  }
+
+  public get nodes() {
+    return [...Object.values(this.nodeMap)];
+  }
+
+  public get connections() {
+    return [...Object.values(this.connectionMap)];
   }
 
   /**
@@ -85,7 +96,8 @@ export class BlobNetwork {
     if (!endPointNode) {
       // Check if end point leads to a node via a connection
       const connectionEndNode = findEndPointConnectionNode(
-        this.network,
+        this.nodes,
+        this.connections,
         startNode.id,
         end
       );
@@ -125,19 +137,34 @@ export class BlobNetwork {
     );
   }
 
+  public nodeOfPoint(point: Point) {
+    return findNodeOfPoint(this.nodes, point);
+  }
+
+  public arePointsOnSameNode(point1: Point, point2: Point) {
+    const node1 = this.nodeOfPoint(point1);
+    const node2 = this.nodeOfPoint(point2);
+    if (!node1 && !node2) return false;
+
+    return Boolean(node1?.id === node2?.id);
+  }
+
+  public isPointOnNode(point: Point) {
+    return Boolean(this.nodeOfPoint(point));
+  }
+
   public isPointOnNetwork(point: Point) {
     return Boolean(
-      findNodeOfPoint(this.nodes, point) ||
-        findConnectionOfPoint(this.connections, point)
+      this.nodeOfPoint(point) || findConnectionOfPoint(this.connections, point)
     );
   }
 
   public draw(ctx: CanvasRenderingContext2D) {
     // Draw nodes
-    Object.values(this.nodes).forEach((node) => drawNode(ctx, node));
+    Object.values(this.nodeMap).forEach((node) => drawNode(ctx, node));
 
     // Draw connections
-    Object.values(this.connections).forEach((connection) =>
+    Object.values(this.connectionMap).forEach((connection) =>
       drawConnection(ctx, connection)
     );
   }
@@ -168,8 +195,8 @@ function makeConnection(start: Point, end: Point): Connection {
 const node1: Node = {
   id: 'a',
   centre: QUEEN_POSITION,
-  radiusX: QUEEN_RADIUS_X * 1.5,
-  radiusY: QUEEN_RADIUS_Y * 1.5,
+  radiusX: NODE_RADIUS_X,
+  radiusY: NODE_RADIUS_Y,
   connections: {},
 };
 
@@ -179,8 +206,8 @@ const node2: Node = {
     x: QUEEN_POSITION.x - QUEEN_RADIUS_X * 4,
     y: QUEEN_POSITION.y - QUEEN_RADIUS_Y * 2,
   },
-  radiusX: QUEEN_RADIUS_X * 1.5,
-  radiusY: QUEEN_RADIUS_Y * 1.5,
+  radiusX: NODE_RADIUS_X,
+  radiusY: NODE_RADIUS_Y,
   connections: {},
 };
 
@@ -190,8 +217,8 @@ const node3: Node = {
     x: QUEEN_POSITION.x,
     y: QUEEN_POSITION.y - QUEEN_RADIUS_Y * 6,
   },
-  radiusX: QUEEN_RADIUS_X * 1.5,
-  radiusY: QUEEN_RADIUS_Y * 1.5,
+  radiusX: NODE_RADIUS_X,
+  radiusY: NODE_RADIUS_Y,
   connections: {},
 };
 
@@ -201,8 +228,8 @@ const node4: Node = {
     x: QUEEN_POSITION.x + QUEEN_RADIUS_X * 5,
     y: QUEEN_POSITION.y - QUEEN_RADIUS_Y * 1.4,
   },
-  radiusX: QUEEN_RADIUS_X * 1.5,
-  radiusY: QUEEN_RADIUS_Y * 1.5,
+  radiusX: NODE_RADIUS_X,
+  radiusY: NODE_RADIUS_Y,
   connections: {},
 };
 

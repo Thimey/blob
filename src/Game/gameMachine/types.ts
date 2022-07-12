@@ -5,10 +5,12 @@ import {
   UpdateEvent,
   DrawEvent,
   ClickedEvent,
+  MouseMoveEvent,
 } from 'game/types';
 import { ShrubActor, PersistedShrubActor } from 'game/resources/shrub';
 import { BlobQueenActor } from '../blobs/blobQueen';
 import { BlobletActor, PersistedBlobletActor } from '../blobs/bloblet';
+import { BlobalongActor } from '../blobs/blobalong';
 import { BlobLarvaActor } from '../blobs/blobLarva';
 
 export type { ClickedEvent };
@@ -26,7 +28,7 @@ export interface Context {
   spawnOptions: SpawnOptions;
   blobQueen: BlobQueenActor | null;
   bloblets: BlobletActor[];
-  blobalongs: any[];
+  blobalongs: BlobalongActor[];
   blobLarvae: BlobLarvaActor[];
   shrubs: ShrubActor[];
 }
@@ -62,6 +64,31 @@ export type LarvaDeSelectionEvent = {
   larvaId: string;
 };
 
+export type BlobalongSelectionEvent = {
+  type: 'BLOBALONG_SELECTED';
+  blobalongId: string;
+};
+
+export type BlobalongDeSelectionEvent = {
+  type: 'BLOBALONG_DESELECTED';
+  blobalongId: string;
+};
+
+export type BlobalongChooseConnectionEvent = {
+  type: 'CHOOSING_CONNECTION';
+  bobalongId: string;
+};
+
+export type BlobalongCancelConnectionEvent = {
+  type: 'CANCEL_CONNECTION';
+  bobalongId: string;
+};
+
+export type DrawChoosingConnectionEvent = {
+  type: 'DRAW_CHOOSING_CONNECTION';
+  ctx: CanvasRenderingContext2D;
+};
+
 export type SpawnBlobSelectedEvent = {
   type: 'SPAWN_BLOB_SELECTED';
   blobToSpawn: BlobType;
@@ -90,14 +117,20 @@ export type State = {
 
 export type Event =
   | DrawEvent
+  | DrawChoosingConnectionEvent
   | UpdateEvent
   | ClickedEvent
+  | MouseMoveEvent
   | FeedOnShrubEvent
   | HarvestShrubEvent
   | ShrubDepletedEvent
   | SpawnLarvaEvent
   | LarvaSelectionEvent
   | LarvaDeSelectionEvent
+  | BlobalongSelectionEvent
+  | BlobalongDeSelectionEvent
+  | BlobalongChooseConnectionEvent
+  | BlobalongCancelConnectionEvent
   | SpawnBlobSelectedEvent
   | BlobHatchedEvent;
 

@@ -23,8 +23,7 @@ export function didClickOnBlobQueen(
 ) {
   return isPointWithinEllipse(
     {
-      x: QUEEN_POSITION.x,
-      y: QUEEN_POSITION.y,
+      centre: QUEEN_POSITION,
       radiusX: QUEEN_RADIUS_X,
       radiusY: QUEEN_RADIUS_Y,
     },

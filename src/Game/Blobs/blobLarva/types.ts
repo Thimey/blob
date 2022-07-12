@@ -17,7 +17,7 @@ export interface Context {
   larvaBodyRadiusX: number;
   larvaBodyRadiusY: number;
   pupa?: {
-    spawnTo: 'bloblet';
+    spawnTo: BlobType;
     spawnTime: number;
     hatchAt: number;
   };

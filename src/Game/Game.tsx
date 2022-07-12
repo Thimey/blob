@@ -73,11 +73,23 @@ export const Game = () => {
     }
   };
 
+  const handleMainGameMouseMove = ({ clientX, clientY }: React.MouseEvent) => {
+    const geometry = gameCanvasRef.current?.getBoundingClientRect();
+
+    if (gameServices.gameService && geometry) {
+      const { x, y } = geometry;
+      gameServices.gameService.send('MOUSE_MOVE', {
+        point: { x: clientX - x, y: clientY - y },
+      });
+    }
+  };
+
   return (
     <>
       <canvas
         id="game-canvas"
         onClick={handleMainGameClick}
+        onMouseMove={handleMainGameMouseMove}
         ref={gameCanvasRef}
         style={{
           height: WORLD_HEIGHT,

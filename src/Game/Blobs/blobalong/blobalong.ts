@@ -1,4 +1,4 @@
-import { createMachine, send, assign } from 'xstate';
+import { createMachine, send, assign, sendParent } from 'xstate';
 
 import { Point, Movement, MapClickEvent, UpdateEvent } from 'game/types';
 import { multipleOf } from 'game/lib/math';
@@ -7,6 +7,8 @@ import { Context, Event, State } from './types';
 import { drawBlobalong, drawBlobalongSelectedOutline } from './draw';
 
 const BLOBALONG_SPEED = 0.5;
+const BLOBALONG_MOVING_FIN_SLOW_FACTOR = 5;
+const BLOBALONG_IDLE_FIN_SLOW_FACTOR = 10;
 
 function makeMovement({
   position,
@@ -67,11 +69,14 @@ function switchDirection(dir: 1 | -1) {
   return dir === 1 ? -1 : 1;
 }
 
-const rotateFin = assign<Context, UpdateEvent>(
+const rotateMovingFin = assign<Context, UpdateEvent>(
   ({ finRotation, finRotationDir, movement }) => {
     if (!movement) return {};
 
-    const shouldRotate = multipleOf(5, movement.pathIndex);
+    const shouldRotate = multipleOf(
+      BLOBALONG_MOVING_FIN_SLOW_FACTOR,
+      movement.pathIndex
+    );
     if (!shouldRotate) return {};
 
     const changeDirection =
@@ -121,6 +126,12 @@ export function makeBlobalong(context: Context) {
                   BLOBALONG_CLICK: {
                     target: 'selected',
                     cond: ({ id }, { id: clickedId }) => id === clickedId,
+                    actions: [
+                      sendParent(({ id }) => ({
+                        type: 'BLOBALONG_SELECTED',
+                        blobalongId: id,
+                      })),
+                    ],
                   },
                 },
               },
@@ -131,6 +142,12 @@ export function makeBlobalong(context: Context) {
                   },
                   BLOBALONG_CLICK: {
                     target: 'deselected',
+                    actions: [
+                      sendParent(({ id }) => ({
+                        type: 'BLOBALONG_DESELECTED',
+                        blobalongId: id,
+                      })),
+                    ],
                   },
                   MAP_CLICKED: [
                     {
@@ -155,7 +172,7 @@ export function makeBlobalong(context: Context) {
                       cond: hasReachedDestination,
                     },
                     {
-                      actions: [stepToDestination, rotateBody, rotateFin],
+                      actions: [stepToDestination, rotateBody, rotateMovingFin],
                     },
                   ],
                 },

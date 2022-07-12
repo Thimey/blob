@@ -1,9 +1,16 @@
-import { createMachine } from 'xstate';
+import { createMachine, send } from 'xstate';
 
 import { LARVA_SPAWN_TIME_MS } from 'game/paramaters';
 import { animationMachine } from 'game/animations/animationMachine';
+import { makeChoosingConnectionMachine } from 'game/blobNetwork/choosingNewConnection/choosingConnectionMachine';
 
-import { Context, Event, State, PersistedGameState } from './types';
+import { DrawEvent } from 'game/types';
+import {
+  Context,
+  Event,
+  DrawChoosingConnectionEvent,
+  PersistedGameState,
+} from './types';
 import {
   initialiseQueen,
   initialiseBloblets,
@@ -40,7 +47,11 @@ export function makeGameMachine({
   bloblets,
   shrubs,
 }: PersistedGameState) {
-  const machine = createMachine<Context, Event, State>({
+  const machine = createMachine({
+    schema: {
+      context: {} as Context,
+      events: {} as Event,
+    },
     initial: 'initialising',
     context: {
       mass,
@@ -60,6 +71,10 @@ export function makeGameMachine({
           drawShrubs,
           drawBloblets,
           drawBlobalongs,
+          send((_, { ctx }: DrawEvent) => ({
+            type: 'DRAW_CHOOSING_CONNECTION',
+            ctx,
+          })),
         ],
       },
       UPDATE: {
@@ -120,6 +135,8 @@ export function makeGameMachine({
             target: '.itemSelection.idle',
             cond: noOtherLarvaeSelected,
           },
+          BLOBALONG_SELECTED: { target: '.itemSelection.blobalongSelected' },
+          BLOBALONG_DESELECTED: { target: '.itemSelection.idle' },
           BLOB_HATCHED: {
             actions: [spawnBlob],
           },
@@ -145,6 +162,53 @@ export function makeGameMachine({
                   SPAWN_BLOB_SELECTED: {
                     target: 'idle',
                     actions: [transformLarvae],
+                  },
+                },
+              },
+              blobalongSelected: {
+                initial: 'idle',
+                states: {
+                  idle: {
+                    on: {
+                      CHOOSING_CONNECTION: {
+                        target: 'choosingConnection',
+                      },
+                    },
+                  },
+                  choosingConnection: {
+                    on: {
+                      CANCEL_CONNECTION: {
+                        target: 'idle',
+                      },
+                      DRAW_CHOOSING_CONNECTION: {
+                        actions: send(
+                          (_, { ctx }: DrawChoosingConnectionEvent) => ({
+                            type: 'DRAW',
+                            ctx,
+                          }),
+                          {
+                            to: 'choosingConnection',
+                          }
+                        ),
+                      },
+                      CLICKED: {
+                        actions: send((_, event) => event, {
+                          to: 'choosingConnection',
+                        }),
+                      },
+                      MOUSE_MOVE: {
+                        actions: send((_, event) => event, {
+                          to: 'choosingConnection',
+                        }),
+                      },
+                    },
+                    invoke: {
+                      id: 'choosingConnection',
+                      src: makeChoosingConnectionMachine,
+                      onDone: {
+                        target: 'idle',
+                      },
+                    },
                   },
                 },
               },

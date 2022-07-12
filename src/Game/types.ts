@@ -5,6 +5,12 @@ export type Point = {
   y: number;
 };
 
+export interface Ellipse {
+  centre: Point;
+  radiusX: number;
+  radiusY: number;
+}
+
 export type PersistedActor<T, U> = {
   context: T;
   value: U;
@@ -28,6 +34,11 @@ export type UpdateEvent = {
   type: 'UPDATE';
   lastUpdateAt: number;
   currentUpdateAt: number;
+};
+
+export type MouseMoveEvent = {
+  type: 'MOUSE_MOVE';
+  point: Point;
 };
 
 export type MapClickEvent = {
