@@ -1,42 +1,18 @@
 import React, { useContext } from 'react';
+import { State } from 'xstate';
+import { useSelector } from '@xstate/react';
 
+import { Context as GameMachineContext } from 'game/gameMachine/types';
 import { GameContext } from 'game/GameProvider';
 import { drawBlobalong } from 'game/blobs/blobalong/draw';
-import {
-  BLOB_LARVA_HEAD_RADIUS,
-  BLOB_LARVA_BODY_RADIUS_X,
-  BLOB_LARVA_BODY_RADIUS_Y,
-} from 'game/paramaters';
 
-import { BlobType } from 'game/types';
 import { Canvas, DrawOptions } from 'src/components/Canvas';
-import { drawCircle } from 'game/lib/draw';
 
 const PROFILE_CANVAS_HEIGHT = 100;
 const PROFILE_CANVAS_WIDTH = 100;
 
-const SPAWN_ITEM_HEIGHT = 25;
-const SPAWN_ITEM_WIDTH = 25;
-const LARVA_SCALE_FACTOR = 2.5;
-
-interface BlobSpawn {
-  type: BlobType;
-  massCost: number;
-  durationMs: number;
-  draw: (opts: DrawOptions) => void;
-}
-
-interface UnknownSpawn {
-  type: 'unknown';
-  draw: (opts: DrawOptions) => void;
-}
-
-const larvaBodyRadiusX = BLOB_LARVA_BODY_RADIUS_X * LARVA_SCALE_FACTOR;
-const larvaBodyRadiusY = BLOB_LARVA_BODY_RADIUS_Y * LARVA_SCALE_FACTOR;
-const larvaHeadRadius = BLOB_LARVA_HEAD_RADIUS * LARVA_SCALE_FACTOR;
-
 function drawBlobalongProfile({ ctx, canvasHeight, canvasWidth }: DrawOptions) {
-  const x = canvasWidth / 2 - larvaBodyRadiusX / 2;
+  const x = canvasWidth / 2;
   const y = canvasHeight / 2;
   ctx.beginPath();
   drawBlobalong(
@@ -51,12 +27,38 @@ function drawBlobalongProfile({ ctx, canvasHeight, canvasWidth }: DrawOptions) {
   ctx.closePath();
 }
 
+function showMakeConnectionSelector(state: State<GameMachineContext>) {
+  return state.matches({
+    ready: { itemSelection: { blobalongSelected: 'idle' } },
+  });
+}
+
+function showCancelConnectionSelector(state: State<GameMachineContext>) {
+  return state.matches({
+    ready: { itemSelection: { blobalongSelected: 'choosingConnection' } },
+  });
+}
+
 export const BlobalongDisplay = () => {
   const gameServices = useContext(GameContext);
+  const showMakeConnection = useSelector(
+    gameServices.gameService,
+    showMakeConnectionSelector
+  );
+  const showCancelMakeConnection = useSelector(
+    gameServices.gameService,
+    showCancelConnectionSelector
+  );
 
   const handleMakeConnection = () => {
     gameServices.gameService.send({
       type: 'CHOOSING_CONNECTION',
+    });
+  };
+
+  const handleCancelConnection = () => {
+    gameServices.gameService.send({
+      type: 'CANCEL_CONNECTION',
     });
   };
 
@@ -72,7 +74,13 @@ export const BlobalongDisplay = () => {
       </div>
 
       <div className="flex">
-        <button onClick={handleMakeConnection}>Make connection</button>
+        {showMakeConnection && (
+          <button onClick={handleMakeConnection}>Make connection</button>
+        )}
+
+        {showCancelMakeConnection && (
+          <button onClick={handleCancelConnection}>Cancel connection</button>
+        )}
       </div>
     </div>
   );
