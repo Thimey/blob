@@ -7,9 +7,9 @@ import {
   NODE_RADIUS_X,
   NODE_RADIUS_Y,
 } from 'game/paramaters';
-import { generateId, makeRandomNumber } from 'game/lib/utils';
-import { makeLinearPoints, makeCubicBezierPoints } from 'game/lib/geometry';
+import { makeLinearPoints } from 'game/lib/geometry';
 import { makeConnection } from './makeConnection';
+import { makeNode } from './makeNode';
 
 import {
   Node,
@@ -156,14 +156,44 @@ export class BlobNetwork {
     );
   }
 
-  public draw(ctx: CanvasRenderingContext2D) {
-    // Draw nodes
-    Object.values(this.nodeMap).forEach((node) => drawNode(ctx, node));
+  public addConnection(connection: Connection, newEndNodeCentre?: Point) {
+    const startNode = this.nodeOfPoint(connection.start);
+    const endNode = newEndNodeCentre
+      ? makeNode(newEndNodeCentre)
+      : this.nodeOfPoint(connection.end);
 
+    if (!startNode || !endNode) return;
+
+    this.connectionMap[connection.id] = connection;
+
+    this.nodeMap[startNode.id] = {
+      ...startNode,
+      connections: {
+        ...startNode.connections,
+        [endNode.id]: { connectionId: connection.id, direction: 'startToEnd' },
+      },
+    };
+
+    this.nodeMap[endNode.id] = {
+      ...endNode,
+      connections: {
+        ...endNode.connections,
+        [startNode.id]: {
+          connectionId: connection.id,
+          direction: 'endToStart',
+        },
+      },
+    };
+  }
+
+  public draw(ctx: CanvasRenderingContext2D) {
     // Draw connections
     Object.values(this.connectionMap).forEach((connection) =>
       drawConnection(ctx, connection)
     );
+
+    // Draw nodes
+    Object.values(this.nodeMap).forEach((node) => drawNode(ctx, node));
   }
 }
 
@@ -219,7 +249,7 @@ const connection1 = makeConnection(
     x: node2.centre.x + node2.radiusX * 0.5,
     y: node2.centre.y + node2.radiusY * 0.5,
   }
-);
+).connection;
 
 const connection2 = makeConnection(
   {
@@ -230,7 +260,7 @@ const connection2 = makeConnection(
     x: node3.centre.x - node3.radiusX * 0.5,
     y: node3.centre.y + node3.radiusY * 0.5,
   }
-);
+).connection;
 
 const connection3 = makeConnection(
   {
@@ -241,7 +271,7 @@ const connection3 = makeConnection(
     x: node4.centre.x - node4.radiusX * 0.5,
     y: node4.centre.y - node4.radiusY * 0.5,
   }
-);
+).connection;
 
 const connection4 = makeConnection(
   {
@@ -252,7 +282,7 @@ const connection4 = makeConnection(
     x: node4.centre.x - node4.radiusX * 0.5,
     y: node4.centre.y + node4.radiusY * 0.5,
   }
-);
+).connection;
 
 node1.connections[node2.id] = {
   connectionId: connection1.id,

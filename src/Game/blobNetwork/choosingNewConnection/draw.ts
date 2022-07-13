@@ -106,7 +106,7 @@ export function drawAdjustingEnd(
   nodes: Node[],
   start?: Point,
   end?: Point,
-  endNodeCentre?: Point
+  newEndNodeCentre?: Point
 ) {
   if (!start || !end) return;
 
@@ -117,14 +117,14 @@ export function drawAdjustingEnd(
 
   drawPendingConnectionLine(ctx, start, end);
 
-  if (endNodeCentre) {
+  if (newEndNodeCentre) {
     drawNode(ctx, {
-      centre: endNodeCentre,
+      centre: newEndNodeCentre,
       radiusX: NODE_RADIUS_X,
       radiusY: NODE_RADIUS_Y,
     });
     drawNodeConnectionRadius(ctx, {
-      centre: endNodeCentre,
+      centre: newEndNodeCentre,
       radiusX: NODE_RADIUS_X,
       radiusY: NODE_RADIUS_Y,
     });

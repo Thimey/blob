@@ -1,5 +1,4 @@
-import { blobQueenColor } from 'game/colors';
-import { hexToRGB } from 'game/lib/utils';
+import { blobQueenColor, nodeColor } from 'game/colors';
 import {
   CONNECTION_WALL_WIDTH,
   CONNECTION_WIDTH,
@@ -10,23 +9,63 @@ import { Ellipse } from 'game/types';
 
 import { Connection } from './types';
 
-const nodeColor = hexToRGB(blobQueenColor);
-
 export function drawNode(
   ctx: CanvasRenderingContext2D,
   { centre, radiusX, radiusY }: Ellipse
 ) {
   ctx.beginPath();
   ctx.ellipse(centre.x, centre.y, radiusX, radiusY, 0, 0, 2 * Math.PI);
-  ctx.fillStyle = `rgba(${nodeColor.r}, ${nodeColor.g}, ${nodeColor.b}, 0.5)`;
+  ctx.fillStyle = nodeColor;
   ctx.fill();
   ctx.closePath();
 }
 
-export function drawConnection(
+export function drawConnectionBody(
   ctx: CanvasRenderingContext2D,
   { start, end, bezierP1, bezierP2 }: Connection
 ) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-over';
+  // Connection inner
+  ctx.beginPath();
+  ctx.moveTo(start.x, start.y);
+  ctx.bezierCurveTo(
+    bezierP1.x,
+    bezierP1.y,
+    bezierP2.x,
+    bezierP2.y,
+    end.x,
+    end.y
+  );
+  ctx.strokeStyle = blobQueenColor;
+  ctx.lineWidth = CONNECTION_WIDTH;
+  ctx.stroke();
+  ctx.closePath();
+
+  // Connection wall
+  ctx.beginPath();
+  ctx.moveTo(start.x, start.y);
+  ctx.bezierCurveTo(
+    bezierP1.x,
+    bezierP1.y,
+    bezierP2.x,
+    bezierP2.y,
+    end.x,
+    end.y
+  );
+  ctx.lineWidth = CONNECTION_WIDTH + CONNECTION_WALL_WIDTH;
+  ctx.strokeStyle = 'black';
+  ctx.stroke();
+  ctx.closePath();
+
+  ctx.restore();
+}
+
+export function drawConnection(
+  ctx: CanvasRenderingContext2D,
+  connection: Connection
+) {
+  const { start, end } = connection;
   ctx.save();
 
   // Entrance
@@ -64,36 +103,7 @@ export function drawConnection(
   ctx.stroke();
   ctx.closePath();
 
-  // Connection wall
-  ctx.beginPath();
-  ctx.moveTo(start.x, start.y);
-  ctx.bezierCurveTo(
-    bezierP1.x,
-    bezierP1.y,
-    bezierP2.x,
-    bezierP2.y,
-    end.x,
-    end.y
-  );
-  ctx.lineWidth = CONNECTION_WIDTH + CONNECTION_WALL_WIDTH;
-  ctx.strokeStyle = 'black';
-  ctx.stroke();
-  ctx.closePath();
-
-  // Connection inner
-  ctx.beginPath();
-  ctx.moveTo(start.x, start.y);
-  ctx.bezierCurveTo(
-    bezierP1.x,
-    bezierP1.y,
-    bezierP2.x,
-    bezierP2.y,
-    end.x,
-    end.y
-  );
-  ctx.strokeStyle = blobQueenColor;
-  ctx.lineWidth = CONNECTION_WIDTH;
-  ctx.stroke();
-  ctx.closePath();
   ctx.restore();
+
+  drawConnectionBody(ctx, connection);
 }

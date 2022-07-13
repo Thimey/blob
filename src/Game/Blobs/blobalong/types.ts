@@ -17,6 +17,11 @@ export interface Context {
   movement?: Movement;
   makingConnection?: {
     connection: Connection;
+    newEndNodeCentre?: Point;
+    growPoints: Point[];
+    currentPointIndex: number;
+    head1Rotation: number;
+    head2Rotation: number;
   };
 }
 
@@ -33,6 +38,8 @@ export type DrawSelectedEvent = {
 export type MakeConnectionEvent = {
   type: 'MAKE_CONNECTION';
   connection: Connection;
+  growPoints: Point[];
+  newEndNodeCentre?: Point;
 };
 
 export type Event =

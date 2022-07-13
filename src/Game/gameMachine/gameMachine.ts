@@ -213,7 +213,9 @@ export function makeGameMachine({
                         target: 'idle',
                         actions: (
                           { blobalongs }: Context,
-                          { data: { start, end } }: ChoosingConnectionDoneEvent
+                          {
+                            data: { start, end, newEndNodeCentre },
+                          }: ChoosingConnectionDoneEvent
                         ) => {
                           const firstSelectedBlobalong = blobalongs.find(
                             (blob) =>
@@ -224,7 +226,8 @@ export function makeGameMachine({
                           if (firstSelectedBlobalong) {
                             firstSelectedBlobalong.send({
                               type: 'MAKE_CONNECTION',
-                              connection: makeConnection(start, end),
+                              newEndNodeCentre,
+                              ...makeConnection(start, end),
                             });
                           }
                         },

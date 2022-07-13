@@ -141,6 +141,17 @@ export function makeRelativePoint(
   };
 }
 
+export function makePointOnCircle(
+  { x, y }: Point,
+  radius: number,
+  angle: number
+) {
+  return {
+    x: x + radius * Math.sin(angle),
+    y: y + radius * Math.cos(angle),
+  };
+}
+
 // Note this does make acurate points, but quickly adds points around ellipse circumference
 // Use makePointOnEllipse for accuracy
 export function makePointsOnEllipse(

@@ -4,14 +4,27 @@ import {
   isPointWithinEllipse,
   isPointWithinCircle,
   makeRelativePoint,
+  makePointOnCircle,
 } from 'game/lib/geometry';
+import { CONNECTION_WIDTH, CONNECTION_WALL_WIDTH } from 'game/paramaters';
 import { Point, DrawEventCtx } from 'game/types';
+import { mapBackgroundColor } from 'game/colors';
+import { drawConnectionBody } from 'game/blobNetwork/draw';
 import { Context, BlobalongActor } from './types';
 
 type BlobalongDrawContext = Pick<
   Context,
-  'position' | 'rotation' | 'finRotation' | 'finRotationDir'
+  | 'position'
+  | 'rotation'
+  | 'finRotation'
+  | 'finRotationDir'
+  | 'makingConnection'
 >;
+
+type PositionAndRotation = {
+  position: Point;
+  rotation: number;
+};
 
 // Heads
 const BLOBALONG_HEAD_RADIUS = 14;
@@ -30,66 +43,29 @@ const BLOBALONG_FIN_OFFSET = 16;
 const BLOBALONG_FIN_ANGLE = Math.PI / 3;
 
 // Eye params
-const BLOBALONG_EYE_ANGLE = Math.PI / 26;
-const BLOBALONG_HEAD1_EYE_OFFSET = -30;
-const BLOBALONG_HEAD2_EYE_OFFSET = 30;
+const BLOBALONG_EYE_ANGLE = Math.PI / 6;
+const BLOBALONG_EYE_OFFSET = 7;
 const BLOBALONG_EYE_RADIUS = 1.5;
 
 function makeHead1Position({
   position: { x, y },
   rotation,
-}: BlobalongDrawContext) {
+}: PositionAndRotation) {
   return makeRelativePoint({ x, y }, -BLOBALONG_HEAD_OFFSET, rotation);
 }
 
 function makeHead2Position({
   position: { x, y },
   rotation,
-}: BlobalongDrawContext) {
+}: PositionAndRotation) {
   return makeRelativePoint({ x, y }, BLOBALONG_HEAD_OFFSET, rotation);
-}
-
-function makeHead1EyePositions({
-  position: { x, y },
-  rotation,
-}: BlobalongDrawContext) {
-  return {
-    left: makeRelativePoint(
-      { x, y },
-      BLOBALONG_HEAD1_EYE_OFFSET,
-      rotation - BLOBALONG_EYE_ANGLE
-    ),
-    right: makeRelativePoint(
-      { x, y },
-      BLOBALONG_HEAD1_EYE_OFFSET,
-      rotation + BLOBALONG_EYE_ANGLE
-    ),
-  };
-}
-
-function makeHead2EyePositions({
-  position: { x, y },
-  rotation,
-}: BlobalongDrawContext) {
-  return {
-    left: makeRelativePoint(
-      { x, y },
-      BLOBALONG_HEAD2_EYE_OFFSET,
-      rotation - BLOBALONG_EYE_ANGLE
-    ),
-    right: makeRelativePoint(
-      { x, y },
-      BLOBALONG_HEAD2_EYE_OFFSET,
-      rotation + BLOBALONG_EYE_ANGLE
-    ),
-  };
 }
 
 function makeFins({
   position: { x, y },
   rotation,
   finRotation,
-}: BlobalongDrawContext) {
+}: PositionAndRotation & { finRotation: number }) {
   return [
     { xDir: 1, yDir: 1 },
     { xDir: -1, yDir: -1 },
@@ -105,6 +81,59 @@ function makeFins({
   }));
 }
 
+function drawEyes(
+  ctx: CanvasRenderingContext2D,
+  headPosition: Point,
+  rotation: number
+) {
+  const eye1 = makePointOnCircle(
+    headPosition,
+    BLOBALONG_EYE_OFFSET,
+    rotation - BLOBALONG_EYE_ANGLE
+  );
+  const eye2 = makePointOnCircle(
+    headPosition,
+    BLOBALONG_EYE_OFFSET,
+    rotation + BLOBALONG_EYE_ANGLE
+  );
+
+  [eye1, eye2].forEach(({ x, y }) => {
+    ctx.beginPath();
+    drawCircle(ctx, x, y, BLOBALONG_EYE_RADIUS, 'black');
+    ctx.closePath();
+  });
+}
+
+function drawHeadCircle(ctx: CanvasRenderingContext2D, position: Point) {
+  ctx.beginPath();
+  drawCircle(
+    ctx,
+    position.x,
+    position.y,
+    BLOBALONG_HEAD_RADIUS,
+    BLOBALONG_HEAD_COLOR
+  );
+  ctx.strokeStyle = 'black';
+  ctx.stroke();
+  ctx.closePath();
+}
+
+function drawHead(
+  ctx: CanvasRenderingContext2D,
+  position: Point,
+  rotation: number,
+  compositionOperation: 'source-over' | 'destination-over' = 'source-over'
+) {
+  // Ensure eyes always drawn on top
+  if (compositionOperation === 'destination-over') {
+    drawEyes(ctx, position, rotation);
+    drawHeadCircle(ctx, position);
+  }
+
+  drawHeadCircle(ctx, position);
+  drawEyes(ctx, position, rotation);
+}
+
 export function drawBlobalong(
   context: BlobalongDrawContext,
   { ctx }: DrawEventCtx
@@ -113,65 +142,15 @@ export function drawBlobalong(
     position: { x, y },
     rotation,
   } = context;
-  const { x: head1X, y: head1Y } = makeHead1Position(context);
-  const { x: head2X, y: head2Y } = makeHead2Position(context);
-
-  const {
-    left: { x: head1LeftEyeX, y: head1LeftEyeY },
-    right: { x: head1RightEyeX, y: head1RightEyeY },
-  } = makeHead1EyePositions(context);
-
-  const {
-    left: { x: head2LeftEyeX, y: head2LeftEyeY },
-    right: { x: head2RightEyeX, y: head2RightEyeY },
-  } = makeHead2EyePositions(context);
-
-  const fins = makeFins(context);
 
   // Head 1
-  ctx.beginPath();
-  drawCircle(ctx, head1X, head1Y, BLOBALONG_HEAD_RADIUS, BLOBALONG_HEAD_COLOR);
-  ctx.strokeStyle = 'black';
-  ctx.stroke();
-  ctx.closePath();
-  // Left eye
-  ctx.beginPath();
-  drawCircle(ctx, head1LeftEyeX, head1LeftEyeY, BLOBALONG_EYE_RADIUS, 'black');
-  ctx.closePath();
-  // Right eye
-  ctx.beginPath();
-  drawCircle(
-    ctx,
-    head1RightEyeX,
-    head1RightEyeY,
-    BLOBALONG_EYE_RADIUS,
-    'black'
-  );
-  ctx.closePath();
+  drawHead(ctx, makeHead1Position(context), 1.5 * Math.PI - rotation);
 
   // Head 2
-  ctx.beginPath();
-  drawCircle(ctx, head2X, head2Y, BLOBALONG_HEAD_RADIUS, BLOBALONG_HEAD_COLOR);
-  ctx.strokeStyle = 'black';
-  ctx.stroke();
-  ctx.closePath();
-  // Left eye
-  ctx.beginPath();
-  drawCircle(ctx, head2LeftEyeX, head2LeftEyeY, BLOBALONG_EYE_RADIUS, 'black');
-  ctx.closePath();
-  // Right eye
-  ctx.beginPath();
-  drawCircle(
-    ctx,
-    head2RightEyeX,
-    head2RightEyeY,
-    BLOBALONG_EYE_RADIUS,
-    'black'
-  );
-  ctx.closePath();
+  drawHead(ctx, makeHead2Position(context), 0.5 * Math.PI - rotation);
 
   // Fins
-  fins.forEach(
+  makeFins(context).forEach(
     ({ position: { x: finX, y: finY }, rotation: singleFinRotation }) => {
       ctx.beginPath();
       drawDiamond(
@@ -295,4 +274,52 @@ export function blobalongClicked(
       )
     )
   );
+}
+
+export function drawMakingConnection(
+  { makingConnection }: Context,
+  { ctx }: DrawEventCtx
+) {
+  if (!makingConnection) return;
+  const {
+    connection,
+    currentPointIndex,
+    growPoints,
+    head1Rotation,
+    head2Rotation,
+  } = makingConnection;
+
+  // Draw revealing connection body under everything
+  ctx.globalCompositeOperation = 'destination-over';
+
+  // Head 1
+  drawHead(ctx, connection.start, head1Rotation, 'destination-over');
+
+  // Head 2
+  drawHead(
+    ctx,
+    growPoints[currentPointIndex],
+    head2Rotation,
+    'destination-over'
+  );
+
+  // Draw overlay to reveal body (this will be on top of connection body)
+  for (let i = currentPointIndex; i < growPoints.length; i += 2) {
+    const p = growPoints[i];
+    ctx.beginPath();
+    drawCircle(
+      ctx,
+      p.x,
+      p.y,
+      (CONNECTION_WIDTH + CONNECTION_WALL_WIDTH + 2) / 2,
+      mapBackgroundColor
+    );
+    ctx.closePath();
+  }
+
+  // Draw the actual connection under overlay
+  drawConnectionBody(ctx, makingConnection.connection);
+
+  // Set back to to draw everything else on top
+  ctx.globalCompositeOperation = 'source-over';
 }

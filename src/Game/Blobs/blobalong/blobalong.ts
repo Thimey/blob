@@ -8,6 +8,7 @@ import {
   DrawEvent,
 } from 'game/types';
 import { multipleOf } from 'game/lib/utils';
+import { getAngleBetweenTwoPointsFromXHorizontal } from 'game/lib/geometry';
 import { network } from 'game/blobNetwork';
 import {
   BlobalongClickEvent,
@@ -15,11 +16,14 @@ import {
   Event,
   MakeConnectionEvent,
 } from './types';
-import { drawBlobalong, drawBlobalongSelectedOutline } from './draw';
+import {
+  drawBlobalong,
+  drawBlobalongSelectedOutline,
+  drawMakingConnection,
+} from './draw';
 
 const BLOBALONG_SPEED = 0.5;
 const BLOBALONG_MOVING_FIN_SLOW_FACTOR = 5;
-const BLOBALONG_IDLE_FIN_SLOW_FACTOR = 10;
 const BLOBALONG_FIN_ROTATION = Math.PI / 4;
 
 function makeMovement({
@@ -64,14 +68,8 @@ const rotateBody = assign<Context, UpdateEvent>(({ position, movement }) => {
 
   const nextPosition = movement.path[movement.pathIndex + 1];
 
-  const dx = nextPosition.x - position.x;
-  const dy = nextPosition.y - position.y;
-
-  const angle = Math.atan(dy / dx);
-  const rotation = angle < 0 ? Math.PI + angle : angle;
-
   return {
-    rotation,
+    rotation: getAngleBetweenTwoPointsFromXHorizontal(position, nextPosition),
   };
 });
 
@@ -99,6 +97,40 @@ const rotateMovingFin = assign<Context, UpdateEvent>(
       finRotationDir: changeDirection
         ? switchDirection(finRotationDir)
         : finRotationDir,
+    };
+  }
+);
+
+const growConnection = assign(
+  ({ makingConnection }: Context, _: UpdateEvent) => {
+    if (!makingConnection) return {};
+    const { currentPointIndex, growPoints } = makingConnection;
+    const isLastUpdate = currentPointIndex >= growPoints.length - 1;
+
+    const nextIndex = currentPointIndex + 1;
+
+    if (isLastUpdate)
+      return {
+        makingConnection: {
+          ...makingConnection,
+          currentPointIndex: nextIndex,
+        },
+      };
+
+    return {
+      makingConnection: {
+        ...makingConnection,
+        currentPointIndex: nextIndex,
+        head1Rotation:
+          0.5 * Math.PI -
+          getAngleBetweenTwoPointsFromXHorizontal(growPoints[1], growPoints[0]),
+        head2Rotation:
+          0.5 * Math.PI -
+          getAngleBetweenTwoPointsFromXHorizontal(
+            growPoints[currentPointIndex],
+            growPoints[nextIndex]
+          ),
+      },
     };
   }
 );
@@ -178,9 +210,21 @@ export function makeBlobalong(context: Context) {
                         actions: assign(
                           (
                             _: Context,
-                            { connection }: MakeConnectionEvent
+                            {
+                              connection,
+                              growPoints,
+                              newEndNodeCentre,
+                            }: MakeConnectionEvent
                           ) => ({
-                            makingConnection: { connection },
+                            makingConnection: {
+                              connection,
+                              growPoints,
+                              newEndNodeCentre,
+                              currentPointIndex: 0,
+                              head1Rotation: 0,
+                              head2Rotation: 0,
+                              head2Position: connection.points[3],
+                            },
                           })
                         ),
                       },
@@ -230,7 +274,7 @@ export function makeBlobalong(context: Context) {
               movingToStart: {
                 on: {
                   DRAW: {
-                    actions: [drawBlobalong],
+                    actions: drawBlobalong,
                   },
                   UPDATE: [
                     {
@@ -243,7 +287,35 @@ export function makeBlobalong(context: Context) {
                   ],
                 },
               },
-              growing: {},
+              growing: {
+                on: {
+                  DRAW: {
+                    actions: drawMakingConnection,
+                  },
+                  UPDATE: [
+                    {
+                      target: 'done',
+                      actions: ({ makingConnection }) => {
+                        if (makingConnection) {
+                          network.addConnection(
+                            makingConnection.connection,
+                            makingConnection.newEndNodeCentre
+                          );
+                        }
+                      },
+                      cond: ({ makingConnection }) =>
+                        Boolean(
+                          makingConnection &&
+                            makingConnection.currentPointIndex ===
+                              makingConnection.growPoints.length - 1
+                        ),
+                    },
+                    {
+                      actions: growConnection,
+                    },
+                  ],
+                },
+              },
               done: {
                 type: 'final',
               },
