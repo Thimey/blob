@@ -135,10 +135,39 @@ const growConnection = assign(
   }
 );
 
+const assignMovementToConnectionStart = assign(
+  ({ position, makingConnection }: Context) => {
+    if (!makingConnection) return {};
+    return {
+      movement: makeMovement({
+        position,
+        destination: makingConnection.connection.start,
+      }),
+    };
+  }
+);
+
 function hasReachedDestination({ movement }: Context) {
   if (!movement) return true;
 
   return movement.pathIndex >= movement.path.length;
+}
+
+function makeConnection({ makingConnection }: Context) {
+  if (makingConnection) {
+    network.addConnection(
+      makingConnection.connection,
+      makingConnection.newEndNodeCentre
+    );
+  }
+}
+
+function finishedGrowing({ makingConnection }: Context) {
+  return Boolean(
+    makingConnection &&
+      makingConnection.currentPointIndex ===
+        makingConnection.growPoints.length - 1
+  );
 }
 
 export function makeBlobalong(context: Context) {
@@ -261,15 +290,7 @@ export function makeBlobalong(context: Context) {
           makingConnection: {
             id: 'makingConnection',
             initial: 'movingToStart',
-            entry: assign(({ position, makingConnection }: Context) => {
-              if (!makingConnection) return {};
-              return {
-                movement: makeMovement({
-                  position,
-                  destination: makingConnection.connection.start,
-                }),
-              };
-            }),
+            entry: assignMovementToConnectionStart,
             states: {
               movingToStart: {
                 on: {
@@ -295,20 +316,8 @@ export function makeBlobalong(context: Context) {
                   UPDATE: [
                     {
                       target: 'done',
-                      actions: ({ makingConnection }) => {
-                        if (makingConnection) {
-                          network.addConnection(
-                            makingConnection.connection,
-                            makingConnection.newEndNodeCentre
-                          );
-                        }
-                      },
-                      cond: ({ makingConnection }) =>
-                        Boolean(
-                          makingConnection &&
-                            makingConnection.currentPointIndex ===
-                              makingConnection.growPoints.length - 1
-                        ),
+                      actions: makeConnection,
+                      cond: finishedGrowing,
                     },
                     {
                       actions: growConnection,
