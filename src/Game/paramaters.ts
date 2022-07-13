@@ -31,8 +31,25 @@ export const BLOBLET_HARVEST_INTERVAL = 5_000;
 export const BLOBLET_DRIFT_DISTANCE = 10;
 
 // Blobalong
-export const BLOBALONG_MASS_COST = 20;
+export const BLOBALONG_MASS_COST = 1;
 export const BLOBALONG_SPAWN_TIME_MS = 20_00;
+
+export const BLOBALONG_HEAD_RADIUS = 14;
+export const BLOBALONG_HEAD_OFFSET = 25;
+export const BLOBALONG_HEAD_COLOR = '#228be6';
+
+export const BLOBALONG_BODY_RADIUS_X = 22;
+export const BLOBALONG_BODY_RADIUS_Y = 13;
+export const BLOBALONG_BODY_COLOR = '#15aabf';
+
+export const BLOBALONG_FIN_WIDTH = 12;
+export const BLOBALONG_FIN_HEIGHT = 20;
+export const BLOBALONG_FIN_OFFSET = 16;
+export const BLOBALONG_FIN_ANGLE = Math.PI / 3;
+
+export const BLOBALONG_EYE_ANGLE = Math.PI / 6;
+export const BLOBALONG_EYE_OFFSET = 7;
+export const BLOBALONG_EYE_RADIUS = 1.5;
 
 // Shrubs
 export const LEAF_HEIGHT = 12;
@@ -47,8 +64,6 @@ export const NODE_RADIUS_X = QUEEN_RADIUS_X * 1.5;
 export const NODE_RADIUS_Y = QUEEN_RADIUS_Y * 1.5;
 export const CONNECTION_WALL_WIDTH = 3;
 export const CONNECTION_WIDTH = 20;
-export const ENTRANCE_RADIUS_X = 20;
-export const ENTRANCE_RADIUS_Y = 20;
 
 export const CONNECTION_RADIUS_PERCENT = 0.99;
 export const CONNECTION_MAX_LENGTH = 800;

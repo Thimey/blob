@@ -1,11 +1,20 @@
-import { blobQueenColor, nodeColor } from 'game/colors';
+import { nodeColor } from 'game/colors';
 import {
   CONNECTION_WALL_WIDTH,
   CONNECTION_WIDTH,
-  ENTRANCE_RADIUS_X,
-  ENTRANCE_RADIUS_Y,
+  BLOBALONG_EYE_OFFSET,
+  BLOBALONG_EYE_ANGLE,
+  BLOBALONG_EYE_RADIUS,
+  BLOBALONG_HEAD_RADIUS,
+  BLOBALONG_HEAD_COLOR,
+  BLOBALONG_BODY_COLOR,
 } from 'game/paramaters';
-import { Ellipse } from 'game/types';
+import { drawCircle } from 'game/lib/draw';
+import {
+  makePointOnCircle,
+  getAngleBetweenTwoPointsFromXHorizontal,
+} from 'game/lib/geometry';
+import { Ellipse, Point } from 'game/types';
 
 import { Connection } from './types';
 
@@ -37,7 +46,7 @@ export function drawConnectionBody(
     end.x,
     end.y
   );
-  ctx.strokeStyle = blobQueenColor;
+  ctx.strokeStyle = BLOBALONG_BODY_COLOR;
   ctx.lineWidth = CONNECTION_WIDTH;
   ctx.stroke();
   ctx.closePath();
@@ -61,47 +70,81 @@ export function drawConnectionBody(
   ctx.restore();
 }
 
+function drawEyes(
+  ctx: CanvasRenderingContext2D,
+  headPosition: Point,
+  rotation: number
+) {
+  const eye1 = makePointOnCircle(
+    headPosition,
+    BLOBALONG_EYE_OFFSET,
+    rotation - BLOBALONG_EYE_ANGLE
+  );
+  const eye2 = makePointOnCircle(
+    headPosition,
+    BLOBALONG_EYE_OFFSET,
+    rotation + BLOBALONG_EYE_ANGLE
+  );
+
+  [eye1, eye2].forEach(({ x, y }) => {
+    ctx.beginPath();
+    drawCircle(ctx, x, y, BLOBALONG_EYE_RADIUS, 'black');
+    ctx.closePath();
+  });
+}
+
+function drawHeadCircle(ctx: CanvasRenderingContext2D, position: Point) {
+  ctx.beginPath();
+  drawCircle(
+    ctx,
+    position.x,
+    position.y,
+    BLOBALONG_HEAD_RADIUS,
+    BLOBALONG_HEAD_COLOR
+  );
+  ctx.strokeStyle = 'black';
+  ctx.stroke();
+  ctx.closePath();
+}
+
+export function drawConnectionHead(
+  ctx: CanvasRenderingContext2D,
+  position: Point,
+  rotation: number,
+  compositionOperation: 'source-over' | 'destination-over' = 'source-over'
+) {
+  // Ensure eyes always drawn on top
+  if (compositionOperation === 'destination-over') {
+    drawEyes(ctx, position, rotation);
+    drawHeadCircle(ctx, position);
+  }
+
+  drawHeadCircle(ctx, position);
+  drawEyes(ctx, position, rotation);
+}
+
 export function drawConnection(
   ctx: CanvasRenderingContext2D,
   connection: Connection
 ) {
-  const { start, end } = connection;
+  const { start, end, points } = connection;
+
   ctx.save();
-
-  // Entrance
   ctx.globalCompositeOperation = 'source-over';
-  ctx.beginPath();
-  ctx.ellipse(
-    start.x,
-    start.y,
-    ENTRANCE_RADIUS_X,
-    ENTRANCE_RADIUS_Y,
-    0,
-    0,
-    2 * Math.PI
-  );
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-  ctx.fill();
-  ctx.strokeStyle = 'black';
-  ctx.stroke();
-  ctx.closePath();
 
-  // Exit
-  ctx.beginPath();
-  ctx.ellipse(
-    end.x,
-    end.y,
-    ENTRANCE_RADIUS_X,
-    ENTRANCE_RADIUS_Y,
-    0,
-    0,
-    2 * Math.PI
-  );
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-  ctx.fill();
-  ctx.strokeStyle = 'black';
-  ctx.stroke();
-  ctx.closePath();
+  const entranceRotation =
+    0.5 * Math.PI -
+    getAngleBetweenTwoPointsFromXHorizontal(points[1], points[0]);
+  const exitRotation =
+    0.5 * Math.PI -
+    getAngleBetweenTwoPointsFromXHorizontal(
+      points[points.length - 2],
+      points[points.length - 1]
+    );
+
+  // Entrances
+  drawConnectionHead(ctx, start, entranceRotation);
+  drawConnectionHead(ctx, end, exitRotation);
 
   ctx.restore();
 

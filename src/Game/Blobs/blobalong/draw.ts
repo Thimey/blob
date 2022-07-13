@@ -4,12 +4,24 @@ import {
   isPointWithinEllipse,
   isPointWithinCircle,
   makeRelativePoint,
-  makePointOnCircle,
 } from 'game/lib/geometry';
-import { CONNECTION_WIDTH, CONNECTION_WALL_WIDTH } from 'game/paramaters';
+import {
+  CONNECTION_WIDTH,
+  CONNECTION_WALL_WIDTH,
+  BLOBALONG_HEAD_RADIUS,
+  BLOBALONG_HEAD_OFFSET,
+  BLOBALONG_HEAD_COLOR,
+  BLOBALONG_BODY_RADIUS_X,
+  BLOBALONG_BODY_RADIUS_Y,
+  BLOBALONG_BODY_COLOR,
+  BLOBALONG_FIN_WIDTH,
+  BLOBALONG_FIN_HEIGHT,
+  BLOBALONG_FIN_OFFSET,
+  BLOBALONG_FIN_ANGLE,
+} from 'game/paramaters';
 import { Point, DrawEventCtx } from 'game/types';
 import { mapBackgroundColor } from 'game/colors';
-import { drawConnectionBody } from 'game/blobNetwork/draw';
+import { drawConnectionBody, drawConnectionHead } from 'game/blobNetwork/draw';
 import { Context, BlobalongActor } from './types';
 
 type BlobalongDrawContext = Pick<
@@ -25,27 +37,6 @@ type PositionAndRotation = {
   position: Point;
   rotation: number;
 };
-
-// Heads
-const BLOBALONG_HEAD_RADIUS = 14;
-const BLOBALONG_HEAD_OFFSET = 25;
-const BLOBALONG_HEAD_COLOR = '#228be6';
-
-// Body
-const BLOBALONG_BODY_RADIUS_X = 22;
-const BLOBALONG_BODY_RADIUS_Y = 13;
-const BLOBALONG_BODY_COLOR = '#15aabf';
-
-// Fins
-const BLOBALONG_FIN_WIDTH = 12;
-const BLOBALONG_FIN_HEIGHT = 20;
-const BLOBALONG_FIN_OFFSET = 16;
-const BLOBALONG_FIN_ANGLE = Math.PI / 3;
-
-// Eye params
-const BLOBALONG_EYE_ANGLE = Math.PI / 6;
-const BLOBALONG_EYE_OFFSET = 7;
-const BLOBALONG_EYE_RADIUS = 1.5;
 
 function makeHead1Position({
   position: { x, y },
@@ -81,59 +72,6 @@ function makeFins({
   }));
 }
 
-function drawEyes(
-  ctx: CanvasRenderingContext2D,
-  headPosition: Point,
-  rotation: number
-) {
-  const eye1 = makePointOnCircle(
-    headPosition,
-    BLOBALONG_EYE_OFFSET,
-    rotation - BLOBALONG_EYE_ANGLE
-  );
-  const eye2 = makePointOnCircle(
-    headPosition,
-    BLOBALONG_EYE_OFFSET,
-    rotation + BLOBALONG_EYE_ANGLE
-  );
-
-  [eye1, eye2].forEach(({ x, y }) => {
-    ctx.beginPath();
-    drawCircle(ctx, x, y, BLOBALONG_EYE_RADIUS, 'black');
-    ctx.closePath();
-  });
-}
-
-function drawHeadCircle(ctx: CanvasRenderingContext2D, position: Point) {
-  ctx.beginPath();
-  drawCircle(
-    ctx,
-    position.x,
-    position.y,
-    BLOBALONG_HEAD_RADIUS,
-    BLOBALONG_HEAD_COLOR
-  );
-  ctx.strokeStyle = 'black';
-  ctx.stroke();
-  ctx.closePath();
-}
-
-function drawHead(
-  ctx: CanvasRenderingContext2D,
-  position: Point,
-  rotation: number,
-  compositionOperation: 'source-over' | 'destination-over' = 'source-over'
-) {
-  // Ensure eyes always drawn on top
-  if (compositionOperation === 'destination-over') {
-    drawEyes(ctx, position, rotation);
-    drawHeadCircle(ctx, position);
-  }
-
-  drawHeadCircle(ctx, position);
-  drawEyes(ctx, position, rotation);
-}
-
 export function drawBlobalong(
   context: BlobalongDrawContext,
   { ctx }: DrawEventCtx
@@ -144,10 +82,10 @@ export function drawBlobalong(
   } = context;
 
   // Head 1
-  drawHead(ctx, makeHead1Position(context), 1.5 * Math.PI - rotation);
+  drawConnectionHead(ctx, makeHead1Position(context), 1.5 * Math.PI - rotation);
 
   // Head 2
-  drawHead(ctx, makeHead2Position(context), 0.5 * Math.PI - rotation);
+  drawConnectionHead(ctx, makeHead2Position(context), 0.5 * Math.PI - rotation);
 
   // Fins
   makeFins(context).forEach(
@@ -293,10 +231,10 @@ export function drawMakingConnection(
   ctx.globalCompositeOperation = 'destination-over';
 
   // Head 1
-  drawHead(ctx, connection.start, head1Rotation, 'destination-over');
+  drawConnectionHead(ctx, connection.start, head1Rotation, 'destination-over');
 
   // Head 2
-  drawHead(
+  drawConnectionHead(
     ctx,
     growPoints[currentPointIndex],
     head2Rotation,
