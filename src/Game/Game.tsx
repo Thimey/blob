@@ -36,11 +36,13 @@ function gameLoop(gameService: any, gameCtx: CanvasRenderingContext2D) {
   network.draw(gameCtx);
   gameService.send('DRAW', { ctx: gameCtx });
 
-  // eslint-disable-next-line no-param-reassign
+  /* eslint-disable no-param-reassign */
+  // Draw background at the under everything else
   gameCtx.globalCompositeOperation = 'destination-over';
   gameCtx.fillStyle = mapBackgroundColor;
   gameCtx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
   gameCtx.globalCompositeOperation = 'source-over';
+  /* eslint-enable no-param-reassign */
 
   window.requestAnimationFrame(() => gameLoop(gameService, gameCtx));
 }
