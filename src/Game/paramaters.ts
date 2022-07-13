@@ -36,11 +36,9 @@ export const BLOBALONG_SPAWN_TIME_MS = 20_00;
 
 export const BLOBALONG_HEAD_RADIUS = 14;
 export const BLOBALONG_HEAD_OFFSET = 25;
-export const BLOBALONG_HEAD_COLOR = '#228be6';
 
 export const BLOBALONG_BODY_RADIUS_X = 22;
 export const BLOBALONG_BODY_RADIUS_Y = 13;
-export const BLOBALONG_BODY_COLOR = '#15aabf';
 
 export const BLOBALONG_FIN_WIDTH = 12;
 export const BLOBALONG_FIN_HEIGHT = 20;
@@ -65,7 +63,7 @@ export const NODE_RADIUS_Y = QUEEN_RADIUS_Y * 1.5;
 export const CONNECTION_WALL_WIDTH = 3;
 export const CONNECTION_WIDTH = 20;
 
-export const CONNECTION_RADIUS_PERCENT = 0.99;
+export const CONNECTION_RADIUS_PERCENT = 0.9;
 export const CONNECTION_MAX_LENGTH = 800;
 
 export const DEFAULT_SPEED = 1.2;

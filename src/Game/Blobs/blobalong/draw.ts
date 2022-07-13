@@ -10,17 +10,19 @@ import {
   CONNECTION_WALL_WIDTH,
   BLOBALONG_HEAD_RADIUS,
   BLOBALONG_HEAD_OFFSET,
-  BLOBALONG_HEAD_COLOR,
   BLOBALONG_BODY_RADIUS_X,
   BLOBALONG_BODY_RADIUS_Y,
-  BLOBALONG_BODY_COLOR,
   BLOBALONG_FIN_WIDTH,
   BLOBALONG_FIN_HEIGHT,
   BLOBALONG_FIN_OFFSET,
   BLOBALONG_FIN_ANGLE,
 } from 'game/paramaters';
 import { Point, DrawEventCtx } from 'game/types';
-import { mapBackgroundColor } from 'game/colors';
+import {
+  mapBackgroundColor,
+  blobalongHeadColor,
+  blobalongBodyColor,
+} from 'game/colors';
 import { drawConnectionBody, drawConnectionHead } from 'game/blobNetwork/draw';
 import { Context, BlobalongActor } from './types';
 
@@ -97,7 +99,7 @@ export function drawBlobalong(
         finY,
         BLOBALONG_FIN_WIDTH,
         BLOBALONG_FIN_HEIGHT,
-        BLOBALONG_HEAD_COLOR,
+        blobalongHeadColor,
         'black',
         singleFinRotation
       );
@@ -117,7 +119,7 @@ export function drawBlobalong(
     2 * Math.PI
   );
   ctx.strokeStyle = 'black';
-  ctx.fillStyle = BLOBALONG_BODY_COLOR;
+  ctx.fillStyle = blobalongBodyColor;
   ctx.fill();
   ctx.stroke();
   ctx.closePath();
@@ -141,7 +143,7 @@ export function drawBlobalongProfileHead(
 ) {
   // Body
   ctx.beginPath();
-  drawCircle(ctx, x, y, radius, BLOBALONG_HEAD_COLOR);
+  drawCircle(ctx, x, y, radius, blobalongHeadColor);
   ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();

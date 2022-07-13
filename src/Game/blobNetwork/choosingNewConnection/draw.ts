@@ -1,4 +1,8 @@
-import { blobQueenColor } from 'game/colors';
+import {
+  blobQueenColor,
+  blobalongHeadColor,
+  blobalongBodyColor,
+} from 'game/colors';
 import {
   CONNECTION_RADIUS_PERCENT,
   NODE_RADIUS_X,
@@ -38,7 +42,7 @@ function drawNodeConnectionRadii(ctx: CanvasRenderingContext2D, nodes: Node[]) {
 function drawConnectionPoint(
   ctx: CanvasRenderingContext2D,
   { x, y }: Point,
-  color = blobQueenColor
+  color = blobalongHeadColor
 ) {
   ctx.beginPath();
   drawCircle(ctx, x, y, 14, color);
@@ -51,7 +55,7 @@ function drawPendingConnectionLine(
   ctx: CanvasRenderingContext2D,
   start: Point,
   end: Point,
-  color = 'black'
+  color = blobalongBodyColor
 ) {
   ctx.setLineDash([5, 15]);
 
@@ -78,7 +82,7 @@ export function drawChoosingStart(
 
 function makeColor(isOnNode?: boolean, isValid?: boolean) {
   if (!isValid) return 'red';
-  return isOnNode ? blobQueenColor : 'black';
+  return isOnNode ? blobQueenColor : blobalongHeadColor;
 }
 
 export function drawChoosingEnd(
@@ -97,7 +101,7 @@ export function drawChoosingEnd(
 
   if (end) {
     drawConnectionPoint(ctx, end, color);
-    drawPendingConnectionLine(ctx, start, end, color);
+    drawPendingConnectionLine(ctx, start, end);
   }
 }
 

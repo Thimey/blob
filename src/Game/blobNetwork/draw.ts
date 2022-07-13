@@ -1,4 +1,9 @@
-import { nodeColor } from 'game/colors';
+import {
+  nodeColor,
+  blobalongHeadColor,
+  blobalongBodyColor,
+  blobalongBodyStrokeColor,
+} from 'game/colors';
 import {
   CONNECTION_WALL_WIDTH,
   CONNECTION_WIDTH,
@@ -6,8 +11,6 @@ import {
   BLOBALONG_EYE_ANGLE,
   BLOBALONG_EYE_RADIUS,
   BLOBALONG_HEAD_RADIUS,
-  BLOBALONG_HEAD_COLOR,
-  BLOBALONG_BODY_COLOR,
 } from 'game/paramaters';
 import { drawCircle } from 'game/lib/draw';
 import {
@@ -46,7 +49,7 @@ export function drawConnectionBody(
     end.x,
     end.y
   );
-  ctx.strokeStyle = BLOBALONG_BODY_COLOR;
+  ctx.strokeStyle = blobalongBodyColor;
   ctx.lineWidth = CONNECTION_WIDTH;
   ctx.stroke();
   ctx.closePath();
@@ -63,7 +66,7 @@ export function drawConnectionBody(
     end.y
   );
   ctx.lineWidth = CONNECTION_WIDTH + CONNECTION_WALL_WIDTH;
-  ctx.strokeStyle = 'black';
+  ctx.strokeStyle = blobalongBodyStrokeColor;
   ctx.stroke();
   ctx.closePath();
 
@@ -100,7 +103,7 @@ function drawHeadCircle(ctx: CanvasRenderingContext2D, position: Point) {
     position.x,
     position.y,
     BLOBALONG_HEAD_RADIUS,
-    BLOBALONG_HEAD_COLOR
+    blobalongHeadColor
   );
   ctx.strokeStyle = 'black';
   ctx.stroke();
