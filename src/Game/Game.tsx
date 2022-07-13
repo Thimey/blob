@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useContext } from 'react';
 
 import { network } from './blobNetwork';
 import { GameContext } from './GameProvider';
-import { sandColor } from './colors';
+import { mapBackgroundColor } from './colors';
 import { WORLD_HEIGHT, WORLD_WIDTH } from './paramaters';
 import { SelectionDisplay } from './SelectionDisplay';
 
@@ -16,10 +16,6 @@ let lastUpdateAt: number;
 
 function gameLoop(gameService: any, gameCtx: CanvasRenderingContext2D) {
   gameCtx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-
-  // eslint-disable-next-line no-param-reassign
-  gameCtx.fillStyle = sandColor;
-  gameCtx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
   loop = 0;
 
@@ -39,6 +35,14 @@ function gameLoop(gameService: any, gameCtx: CanvasRenderingContext2D) {
 
   network.draw(gameCtx);
   gameService.send('DRAW', { ctx: gameCtx });
+
+  /* eslint-disable no-param-reassign */
+  // Draw background at the under everything else
+  gameCtx.globalCompositeOperation = 'destination-over';
+  gameCtx.fillStyle = mapBackgroundColor;
+  gameCtx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+  gameCtx.globalCompositeOperation = 'source-over';
+  /* eslint-enable no-param-reassign */
 
   window.requestAnimationFrame(() => gameLoop(gameService, gameCtx));
 }

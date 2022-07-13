@@ -1,14 +1,7 @@
 import { Point } from 'game/types';
-import {
-  QUEEN_POSITION,
-  QUEEN_RADIUS_X,
-  QUEEN_RADIUS_Y,
-  DEFAULT_SPEED,
-  NODE_RADIUS_X,
-  NODE_RADIUS_Y,
-} from 'game/paramaters';
-import { generateId, makeRandomNumber } from 'game/lib/utils';
-import { makeLinearPoints, makeCubicBezierPoints } from 'game/lib/geometry';
+import { QUEEN_POSITION, DEFAULT_SPEED } from 'game/paramaters';
+import { makeLinearPoints } from 'game/lib/geometry';
+import { makeNode } from './makeNode';
 
 import {
   Node,
@@ -155,165 +148,45 @@ export class BlobNetwork {
     );
   }
 
-  public draw(ctx: CanvasRenderingContext2D) {
-    // Draw nodes
-    Object.values(this.nodeMap).forEach((node) => drawNode(ctx, node));
+  public addConnection(connection: Connection, newEndNodeCentre?: Point) {
+    const startNode = this.nodeOfPoint(connection.start);
+    const endNode = newEndNodeCentre
+      ? makeNode(newEndNodeCentre)
+      : this.nodeOfPoint(connection.end);
 
+    if (!startNode || !endNode) return;
+
+    this.connectionMap[connection.id] = connection;
+
+    this.nodeMap[startNode.id] = {
+      ...startNode,
+      connections: {
+        ...startNode.connections,
+        [endNode.id]: { connectionId: connection.id, direction: 'startToEnd' },
+      },
+    };
+
+    this.nodeMap[endNode.id] = {
+      ...endNode,
+      connections: {
+        ...endNode.connections,
+        [startNode.id]: {
+          connectionId: connection.id,
+          direction: 'endToStart',
+        },
+      },
+    };
+  }
+
+  public draw(ctx: CanvasRenderingContext2D) {
     // Draw connections
     Object.values(this.connectionMap).forEach((connection) =>
       drawConnection(ctx, connection)
     );
+
+    // Draw nodes
+    Object.values(this.nodeMap).forEach((node) => drawNode(ctx, node));
   }
 }
 
-// SETUP TEST NETWORK CODE (Will be moved else where in upcoming work) -->
-
-function makeConnection(start: Point, end: Point): Connection {
-  const bezierP1 = {
-    x: makeRandomNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
-    y: makeRandomNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
-  };
-  const bezierP2 = {
-    x: makeRandomNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),
-    y: makeRandomNumber(Math.min(start.y, end.y), Math.max(start.y, end.y)),
-  };
-
-  return {
-    id: generateId(),
-    start,
-    end,
-    bezierP1,
-    bezierP2,
-    points: makeCubicBezierPoints(start, bezierP1, bezierP2, end, 200),
-  };
-}
-
-const node1: Node = {
-  id: 'a',
-  centre: QUEEN_POSITION,
-  radiusX: NODE_RADIUS_X,
-  radiusY: NODE_RADIUS_Y,
-  connections: {},
-};
-
-const node2: Node = {
-  id: 'b',
-  centre: {
-    x: QUEEN_POSITION.x - QUEEN_RADIUS_X * 4,
-    y: QUEEN_POSITION.y - QUEEN_RADIUS_Y * 2,
-  },
-  radiusX: NODE_RADIUS_X,
-  radiusY: NODE_RADIUS_Y,
-  connections: {},
-};
-
-const node3: Node = {
-  id: 'c',
-  centre: {
-    x: QUEEN_POSITION.x,
-    y: QUEEN_POSITION.y - QUEEN_RADIUS_Y * 6,
-  },
-  radiusX: NODE_RADIUS_X,
-  radiusY: NODE_RADIUS_Y,
-  connections: {},
-};
-
-const node4: Node = {
-  id: 'd',
-  centre: {
-    x: QUEEN_POSITION.x + QUEEN_RADIUS_X * 5,
-    y: QUEEN_POSITION.y - QUEEN_RADIUS_Y * 1.4,
-  },
-  radiusX: NODE_RADIUS_X,
-  radiusY: NODE_RADIUS_Y,
-  connections: {},
-};
-
-const connection1 = makeConnection(
-  {
-    x: node1.centre.x - node1.radiusX * 0.5,
-    y: node1.centre.y - node1.radiusY * 0.5,
-  },
-  {
-    x: node2.centre.x + node2.radiusX * 0.5,
-    y: node2.centre.y + node2.radiusY * 0.5,
-  }
-);
-
-const connection2 = makeConnection(
-  {
-    x: node2.centre.x + node2.radiusX * 0.5,
-    y: node2.centre.y - node2.radiusY * 0.5,
-  },
-  {
-    x: node3.centre.x - node3.radiusX * 0.5,
-    y: node3.centre.y + node3.radiusY * 0.5,
-  }
-);
-
-const connection3 = makeConnection(
-  {
-    x: node3.centre.x + node3.radiusX * 0.5,
-    y: node3.centre.y - node3.radiusY * 0.5,
-  },
-  {
-    x: node4.centre.x - node4.radiusX * 0.5,
-    y: node4.centre.y - node4.radiusY * 0.5,
-  }
-);
-
-const connection4 = makeConnection(
-  {
-    x: node1.centre.x + node1.radiusX * 0.5,
-    y: node1.centre.y - node1.radiusY * 0.5,
-  },
-  {
-    x: node4.centre.x - node4.radiusX * 0.5,
-    y: node4.centre.y + node4.radiusY * 0.5,
-  }
-);
-
-node1.connections[node2.id] = {
-  connectionId: connection1.id,
-  direction: 'startToEnd',
-};
-
-node1.connections[node4.id] = {
-  connectionId: connection4.id,
-  direction: 'startToEnd',
-};
-
-node2.connections[node1.id] = {
-  connectionId: connection1.id,
-  direction: 'endToStart',
-};
-
-node2.connections[node3.id] = {
-  connectionId: connection2.id,
-  direction: 'startToEnd',
-};
-
-node3.connections[node2.id] = {
-  connectionId: connection2.id,
-  direction: 'endToStart',
-};
-
-node3.connections[node4.id] = {
-  connectionId: connection3.id,
-  direction: 'startToEnd',
-};
-
-node4.connections[node3.id] = {
-  connectionId: connection3.id,
-  direction: 'endToStart',
-};
-
-node4.connections[node1.id] = {
-  connectionId: connection4.id,
-  direction: 'endToStart',
-};
-
-export const network = new BlobNetwork(
-  [node1, node2, node3, node4],
-  [connection1, connection2, connection3, connection4]
-);
+export const network = new BlobNetwork([makeNode(QUEEN_POSITION)], []);

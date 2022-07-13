@@ -6,6 +6,7 @@ import {
   UpdateEvent,
   MapClickEvent,
 } from 'game/types';
+import { Connection } from 'game/blobNetwork';
 
 export interface Context {
   id: string;
@@ -14,18 +15,15 @@ export interface Context {
   finRotation: number;
   finRotationDir: 1 | -1;
   movement?: Movement;
+  makingConnection?: {
+    connection: Connection;
+    newEndNodeCentre?: Point;
+    growPoints: Point[];
+    currentPointIndex: number;
+    head1Rotation: number;
+    head2Rotation: number;
+  };
 }
-
-type StateValues =
-  | { selection: 'deselected' }
-  | { selection: 'selected' }
-  | { movement: 'stationary' }
-  | { movement: 'moving' };
-
-export type State = {
-  value: StateValues;
-  context: Context;
-};
 
 export type BlobalongClickEvent = {
   type: 'BLOBALONG_CLICK';
@@ -37,11 +35,19 @@ export type DrawSelectedEvent = {
   ctx: CanvasRenderingContext2D;
 };
 
+export type MakeConnectionEvent = {
+  type: 'MAKE_CONNECTION';
+  connection: Connection;
+  growPoints: Point[];
+  newEndNodeCentre?: Point;
+};
+
 export type Event =
   | DrawEvent
   | UpdateEvent
   | MapClickEvent
   | BlobalongClickEvent
-  | DrawSelectedEvent;
+  | DrawSelectedEvent
+  | MakeConnectionEvent;
 
 export type BlobalongActor = ActorRefFrom<StateMachine<Context, any, Event>>;

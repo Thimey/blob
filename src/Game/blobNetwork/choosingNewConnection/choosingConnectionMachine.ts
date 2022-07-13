@@ -1,4 +1,4 @@
-import { assign, createMachine } from 'xstate';
+import { assign, createMachine, DoneInvokeEvent } from 'xstate';
 
 import {
   Point,
@@ -29,10 +29,17 @@ interface Context {
   end?: Point;
   endOnNode?: boolean;
   endIsValid?: boolean;
-  endNodeCentre?: Point;
+  newEndNodeCentre?: Point;
 }
 
 type Event = DrawEvent | MouseMoveEvent | ClickedEvent;
+
+interface DoneEventData {
+  start: Point;
+  end: Point;
+  newEndNodeCentre?: Point;
+}
+export type DoneEvent = DoneInvokeEvent<DoneEventData>;
 
 function makePointOnNode(node: Node, point: Point, reverse = false) {
   const angle = getAngleBetweenTwoPointsFromXHorizontal(node.centre, point);
@@ -78,10 +85,10 @@ function makeStartPoint(mousePoint: Point) {
 }
 
 function makeEndPoint(
-  start?: Point,
-  mousePoint?: Point
+  mousePoint: Point,
+  start?: Point
 ): Pick<Context, 'end' | 'endOnNode' | 'endIsValid'> {
-  if (!start || !mousePoint) return {};
+  if (!start) return {};
 
   if (isMouseOnSameNodeAsStart(start, mousePoint)) {
     return {
@@ -131,7 +138,7 @@ const assignEndNodeCentre = assign(
     if (!end) return {};
     const angle = getAngleBetweenTwoPointsFromXHorizontal(end, point);
     return {
-      endNodeCentre: makeNodeCentre(end, angle),
+      newEndNodeCentre: makeNodeCentre(end, angle),
     };
   }
 );
@@ -181,7 +188,7 @@ export function makeChoosingConnectionMachine() {
           MOUSE_MOVE: {
             actions: assign(
               ({ start }: Context, { point }: MouseMoveEvent) => ({
-                ...makeEndPoint(start, point),
+                ...makeEndPoint(point, start),
               })
             ),
           },
@@ -189,7 +196,7 @@ export function makeChoosingConnectionMachine() {
           CLICKED: {
             target: 'adjustingEnd',
             actions: assign(({ start }: Context, { point }: ClickedEvent) => ({
-              ...makeEndPoint(start, point),
+              ...makeEndPoint(point, start),
             })),
           },
         },
@@ -207,8 +214,14 @@ export function makeChoosingConnectionMachine() {
         ],
         on: {
           DRAW: {
-            actions: ({ start, end, endNodeCentre }, { ctx }) =>
-              drawAdjustingEnd(ctx, network.nodes, start, end, endNodeCentre),
+            actions: ({ start, end, newEndNodeCentre }, { ctx }) =>
+              drawAdjustingEnd(
+                ctx,
+                network.nodes,
+                start,
+                end,
+                newEndNodeCentre
+              ),
           },
           MOUSE_MOVE: {
             actions: assignEndNodeCentre,
@@ -220,10 +233,10 @@ export function makeChoosingConnectionMachine() {
       },
       done: {
         type: 'final',
-        data: ({ start, end, endNodeCentre }) => ({
-          start,
-          end,
-          endNodeCentre,
+        data: ({ start, end, newEndNodeCentre }): DoneEventData => ({
+          start: start as Point,
+          end: end as Point,
+          newEndNodeCentre,
         }),
       },
     },

@@ -2,9 +2,13 @@ import { createMachine, send } from 'xstate';
 
 import { LARVA_SPAWN_TIME_MS } from 'game/paramaters';
 import { animationMachine } from 'game/animations/animationMachine';
-import { makeChoosingConnectionMachine } from 'game/blobNetwork/choosingNewConnection/choosingConnectionMachine';
+import {
+  makeChoosingConnectionMachine,
+  DoneEvent as ChoosingConnectionDoneEvent,
+} from 'game/blobNetwork/choosingNewConnection/choosingConnectionMachine';
 
 import { DrawEvent } from 'game/types';
+import { makeConnection } from 'game/blobNetwork/makeConnection';
 import {
   Context,
   Event,
@@ -207,8 +211,25 @@ export function makeGameMachine({
                       src: makeChoosingConnectionMachine,
                       onDone: {
                         target: 'idle',
-                        actions: (_, event) => {
-                          console.log(event.data);
+                        actions: (
+                          { blobalongs }: Context,
+                          {
+                            data: { start, end, newEndNodeCentre },
+                          }: ChoosingConnectionDoneEvent
+                        ) => {
+                          const firstSelectedBlobalong = blobalongs.find(
+                            (blob) =>
+                              blob.getSnapshot()?.matches({
+                                ready: { roaming: { selection: 'selected' } },
+                              })
+                          );
+                          if (firstSelectedBlobalong) {
+                            firstSelectedBlobalong.send({
+                              type: 'MAKE_CONNECTION',
+                              newEndNodeCentre,
+                              ...makeConnection(start, end),
+                            });
+                          }
                         },
                       },
                     },
