@@ -16,14 +16,22 @@ import {
   BLOBALONG_FIN_HEIGHT,
   BLOBALONG_FIN_OFFSET,
   BLOBALONG_FIN_ANGLE,
+  NODE_RADIUS_X,
+  NODE_RADIUS_Y,
 } from 'game/paramaters';
 import { Point, DrawEventCtx } from 'game/types';
 import {
   mapBackgroundColor,
   blobalongHeadColor,
   blobalongBodyColor,
+  blobQueenColor,
+  nodeColor,
 } from 'game/colors';
-import { drawConnectionBody, drawConnectionHead } from 'game/blobNetwork/draw';
+import {
+  drawConnectionBody,
+  drawConnectionHead,
+  drawNode,
+} from 'game/blobNetwork/draw';
 import { Context, BlobalongActor } from './types';
 
 type BlobalongDrawContext = Pick<
@@ -262,4 +270,29 @@ export function drawMakingConnection(
 
   // Set back to to draw everything else on top
   ctx.globalCompositeOperation = 'source-over';
+}
+
+export function drawMakingNode(
+  { makingConnection }: Context,
+  { ctx }: DrawEventCtx
+) {
+  if (!makingConnection) return;
+  const {
+    newEndNodeCentre,
+    newEndNodeGrowEndAngle = 0,
+    newEndNodeGrowStartAngle = 0,
+  } = makingConnection;
+
+  if (newEndNodeCentre) {
+    drawNode(
+      ctx,
+      {
+        centre: newEndNodeCentre,
+        radiusX: NODE_RADIUS_X,
+        radiusY: NODE_RADIUS_Y,
+      },
+      newEndNodeGrowStartAngle,
+      newEndNodeGrowEndAngle
+    );
+  }
 }

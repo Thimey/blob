@@ -63,7 +63,7 @@ export const NODE_RADIUS_Y = QUEEN_RADIUS_Y * 1.5;
 export const CONNECTION_WALL_WIDTH = 3;
 export const CONNECTION_WIDTH = 20;
 
-export const CONNECTION_RADIUS_PERCENT = 0.9;
+export const CONNECTION_RADIUS_PERCENT = 0.95;
 export const CONNECTION_MAX_LENGTH = 800;
 
 export const DEFAULT_SPEED = 1.2;

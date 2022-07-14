@@ -20,6 +20,7 @@ import {
   drawBlobalong,
   drawBlobalongSelectedOutline,
   drawMakingConnection,
+  drawMakingNode,
 } from './draw';
 
 const BLOBALONG_SPEED = 0.5;
@@ -162,13 +163,54 @@ function makeConnection({ makingConnection }: Context) {
   }
 }
 
-function finishedGrowing({ makingConnection }: Context) {
+function finishedGrowingConnection({ makingConnection }: Context) {
   return Boolean(
     makingConnection &&
       makingConnection.currentPointIndex ===
         makingConnection.growPoints.length - 1
   );
 }
+
+const ANGLE_INCREMENT = Math.PI / 256;
+
+function finishedGrowingNode({ makingConnection }: Context) {
+  if (
+    makingConnection?.newEndNodeGrowStartAngle === undefined ||
+    makingConnection?.newEndNodePointAngle === undefined
+  ) {
+    return true;
+  }
+
+  const endAngle =
+    (makingConnection.newEndNodePointAngle + Math.PI) % (2 * Math.PI);
+
+  return (
+    Math.abs(makingConnection.newEndNodeGrowStartAngle - endAngle) <=
+    ANGLE_INCREMENT
+  );
+}
+
+const growNode = assign(({ makingConnection }: Context, _: UpdateEvent) => {
+  if (!makingConnection) return {};
+  const { newEndNodeGrowStartAngle, newEndNodeGrowEndAngle } = makingConnection;
+  if (
+    newEndNodeGrowStartAngle === undefined ||
+    newEndNodeGrowEndAngle === undefined
+  )
+    return {};
+
+  const newStart = newEndNodeGrowStartAngle - ANGLE_INCREMENT;
+  const newEnd = newEndNodeGrowEndAngle + ANGLE_INCREMENT;
+
+  return {
+    makingConnection: {
+      ...makingConnection,
+      newEndNodeGrowStartAngle:
+        newStart < 0 ? 2 * Math.PI - newStart : newStart,
+      newEndNodeGrowEndAngle: newEnd % (2 * Math.PI),
+    },
+  };
+});
 
 export function makeBlobalong(context: Context) {
   return createMachine({
@@ -244,17 +286,29 @@ export function makeBlobalong(context: Context) {
                               growPoints,
                               newEndNodeCentre,
                             }: MakeConnectionEvent
-                          ) => ({
-                            makingConnection: {
-                              connection,
-                              growPoints,
-                              newEndNodeCentre,
-                              currentPointIndex: 0,
-                              head1Rotation: 0,
-                              head2Rotation: 0,
-                              head2Position: connection.points[3],
-                            },
-                          })
+                          ) => {
+                            const newEndNodePointAngle =
+                              newEndNodeCentre &&
+                              getAngleBetweenTwoPointsFromXHorizontal(
+                                newEndNodeCentre,
+                                connection.end
+                              );
+
+                            return {
+                              makingConnection: {
+                                connection,
+                                growPoints,
+                                currentPointIndex: 0,
+                                head1Rotation: 0,
+                                head2Rotation: 0,
+                                head2Position: connection.points[3],
+                                newEndNodeCentre,
+                                newEndNodePointAngle,
+                                newEndNodeGrowStartAngle: newEndNodePointAngle,
+                                newEndNodeGrowEndAngle: newEndNodePointAngle,
+                              },
+                            };
+                          }
                         ),
                       },
                     },
@@ -299,7 +353,7 @@ export function makeBlobalong(context: Context) {
                   },
                   UPDATE: [
                     {
-                      target: 'growing',
+                      target: 'growingConnection',
                       cond: hasReachedDestination,
                     },
                     {
@@ -308,16 +362,15 @@ export function makeBlobalong(context: Context) {
                   ],
                 },
               },
-              growing: {
+              growingConnection: {
                 on: {
                   DRAW: {
                     actions: drawMakingConnection,
                   },
                   UPDATE: [
                     {
-                      target: 'done',
-                      actions: makeConnection,
-                      cond: finishedGrowing,
+                      target: 'growingNode',
+                      cond: finishedGrowingConnection,
                     },
                     {
                       actions: growConnection,
@@ -325,7 +378,29 @@ export function makeBlobalong(context: Context) {
                   ],
                 },
               },
+              growingNode: {
+                always: {
+                  target: 'done',
+                  cond: ({ makingConnection }) =>
+                    !makingConnection?.newEndNodeCentre,
+                },
+                on: {
+                  DRAW: {
+                    actions: [drawMakingConnection, drawMakingNode],
+                  },
+                  UPDATE: [
+                    {
+                      target: 'done',
+                      cond: finishedGrowingNode,
+                    },
+                    {
+                      actions: growNode,
+                    },
+                  ],
+                },
+              },
               done: {
+                entry: makeConnection,
                 type: 'final',
               },
             },

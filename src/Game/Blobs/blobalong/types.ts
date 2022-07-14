@@ -17,11 +17,14 @@ export interface Context {
   movement?: Movement;
   makingConnection?: {
     connection: Connection;
-    newEndNodeCentre?: Point;
     growPoints: Point[];
     currentPointIndex: number;
     head1Rotation: number;
     head2Rotation: number;
+    newEndNodeCentre?: Point;
+    newEndNodePointAngle?: number;
+    newEndNodeGrowStartAngle?: number;
+    newEndNodeGrowEndAngle?: number;
   };
 }
 
