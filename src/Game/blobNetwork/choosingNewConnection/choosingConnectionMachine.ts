@@ -77,7 +77,7 @@ function makeNodeCentre(point: Point, angle: number) {
 }
 
 function makeStartPoint(mousePoint: Point) {
-  const node = network.nodeOfPoint(mousePoint);
+  const node = network.nodeOfPoint(mousePoint, 1.3);
   if (!node) return {};
 
   return {

@@ -38,9 +38,16 @@ export function findConnectionOfPoint(connections: Connection[], point: Point) {
   );
 }
 
-export function findNodeOfPoint(nodes: Node[], point: Point) {
+export function findNodeOfPoint(nodes: Node[], point: Point, nodePercent = 1) {
   return nodes.find(({ centre, radiusX, radiusY }) =>
-    isPointWithinEllipse({ centre, radiusX, radiusY }, point)
+    isPointWithinEllipse(
+      {
+        centre,
+        radiusX: radiusX * nodePercent,
+        radiusY: radiusY * nodePercent,
+      },
+      point
+    )
   );
 }
 
