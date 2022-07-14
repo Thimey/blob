@@ -130,6 +130,11 @@ export function makeGameMachine({
               actions: [propagateMapClicked],
             },
           ],
+          MOUSE_DOWN: {
+            actions: (context) => {
+              console.log('context', context);
+            },
+          },
           SPAWN_LARVA: {
             actions: [spawnBlobLarva],
             cond: shouldSpawnLarva,
@@ -159,7 +164,7 @@ export function makeGameMachine({
               };
             },
           },
-          { src: makeMultiSelect() },
+          { id: 'multi-select', src: makeMultiSelect() },
         ],
         states: {
           itemSelection: {

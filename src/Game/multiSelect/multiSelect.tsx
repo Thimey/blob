@@ -1,5 +1,7 @@
 import { createMachine, assign } from 'xstate';
 
+import { WORLD_HEIGHT, WORLD_WIDTH } from 'game/paramaters';
+import { drawCircle } from 'game/lib/draw';
 import { makeRectangle } from 'game/lib/math';
 import {
   Point,
@@ -28,21 +30,18 @@ function drawSelectBox(
   { gameCtx, mouseDownPoint, mouseMovePoint }: Context,
   { point }: MouseMoveEvent
 ) {
-  console.log('gameCtx', gameCtx);
-  console.log('mouseDownPoint', mouseDownPoint);
-  console.log('mouseMovePoint', mouseMovePoint);
   if (gameCtx && mouseDownPoint && mouseMovePoint) {
     const { x, y, width, height } = makeRectangle(
       mouseDownPoint,
       mouseMovePoint
     );
+
+    // gameCtx.globalCompositeOperation = 'xor';
     console.log(' x, y, width, height', x, y, width, height);
-    gameCtx.beginPath();
     // eslint-disable-next-line no-param-reassign
-    gameCtx.fillStyle = 'blue';
+    gameCtx.fillStyle = 'black';
     gameCtx.fillRect(50, 50, 50, 50);
     gameCtx.fillRect(x, y, width, height);
-    gameCtx.closePath();
   }
 }
 
@@ -148,14 +147,21 @@ export function makeMultiSelect() {
         },
         on: {
           MOUSE_UP: { target: 'inactive' },
-          MOUSE_MOVE: {
-            actions: [
-              assign((_, { point }) => ({
-                mouseMovePoint: point,
-              })),
-              drawSelectBox,
-            ],
+        },
+        states: {
+          stationary: {
+            on: {
+              MOUSE_MOVE: {
+                actions: [
+                  assign((_, { point }) => ({
+                    mouseMovePoint: point,
+                  })),
+                  drawSelectBox,
+                ],
+              },
+            },
           },
+          moving: {},
         },
       },
     },
