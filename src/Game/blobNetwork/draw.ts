@@ -23,10 +23,12 @@ import { Connection } from './types';
 
 export function drawNode(
   ctx: CanvasRenderingContext2D,
-  { centre, radiusX, radiusY }: Ellipse
+  { centre, radiusX, radiusY }: Ellipse,
+  startAngle = 0,
+  endAngle = 2 * Math.PI
 ) {
   ctx.beginPath();
-  ctx.ellipse(centre.x, centre.y, radiusX, radiusY, 0, 0, 2 * Math.PI);
+  ctx.ellipse(centre.x, centre.y, radiusX, radiusY, 0, startAngle, endAngle);
   ctx.fillStyle = nodeColor;
   ctx.fill();
   ctx.closePath();

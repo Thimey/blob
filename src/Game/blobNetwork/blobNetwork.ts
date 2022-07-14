@@ -126,8 +126,8 @@ export class BlobNetwork {
     );
   }
 
-  public nodeOfPoint(point: Point) {
-    return findNodeOfPoint(this.nodes, point);
+  public nodeOfPoint(point: Point, nodePercent = 1) {
+    return findNodeOfPoint(this.nodes, point, nodePercent);
   }
 
   public arePointsOnSameNode(point1: Point, point2: Point) {
