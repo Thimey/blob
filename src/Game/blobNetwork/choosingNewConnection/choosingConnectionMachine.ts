@@ -11,6 +11,7 @@ import {
   getAngleBetweenTwoPointsFromXHorizontal,
   makePointOnEllipse,
   makeDistance,
+  makeOppositePoint,
   capLinearLine,
 } from 'game/lib/geometry';
 import {
@@ -112,6 +113,24 @@ function makeEndPoint(
     if (isConnectionLessThanMaxLength(start, pointOnNode)) {
       return {
         end: pointOnNode,
+        endOnNode: true,
+        endIsValid: true,
+      };
+    }
+
+    // Check to see if opposite side of ellipse is closer enough
+    const oppositePointOnNode = makeOppositePoint(
+      node.centre,
+      cappedMousePoint
+    );
+    if (
+      isConnectionLessThanMaxLength(
+        start,
+        makePointOnNode(node, oppositePointOnNode)
+      )
+    ) {
+      return {
+        end: oppositePointOnNode,
         endOnNode: true,
         endIsValid: true,
       };

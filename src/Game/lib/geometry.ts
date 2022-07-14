@@ -273,3 +273,13 @@ export function capLinearLine(start: Point, end: Point, max: number) {
     y: start.y + max * Math.sign(dy) * Math.sin(angle),
   };
 }
+
+export function makeOppositePoint(centrePoint: Point, point: Point) {
+  const dx = point.x - centrePoint.x;
+  const dy = point.y - centrePoint.y;
+
+  return {
+    x: centrePoint.x + Math.sign(dx) * dx,
+    y: centrePoint.y + Math.sign(dy) * dy,
+  };
+}
