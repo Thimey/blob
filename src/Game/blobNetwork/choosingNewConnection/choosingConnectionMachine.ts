@@ -11,7 +11,6 @@ import {
   getAngleBetweenTwoPointsFromXHorizontal,
   makePointOnEllipse,
   makeDistance,
-  makeOppositePoint,
   capLinearLine,
 } from 'game/lib/geometry';
 import {
@@ -42,15 +41,14 @@ interface DoneEventData {
 }
 export type DoneEvent = DoneInvokeEvent<DoneEventData>;
 
-function makePointOnNode(node: Node, point: Point, reverse = false) {
-  const angle = getAngleBetweenTwoPointsFromXHorizontal(node.centre, point);
+function makePointOnNode(node: Node, angle: number) {
   return makePointOnEllipse(
     {
       ...node,
       radiusX: node.radiusX * CONNECTION_RADIUS_PERCENT,
       radiusY: node.radiusY * CONNECTION_RADIUS_PERCENT,
     },
-    reverse ? Math.PI / 2 + angle : angle
+    angle
   );
 }
 
@@ -76,13 +74,16 @@ function makeNodeCentre(point: Point, angle: number) {
   return makePointOnEllipse(coreEllipse, angle);
 }
 
-function makeStartPoint(mousePoint: Point) {
+function makeStartPoint(mousePoint: Point): Pick<Context, 'start'> {
   const node = network.nodeOfPoint(mousePoint, 1.3);
   if (!node) return {};
 
-  return {
-    start: makePointOnNode(node, mousePoint),
-  };
+  const angle = getAngleBetweenTwoPointsFromXHorizontal(
+    node.centre,
+    mousePoint
+  );
+
+  return { start: makePointOnNode(node, angle) };
 }
 
 function makeEndPoint(
@@ -108,8 +109,15 @@ function makeEndPoint(
 
   const node = network.nodeOfPoint(cappedMousePoint);
 
+  // If on node, snap it to on ellipse
   if (node) {
-    const pointOnNode = makePointOnNode(node, cappedMousePoint);
+    const angle = getAngleBetweenTwoPointsFromXHorizontal(
+      node.centre,
+      cappedMousePoint
+    );
+
+    // Check point on angle of cursor and centre
+    const pointOnNode = makePointOnNode(node, angle);
     if (isConnectionLessThanMaxLength(start, pointOnNode)) {
       return {
         end: pointOnNode,
@@ -118,23 +126,16 @@ function makeEndPoint(
       };
     }
 
-    // Check to see if opposite side of ellipse is closer enough
-    const oppositePointOnNode = makeOppositePoint(
-      node.centre,
-      cappedMousePoint
+    // Otherwise try opposite point on node
+    const oppoistePoint = makePointOnNode(
+      node,
+      ((angle + Math.PI) % 2) * Math.PI
     );
-    if (
-      isConnectionLessThanMaxLength(
-        start,
-        makePointOnNode(node, oppositePointOnNode)
-      )
-    ) {
-      return {
-        end: oppositePointOnNode,
-        endOnNode: true,
-        endIsValid: true,
-      };
-    }
+    return {
+      end: oppoistePoint,
+      endOnNode: true,
+      endIsValid: true,
+    };
   }
 
   if (!node && isConnectionLessThanMaxLength(start, cappedMousePoint)) {
