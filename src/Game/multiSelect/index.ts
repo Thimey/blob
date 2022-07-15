@@ -1,1 +1,0 @@
-export { makeMultiSelect } from './multiSelect';

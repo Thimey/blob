@@ -6,7 +6,7 @@ import {
   makeChoosingConnectionMachine,
   DoneEvent as ChoosingConnectionDoneEvent,
 } from 'game/blobNetwork/choosingNewConnection/choosingConnectionMachine';
-import { makeMultiSelect } from 'game/multiSelect';
+import { makeMultiSelect } from 'game/select';
 
 import { DrawEvent } from 'game/types';
 import { makeConnection } from 'game/blobNetwork/makeConnection';
@@ -37,6 +37,7 @@ import {
   shrubDepleted,
   propagateBlobletClicked,
   propagateMapClicked,
+  propergateMultiSelect,
   propagateShrubClicked,
   propagateLarvaClicked,
   propagateBlobalongClicked,
@@ -87,7 +88,7 @@ export function makeGameMachine({
         actions: [(_, e) => animationMachine.send(e), updateBlobs],
       },
       MULTI_SELECT: {
-        actions: [],
+        actions: [propergateMultiSelect],
       },
       HARVEST_SHRUB: {
         actions: [harvestShrub],

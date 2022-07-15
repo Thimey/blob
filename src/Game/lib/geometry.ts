@@ -1,5 +1,5 @@
 import { matchState } from 'xstate';
-import { Point, Ellipse } from '../types';
+import { Point, Ellipse, Rectangle } from '../types';
 import { makeRandomNumber } from './utils';
 
 export function degToRad(deg: number) {
@@ -46,12 +46,6 @@ export function isPointWithinCircle(
   const distanceFromClick = makeDistance(position, mousePosition);
 
   return distanceFromClick <= radius;
-}
-
-interface Rectangle {
-  position: Point;
-  width: number;
-  height: number;
 }
 
 /**

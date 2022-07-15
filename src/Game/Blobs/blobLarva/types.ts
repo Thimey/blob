@@ -5,6 +5,7 @@ import {
   BlobType,
   DrawEvent,
   UpdateEvent,
+  MultiSelectEvent,
 } from 'game/types';
 
 export type { DrawEvent };
@@ -55,6 +56,7 @@ export type State = {
 export type Events =
   | DrawEvent
   | UpdateEvent
+  | MultiSelectEvent
   | LarvaClickEvent
   | LarvaSpawnSelected
   | DrawLarvaSelectedEvent

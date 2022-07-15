@@ -6,7 +6,7 @@ import {
   DrawEvent,
   ClickedEvent,
   MouseMoveEvent,
-  Rectangle,
+  MultiSelectEvent,
 } from 'game/types';
 import { ShrubActor, PersistedShrubActor } from 'game/resources/shrub';
 import { BlobQueenActor } from '../blobs/blobQueen';
@@ -33,11 +33,6 @@ export interface Context {
   blobLarvae: BlobLarvaActor[];
   shrubs: ShrubActor[];
 }
-
-export type MultiSelectEvent = {
-  type: 'MULTI_SELECT';
-  rectangle: Rectangle;
-};
 
 export type HarvestShrubEvent = {
   type: 'HARVEST_SHRUB';
@@ -126,6 +121,7 @@ export type Event =
   | DrawChoosingConnectionEvent
   | UpdateEvent
   | ClickedEvent
+  | MultiSelectEvent
   | MouseMoveEvent
   | FeedOnShrubEvent
   | HarvestShrubEvent

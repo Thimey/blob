@@ -5,14 +5,14 @@ export type Point = {
   y: number;
 };
 
-export interface Ellipse {
+export type Ellipse = {
   centre: Point;
   radiusX: number;
   radiusY: number;
-}
+};
+
 export type Rectangle = {
-  x: number;
-  y: number;
+  position: Point;
   width: number;
   height: number;
 };
@@ -44,11 +44,17 @@ export type MouseDownEvent = {
 
 export type MouseUpEvent = {
   type: 'MOUSE_UP';
+  point: Point;
 };
 
 export type MouseMoveEvent = {
   type: 'MOUSE_MOVE';
   point: Point;
+};
+
+export type MultiSelectEvent = {
+  type: 'MULTI_SELECT';
+  rectangle: Rectangle;
 };
 
 export type DrawEvent = {
