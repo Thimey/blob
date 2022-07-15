@@ -62,11 +62,6 @@ export type UpdateEvent = {
   currentUpdateAt: number;
 };
 
-export type MouseMoveEvent = {
-  type: 'MOUSE_MOVE';
-  point: Point;
-};
-
 export type MapClickEvent = {
   type: 'MAP_CLICKED';
   point: Point;

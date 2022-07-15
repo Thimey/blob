@@ -6,6 +6,7 @@ import {
   DrawEvent,
   ClickedEvent,
   MouseMoveEvent,
+  Rectangle,
 } from 'game/types';
 import { ShrubActor, PersistedShrubActor } from 'game/resources/shrub';
 import { BlobQueenActor } from '../blobs/blobQueen';
@@ -26,13 +27,17 @@ type SpawnOptions = Record<SpawnType, SpawnOptionDetails>;
 export interface Context {
   mass: number;
   spawnOptions: SpawnOptions;
-  multiSelect: any;
   blobQueen: BlobQueenActor | null;
   bloblets: BlobletActor[];
   blobalongs: BlobalongActor[];
   blobLarvae: BlobLarvaActor[];
   shrubs: ShrubActor[];
 }
+
+export type MultiSelectEvent = {
+  type: 'MULTI_SELECT';
+  rectangle: Rectangle;
+};
 
 export type HarvestShrubEvent = {
   type: 'HARVEST_SHRUB';

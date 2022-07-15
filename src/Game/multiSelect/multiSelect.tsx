@@ -1,8 +1,8 @@
-import { createMachine, assign } from 'xstate';
+import { createMachine, assign, sendParent } from 'xstate';
 
 import { WORLD_HEIGHT, WORLD_WIDTH } from 'game/paramaters';
 import { drawCircle } from 'game/lib/draw';
-import { makeRectangle } from 'game/lib/math';
+import { makeRectangle } from 'game/lib/geometry';
 import {
   Point,
   DrawEvent,
@@ -19,7 +19,6 @@ type State = {
 };
 
 type Context = {
-  gameCtx: CanvasRenderingContext2D | null;
   mouseDownPoint: Point | null;
   mouseMovePoint: Point | null;
 };
@@ -27,73 +26,30 @@ type Context = {
 type Event = DrawEvent | MouseDownEvent | MouseUpEvent | MouseMoveEvent;
 
 function drawSelectBox(
-  { gameCtx, mouseDownPoint, mouseMovePoint }: Context,
-  { point }: MouseMoveEvent
+  { mouseDownPoint, mouseMovePoint }: Context,
+  { ctx }: DrawEvent
 ) {
-  if (gameCtx && mouseDownPoint && mouseMovePoint) {
-    const { x, y, width, height } = makeRectangle(
-      mouseDownPoint,
-      mouseMovePoint
-    );
+  if (mouseDownPoint && mouseMovePoint) {
+    const {
+      position: { x, y },
+      width,
+      height,
+    } = makeRectangle(mouseDownPoint, mouseMovePoint);
 
-    // gameCtx.globalCompositeOperation = 'xor';
-    console.log(' x, y, width, height', x, y, width, height);
     // eslint-disable-next-line no-param-reassign
-    gameCtx.fillStyle = 'black';
-    gameCtx.fillRect(50, 50, 50, 50);
-    gameCtx.fillRect(x, y, width, height);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(x, y, width, height);
   }
-}
-
-function waitForElm(elementId: string) {
-  return new Promise((resolve) => {
-    const gameCanvas = document.getElementById(elementId);
-    console.log('gameCanvas - 1', gameCanvas);
-
-    if (gameCanvas) {
-      resolve(gameCanvas);
-    }
-
-    const observer = new MutationObserver(() => {
-      const canvas = document.getElementById(elementId);
-      console.log('canvas - 2', canvas);
-      if (canvas) {
-        resolve(canvas);
-        observer.disconnect();
-      }
-    });
-
-    observer.observe(document, {
-      childList: true,
-      subtree: true,
-    });
-  });
 }
 
 export function makeMultiSelect() {
   return createMachine<Context, Event, State>({
-    initial: 'initialising',
+    initial: 'inactive',
     context: {
-      gameCtx: null,
       mouseDownPoint: null,
       mouseMovePoint: null,
     },
     states: {
-      initialising: {
-        invoke: {
-          src: () => waitForElm('game-canvas'),
-          onDone: {
-            target: 'inactive',
-            actions: assign((_, { data }) => {
-              const gameCtx = data.getContext('2d') as CanvasRenderingContext2D;
-
-              return {
-                gameCtx,
-              };
-            }),
-          },
-        },
-      },
       inactive: {
         invoke: {
           src: () => (sendBack) => {
@@ -146,22 +102,25 @@ export function makeMultiSelect() {
           },
         },
         on: {
-          MOUSE_UP: { target: 'inactive' },
-        },
-        states: {
-          stationary: {
-            on: {
-              MOUSE_MOVE: {
-                actions: [
-                  assign((_, { point }) => ({
-                    mouseMovePoint: point,
-                  })),
-                  drawSelectBox,
-                ],
-              },
-            },
+          DRAW: {
+            actions: [drawSelectBox],
           },
-          moving: {},
+          MOUSE_UP: {
+            target: 'inactive',
+            actions: [
+              assign({
+                mouseDownPoint: null,
+                mouseMovePoint: null,
+              }),
+            ],
+          },
+          MOUSE_MOVE: {
+            actions: [
+              assign((_, { point }) => ({
+                mouseMovePoint: point,
+              })),
+            ],
+          },
         },
       },
     },

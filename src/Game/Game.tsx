@@ -15,7 +15,7 @@ let currentUpdateAt = Date.now();
 let lastUpdateAt: number;
 
 function gameLoop(gameService: any, gameCtx: CanvasRenderingContext2D) {
-  // gameCtx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+  gameCtx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
   loop = 0;
 
@@ -37,7 +37,7 @@ function gameLoop(gameService: any, gameCtx: CanvasRenderingContext2D) {
   gameService.send('DRAW', { ctx: gameCtx });
 
   /* eslint-disable no-param-reassign */
-  // Draw background at the under everything else
+  // Draw background under everything else
   gameCtx.globalCompositeOperation = 'destination-over';
   gameCtx.fillStyle = mapBackgroundColor;
   gameCtx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -64,15 +64,6 @@ export const Game = () => {
     // window.addEventListener('beforeunload', () =>
     //   persistGameState(gameService as any)
     // );
-
-    function handleMouseDown({ offsetX, offsetY }: MouseEvent) {
-      gameServices.gameService.send({
-        type: 'MOUSE_DOWN',
-        point: { x: offsetX, y: offsetY },
-      });
-    }
-
-    window.addEventListener('mousedown', handleMouseDown);
   }, [gameServices.gameService]);
 
   const handleMainGameClick = ({ clientX, clientY }: React.MouseEvent) => {

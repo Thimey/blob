@@ -61,7 +61,6 @@ export function makeGameMachine({
     context: {
       mass,
       spawnOptions,
-      multiSelect: null,
       blobQueen: null,
       bloblets: [],
       blobLarvae: [],
@@ -81,10 +80,14 @@ export function makeGameMachine({
             type: 'DRAW_CHOOSING_CONNECTION',
             ctx,
           })),
+          send((_, e) => e, { to: 'multiSelect' }),
         ],
       },
       UPDATE: {
         actions: [(_, e) => animationMachine.send(e), updateBlobs],
+      },
+      MULTI_SELECT: {
+        actions: [],
       },
       HARVEST_SHRUB: {
         actions: [harvestShrub],
@@ -130,11 +133,6 @@ export function makeGameMachine({
               actions: [propagateMapClicked],
             },
           ],
-          MOUSE_DOWN: {
-            actions: (context) => {
-              console.log('context', context);
-            },
-          },
           SPAWN_LARVA: {
             actions: [spawnBlobLarva],
             cond: shouldSpawnLarva,
@@ -164,7 +162,7 @@ export function makeGameMachine({
               };
             },
           },
-          { id: 'multi-select', src: makeMultiSelect() },
+          { id: 'multiSelect', src: makeMultiSelect() },
         ],
         states: {
           itemSelection: {
