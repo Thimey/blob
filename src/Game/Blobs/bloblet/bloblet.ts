@@ -41,7 +41,7 @@ function makeMovement({
   speed?: number;
 }): Movement {
   return {
-    path: network.makePath(position, destination, speed),
+    path: network.makePath(position, destination, { speed }),
     pathIndex: 0,
   };
 }

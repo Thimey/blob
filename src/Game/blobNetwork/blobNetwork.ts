@@ -1,6 +1,6 @@
 import { Point } from 'game/types';
 import { QUEEN_POSITION, DEFAULT_SPEED } from 'game/paramaters';
-import { makeLinearPoints } from 'game/lib/geometry';
+import { makeLinearPoints, makeClosestPointOnEllipse } from 'game/lib/geometry';
 import { makeNode } from './makeNode';
 
 import {
@@ -10,6 +10,7 @@ import {
   ConnectionMap,
   Network,
   NodeId,
+  PathStrategy,
 } from './types';
 import { drawNode, drawConnection } from './draw';
 import { makePath } from './makePath';
@@ -72,13 +73,23 @@ export class BlobNetwork {
    * Makes a path the minimises distance off blob network.
    * Will move linearly if moving from outside -> outside.
    */
-  public makePath(start: Point, end: Point, speed = DEFAULT_SPEED) {
+  public makePath(
+    start: Point,
+    end: Point,
+    {
+      speed = DEFAULT_SPEED,
+      pathStrategy = PathStrategy.NETWORK_ONLY,
+    }: { speed?: number; pathStrategy?: PathStrategy } = {}
+  ) {
+    if (pathStrategy === PathStrategy.LINEAR) {
+      return makeLinearPoints(start, end, speed);
+    }
+
+    // if (pathStrategy === PathStrategy.NETWORK_ONLY) {
+
+    // }
     const startPointNode = findNodeOfPoint(this.nodes, start);
     const endPointNode = findNodeOfPoint(this.nodes, end);
-
-    // If moving outside network, move linearly
-    if (!startPointNode && !endPointNode)
-      return makeLinearPoints(start, end, speed);
 
     const startNode = startPointNode || findNearestNode(this.nodes, start);
 
@@ -91,13 +102,15 @@ export class BlobNetwork {
         end
       );
 
-      // If no connection end node, find the closest one to end position
+      // If no connection end node, find the closest node to end position
       if (!connectionEndNode) {
         const nearestEndNode = findNearestNode(this.nodes, end);
+        const edgeOfNode = makeClosestPointOnEllipse(nearestEndNode, end);
+
         return makePath(
           this.network,
           start,
-          end,
+          edgeOfNode,
           startNode.id,
           nearestEndNode.id,
           speed
