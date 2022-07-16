@@ -282,12 +282,27 @@ export function makeBlobalong(context: Context) {
                       },
                       BLOBALONG_CLICK: {
                         target: 'deselected',
-                        actions: sendParent(
-                          ({ id }: Context, _: BlobalongClickEvent) => ({
-                            type: 'BLOBALONG_DESELECTED',
-                            blobalongId: id,
-                          })
-                        ),
+                        actions: [
+                          sendParent(
+                            ({ id }: Context, _: BlobalongClickEvent) => ({
+                              type: 'BLOBALONG_DESELECTED',
+                              blobalongId: id,
+                            })
+                          ),
+                        ],
+                      },
+                      MULTI_SELECT: {
+                        target: 'deselected',
+                        cond: ({ position }, { rectangle }) =>
+                          !isPointWithinRectangle(rectangle, position),
+                        actions: [
+                          sendParent(
+                            ({ id }: Context, _: MultiSelectEvent) => ({
+                              type: 'BLOBALONG_DESELECTED',
+                              blobalongId: id,
+                            })
+                          ),
+                        ],
                       },
                       MAP_CLICKED: {
                         target: '#mapMoving',

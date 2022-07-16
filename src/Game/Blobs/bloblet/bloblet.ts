@@ -216,6 +216,11 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                       target: 'deselected',
                     },
                   ],
+                  MULTI_SELECT: {
+                    target: 'deselected',
+                    cond: ({ position }, { rectangle }) =>
+                      !isPointWithinRectangle(rectangle, position),
+                  },
                   MAP_CLICKED: [
                     {
                       target: '#mapMoving',

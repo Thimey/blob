@@ -101,6 +101,18 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                     target: 'deselected',
                     cond: didClickOnLarva,
                   },
+                  MULTI_SELECT: {
+                    target: 'deselected',
+                    cond: ({ position }, { rectangle }) =>
+                      !isPointWithinRectangle(rectangle, position),
+                    actions: [
+                      sendParent(({ id, position }: Context) => ({
+                        type: 'LARVA_DESELECTED',
+                        position,
+                        larvaId: id,
+                      })),
+                    ],
+                  },
                   DRAW_LARVA_SELECTED: {
                     actions: [drawLarvaSelectedOutline],
                   },
