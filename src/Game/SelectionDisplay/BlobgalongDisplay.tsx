@@ -75,25 +75,11 @@ export const BlobalongDisplay = () => {
 
       <div className="flex">
         {showMakeConnection && (
-          <button
-            onClick={handleMakeConnection}
-            // Prevent bubbling to Select machine event listeners
-            onMouseDown={(e) => e.stopPropagation()}
-            onMouseUp={(e) => e.stopPropagation()}
-          >
-            Make connection
-          </button>
+          <button onClick={handleMakeConnection}>Make connection</button>
         )}
 
         {showCancelMakeConnection && (
-          <button
-            onClick={handleCancelConnection}
-            // Prevent bubbling to Select machine event listeners
-            onMouseDown={(e) => e.stopPropagation()}
-            onMouseUp={(e) => e.stopPropagation()}
-          >
-            Cancel connection
-          </button>
+          <button onClick={handleCancelConnection}>Cancel connection</button>
         )}
       </div>
     </div>

@@ -76,7 +76,13 @@ export const Game = () => {
           width: WORLD_WIDTH,
         }}
       />
-      <SelectionDisplay />
+      <div
+        // Prevent bubbling to Select machine event listeners
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseUp={(e) => e.stopPropagation()}
+      >
+        <SelectionDisplay />
+      </div>
     </>
   );
 };
