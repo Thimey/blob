@@ -126,13 +126,20 @@ function makeEndPoint(
       };
     }
 
-    // Otherwise try opposite point on node
-    const oppoistePoint = makePointOnNode(
-      node,
-      ((angle + Math.PI) % 2) * Math.PI
-    );
+    // Otherwise increment angle until in reach
+    let incrementDir = 1;
+    if ((angle < Math.PI && angle > Math.PI / 2) || angle > 1.5 * Math.PI) {
+      incrementDir = -1;
+    }
+    let testAngle = angle;
+    while (
+      isConnectionLessThanMaxLength(start, makePointOnNode(node, testAngle))
+    ) {
+      testAngle += (Math.sign(incrementDir) * Math.PI) / 12;
+    }
+
     return {
-      end: oppoistePoint,
+      end: makePointOnNode(node, testAngle),
       endOnNode: true,
       endIsValid: true,
     };
