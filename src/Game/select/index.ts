@@ -1,1 +1,1 @@
-export { makeSelectMachine as makeMultiSelect } from './select';
+export { makeSelectMachine } from './select';

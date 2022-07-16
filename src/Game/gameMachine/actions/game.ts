@@ -29,7 +29,7 @@ export function propagateMapClicked(
   });
 }
 
-export function propergateMultiSelect(
+export function propagateMultiSelect(
   { bloblets, blobalongs, blobLarvae }: Context,
   event: MultiSelectEvent
 ) {
