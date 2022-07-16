@@ -145,6 +145,9 @@ export const LarvaDisplay = () => {
               onClick={() => {
                 if (type !== 'unknown') handleBlobSelect(spawn);
               }}
+              // Prevent bubbling to Select machine event listeners
+              onMouseDown={(e) => e.stopPropagation()}
+              onMouseUp={(e) => e.stopPropagation()}
             >
               <Canvas
                 height={SPAWN_ITEM_HEIGHT}
