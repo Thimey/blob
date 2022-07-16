@@ -63,12 +63,14 @@ function drawSelectBox(
       height,
     } = makeRectangle(mouseDownPoint, mouseMovePoint);
 
+    ctx.beginPath();
     // eslint-disable-next-line no-param-reassign
     ctx.strokeStyle = multiSelectOutlineColor;
     ctx.fillStyle = multiSelectFillColor;
     ctx.rect(x, y, width, height);
     ctx.stroke();
     ctx.fill();
+    ctx.closePath();
   }
 }
 
@@ -112,7 +114,7 @@ export function makeSelectMachine() {
       idle: {
         on: {
           MOUSE_DOWN: {
-            target: 'mouseClickedDown',
+            target: 'mouseClickedDownBuffer',
             actions: [
               assign((_, { point }) => ({
                 mouseDownPoint: point,
@@ -123,6 +125,21 @@ export function makeSelectMachine() {
             actions: [
               sendParent((_, { point }) => ({
                 type: 'MOUSE_MOVE',
+                point,
+              })),
+            ],
+          },
+        },
+      },
+      // Allow a small buffer before sending to multiSelect on MOUSE_MOVE (can happen on track pads)
+      mouseClickedDownBuffer: {
+        after: [{ delay: 100, target: 'mouseClickedDown' }],
+        on: {
+          MOUSE_UP: {
+            target: 'idle',
+            actions: [
+              sendParent((_, { point }) => ({
+                type: 'CLICKED',
                 point,
               })),
             ],
