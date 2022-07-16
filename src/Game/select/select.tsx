@@ -1,4 +1,4 @@
-import { createMachine, assign, sendParent, actions } from 'xstate';
+import { createMachine, assign, sendParent, actions, Sender } from 'xstate';
 
 import { multiSelectFillColor, multiSelectOutlineColor } from 'game/colors';
 import { makeRectangle } from 'game/lib/geometry';
@@ -12,19 +12,45 @@ import {
 
 const { pure } = actions;
 
-type StateValues = 'idle' | 'multiSelectActive';
-
-type State = {
-  value: StateValues;
-  context: Context;
-};
-
 type Context = {
   mouseDownPoint: Point | null;
   mouseMovePoint: Point | null;
 };
 
 type Event = DrawEvent | MouseDownEvent | MouseUpEvent | MouseMoveEvent;
+
+function setEventHandlerService(sendBack: Sender<Event>) {
+  function handleMouseDown({ offsetX, offsetY }: MouseEvent) {
+    sendBack({
+      type: 'MOUSE_DOWN',
+      point: { x: offsetX, y: offsetY },
+    });
+  }
+
+  function handleMouseMove({ offsetX, offsetY }: MouseEvent) {
+    sendBack({
+      type: 'MOUSE_MOVE',
+      point: { x: offsetX, y: offsetY },
+    });
+  }
+
+  function handleMouseUp({ offsetX, offsetY }: MouseEvent) {
+    sendBack({
+      type: 'MOUSE_UP',
+      point: { x: offsetX, y: offsetY },
+    });
+  }
+
+  window.addEventListener('mousedown', handleMouseDown);
+  window.addEventListener('mousemove', handleMouseMove);
+  window.addEventListener('mouseup', handleMouseUp);
+
+  return () => {
+    window.removeEventListener('mousedown', handleMouseDown);
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('mouseup', handleMouseUp);
+  };
+}
 
 function drawSelectBox(
   { mouseDownPoint, mouseMovePoint }: Context,
@@ -46,46 +72,41 @@ function drawSelectBox(
   }
 }
 
+const handleMultiSelection = pure<Context, MouseUpEvent>(
+  ({ mouseDownPoint, mouseMovePoint }) => {
+    if (!mouseDownPoint || !mouseMovePoint) return undefined;
+
+    const rectangle = makeRectangle(
+      mouseDownPoint as Point,
+      mouseMovePoint as Point
+    );
+
+    return [
+      sendParent({
+        type: 'MULTI_SELECT',
+        rectangle,
+      }),
+      assign({
+        mouseDownPoint: null,
+        mouseMovePoint: null,
+      }),
+    ];
+  }
+);
+
 export function makeSelectMachine() {
-  return createMachine<Context, Event, State>({
+  return createMachine<Context, Event>({
     initial: 'idle',
+    schema: {
+      context: {} as Context,
+      events: {} as Event,
+    },
     context: {
       mouseDownPoint: null,
       mouseMovePoint: null,
     },
     invoke: {
-      src: () => (sendBack) => {
-        function handleMouseDown({ offsetX, offsetY }: MouseEvent) {
-          sendBack({
-            type: 'MOUSE_DOWN',
-            point: { x: offsetX, y: offsetY },
-          });
-        }
-
-        function handleMouseMove({ offsetX, offsetY }: MouseEvent) {
-          sendBack({
-            type: 'MOUSE_MOVE',
-            point: { x: offsetX, y: offsetY },
-          });
-        }
-
-        function handleMouseUp({ offsetX, offsetY }: MouseEvent) {
-          sendBack({
-            type: 'MOUSE_UP',
-            point: { x: offsetX, y: offsetY },
-          });
-        }
-
-        window.addEventListener('mousedown', handleMouseDown);
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
-
-        return () => {
-          window.removeEventListener('mousedown', handleMouseDown);
-          window.removeEventListener('mousemove', handleMouseMove);
-          window.removeEventListener('mouseup', handleMouseUp);
-        };
-      },
+      src: () => setEventHandlerService,
     },
     states: {
       idle: {
@@ -136,27 +157,7 @@ export function makeSelectMachine() {
           },
           MOUSE_UP: {
             target: 'idle',
-            actions: [
-              pure(({ mouseDownPoint, mouseMovePoint }) => {
-                if (!mouseDownPoint || !mouseMovePoint) return undefined;
-
-                const rectangle = makeRectangle(
-                  mouseDownPoint as Point,
-                  mouseMovePoint as Point
-                );
-
-                return [
-                  sendParent({
-                    type: 'MULTI_SELECT',
-                    rectangle,
-                  }),
-                  assign({
-                    mouseDownPoint: null,
-                    mouseMovePoint: null,
-                  }),
-                ];
-              }),
-            ],
+            actions: [handleMultiSelection],
           },
           MOUSE_MOVE: {
             actions: [
