@@ -6,6 +6,7 @@ import {
   makeChoosingConnectionMachine,
   DoneEvent as ChoosingConnectionDoneEvent,
 } from 'game/blobNetwork/choosingNewConnection/choosingConnectionMachine';
+import { makeSelectMachine } from 'game/select';
 
 import { DrawEvent } from 'game/types';
 import { makeConnection } from 'game/blobNetwork/makeConnection';
@@ -36,6 +37,7 @@ import {
   shrubDepleted,
   propagateBlobletClicked,
   propagateMapClicked,
+  propagateMultiSelect,
   propagateShrubClicked,
   propagateLarvaClicked,
   propagateBlobalongClicked,
@@ -79,10 +81,14 @@ export function makeGameMachine({
             type: 'DRAW_CHOOSING_CONNECTION',
             ctx,
           })),
+          send((_, e) => e, { to: 'selectService' }),
         ],
       },
       UPDATE: {
         actions: [(_, e) => animationMachine.send(e), updateBlobs],
+      },
+      MULTI_SELECT: {
+        actions: [propagateMultiSelect],
       },
       HARVEST_SHRUB: {
         actions: [harvestShrub],
@@ -145,17 +151,20 @@ export function makeGameMachine({
             actions: [spawnBlob],
           },
         },
-        invoke: {
-          src: () => (cb) => {
-            const spawnLarvaeInterval = setInterval(() => {
-              cb('SPAWN_LARVA');
-            }, LARVA_SPAWN_TIME_MS);
+        invoke: [
+          {
+            src: () => (cb) => {
+              const spawnLarvaeInterval = setInterval(() => {
+                cb('SPAWN_LARVA');
+              }, LARVA_SPAWN_TIME_MS);
 
-            return () => {
-              clearInterval(spawnLarvaeInterval);
-            };
+              return () => {
+                clearInterval(spawnLarvaeInterval);
+              };
+            },
           },
-        },
+          { id: 'selectService', src: makeSelectMachine() },
+        ],
         states: {
           itemSelection: {
             initial: 'idle',

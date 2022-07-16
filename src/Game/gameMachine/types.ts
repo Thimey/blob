@@ -6,6 +6,7 @@ import {
   DrawEvent,
   ClickedEvent,
   MouseMoveEvent,
+  MultiSelectEvent,
 } from 'game/types';
 import { ShrubActor, PersistedShrubActor } from 'game/resources/shrub';
 import { BlobQueenActor } from '../blobs/blobQueen';
@@ -120,6 +121,7 @@ export type Event =
   | DrawChoosingConnectionEvent
   | UpdateEvent
   | ClickedEvent
+  | MultiSelectEvent
   | MouseMoveEvent
   | FeedOnShrubEvent
   | HarvestShrubEvent

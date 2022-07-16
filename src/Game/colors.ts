@@ -15,3 +15,6 @@ export const nodeColor = `rgba(${nodeRgb.r}, ${nodeRgb.g}, ${nodeRgb.b}, 0.2)`;
 export const blobalongHeadColor = '#228be6';
 export const blobalongBodyColor = '#15aabf';
 export const blobalongBodyStrokeColor = blobQueenColor;
+export const multiSelectOutlineColor = '#263880';
+const multiSelectRgb = hexToRGB(multiSelectOutlineColor);
+export const multiSelectFillColor = `rgba(${multiSelectRgb.r}, ${multiSelectRgb.g}, ${multiSelectRgb.b}, 0.1)`;

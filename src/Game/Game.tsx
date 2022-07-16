@@ -37,7 +37,7 @@ function gameLoop(gameService: any, gameCtx: CanvasRenderingContext2D) {
   gameService.send('DRAW', { ctx: gameCtx });
 
   /* eslint-disable no-param-reassign */
-  // Draw background at the under everything else
+  // Draw background under everything else
   gameCtx.globalCompositeOperation = 'destination-over';
   gameCtx.fillStyle = mapBackgroundColor;
   gameCtx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -66,41 +66,23 @@ export const Game = () => {
     // );
   }, [gameServices.gameService]);
 
-  const handleMainGameClick = ({ clientX, clientY }: React.MouseEvent) => {
-    const geometry = gameCanvasRef.current?.getBoundingClientRect();
-
-    if (gameServices.gameService && geometry) {
-      const { x, y } = geometry;
-      gameServices.gameService.send('CLICKED', {
-        point: { x: clientX - x, y: clientY - y },
-      });
-    }
-  };
-
-  const handleMainGameMouseMove = ({ clientX, clientY }: React.MouseEvent) => {
-    const geometry = gameCanvasRef.current?.getBoundingClientRect();
-
-    if (gameServices.gameService && geometry) {
-      const { x, y } = geometry;
-      gameServices.gameService.send('MOUSE_MOVE', {
-        point: { x: clientX - x, y: clientY - y },
-      });
-    }
-  };
-
   return (
     <>
       <canvas
         id="game-canvas"
-        onClick={handleMainGameClick}
-        onMouseMove={handleMainGameMouseMove}
         ref={gameCanvasRef}
         style={{
           height: WORLD_HEIGHT,
           width: WORLD_WIDTH,
         }}
       />
-      <SelectionDisplay />
+      <div
+        // Prevent bubbling to Select machine event listeners
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseUp={(e) => e.stopPropagation()}
+      >
+        <SelectionDisplay />
+      </div>
     </>
   );
 };

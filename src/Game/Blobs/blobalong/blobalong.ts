@@ -6,9 +6,13 @@ import {
   MapClickEvent,
   UpdateEvent,
   DrawEvent,
+  MultiSelectEvent,
 } from 'game/types';
 import { multipleOf } from 'game/lib/utils';
-import { getAngleBetweenTwoPointsFromXHorizontal } from 'game/lib/geometry';
+import {
+  getAngleBetweenTwoPointsFromXHorizontal,
+  isPointWithinRectangle,
+} from 'game/lib/geometry';
 import { network } from 'game/blobNetwork';
 import {
   BlobalongClickEvent,
@@ -256,6 +260,19 @@ export function makeBlobalong(context: Context) {
                           })
                         ),
                       },
+                      MULTI_SELECT: {
+                        target: 'selected',
+                        cond: ({ position }, { rectangle }) =>
+                          isPointWithinRectangle(rectangle, position),
+                        actions: [
+                          sendParent(
+                            ({ id }: Context, _: MultiSelectEvent) => ({
+                              type: 'BLOBALONG_SELECTED',
+                              blobalongId: id,
+                            })
+                          ),
+                        ],
+                      },
                     },
                   },
                   selected: {
@@ -265,12 +282,27 @@ export function makeBlobalong(context: Context) {
                       },
                       BLOBALONG_CLICK: {
                         target: 'deselected',
-                        actions: sendParent(
-                          ({ id }: Context, _: BlobalongClickEvent) => ({
-                            type: 'BLOBALONG_DESELECTED',
-                            blobalongId: id,
-                          })
-                        ),
+                        actions: [
+                          sendParent(
+                            ({ id }: Context, _: BlobalongClickEvent) => ({
+                              type: 'BLOBALONG_DESELECTED',
+                              blobalongId: id,
+                            })
+                          ),
+                        ],
+                      },
+                      MULTI_SELECT: {
+                        target: 'deselected',
+                        cond: ({ position }, { rectangle }) =>
+                          !isPointWithinRectangle(rectangle, position),
+                        actions: [
+                          sendParent(
+                            ({ id }: Context, _: MultiSelectEvent) => ({
+                              type: 'BLOBALONG_DESELECTED',
+                              blobalongId: id,
+                            })
+                          ),
+                        ],
                       },
                       MAP_CLICKED: {
                         target: '#mapMoving',

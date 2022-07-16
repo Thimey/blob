@@ -3,6 +3,7 @@ import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
 import { selectRandomElementFromArray } from 'game/lib/utils';
+import { isPointWithinRectangle } from 'game/lib/geometry';
 import {
   QUEEN_POSITION,
   BLOBLET_HARVEST_INTERVAL,
@@ -191,6 +192,18 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                     target: 'selected',
                     cond: ({ id }, { id: clickedId }) => id === clickedId,
                   },
+                  MULTI_SELECT: {
+                    target: 'selected',
+                    cond: ({ position }, { rectangle }) =>
+                      isPointWithinRectangle(rectangle, position),
+                    actions: [
+                      sendParent(({ id, position }: Context) => ({
+                        type: 'LARVA_SELECTED',
+                        position,
+                        larvaId: id,
+                      })),
+                    ],
+                  },
                 },
               },
               selected: {
@@ -203,6 +216,11 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                       target: 'deselected',
                     },
                   ],
+                  MULTI_SELECT: {
+                    target: 'deselected',
+                    cond: ({ position }, { rectangle }) =>
+                      !isPointWithinRectangle(rectangle, position),
+                  },
                   MAP_CLICKED: [
                     {
                       target: '#mapMoving',

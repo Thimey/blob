@@ -1,4 +1,5 @@
-import { Point, Ellipse } from '../types';
+import { matchState } from 'xstate';
+import { Point, Ellipse, Rectangle } from '../types';
 import { makeRandomNumber } from './utils';
 
 export function degToRad(deg: number) {
@@ -47,19 +48,29 @@ export function isPointWithinCircle(
   return distanceFromClick <= radius;
 }
 
-interface Rectangle {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+/**
+ * Makes a Rectangle from two diagonally opposite points
+ */
+export function makeRectangle(point1: Point, point2: Point): Rectangle {
+  const topLeftX = point1.x <= point2.x ? point1.x : point2.x;
+  const topLeftY = point1.y <= point2.y ? point1.y : point2.y;
+
+  return {
+    position: { x: topLeftX, y: topLeftY },
+    width: Math.abs(point1.x - point2.x),
+    height: Math.abs(point1.y - point2.y),
+  };
 }
 
-export function isPointWithinRectangle(rect: Rectangle, { x, y }: Point) {
+export function isPointWithinRectangle(
+  { position, width, height }: Rectangle,
+  { x, y }: Point
+) {
   return (
-    x >= rect.x &&
-    x <= rect.x + rect.width &&
-    y >= rect.y &&
-    y <= rect.y + rect.height
+    x >= position.x &&
+    x <= position.x + width &&
+    y >= position.y &&
+    y <= position.y + height
   );
 }
 

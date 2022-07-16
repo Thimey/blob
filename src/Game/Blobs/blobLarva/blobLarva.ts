@@ -2,6 +2,7 @@ import { assign, createMachine } from 'xstate';
 import { sendParent, send } from 'xstate/lib/actions';
 
 import { makeRandomNumber } from 'game/lib/utils';
+import { isPointWithinRectangle } from 'game/lib/geometry';
 import { QUEEN_POSITION } from 'game/paramaters';
 import { UpdateEvent } from 'game/types';
 import {
@@ -100,6 +101,18 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                     target: 'deselected',
                     cond: didClickOnLarva,
                   },
+                  MULTI_SELECT: {
+                    target: 'deselected',
+                    cond: ({ position }, { rectangle }) =>
+                      !isPointWithinRectangle(rectangle, position),
+                    actions: [
+                      sendParent(({ id, position }: Context) => ({
+                        type: 'LARVA_DESELECTED',
+                        position,
+                        larvaId: id,
+                      })),
+                    ],
+                  },
                   DRAW_LARVA_SELECTED: {
                     actions: [drawLarvaSelectedOutline],
                   },
@@ -120,13 +133,27 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
               deselected: {
                 on: {
                   LARVA_CLICKED: {
-                    actions: sendParent(({ id, position }: Context) => ({
-                      type: 'LARVA_SELECTED',
-                      position,
-                      larvaId: id,
-                    })),
                     target: 'selected',
                     cond: didClickOnLarva,
+                    actions: [
+                      sendParent(({ id, position }: Context) => ({
+                        type: 'LARVA_SELECTED',
+                        position,
+                        larvaId: id,
+                      })),
+                    ],
+                  },
+                  MULTI_SELECT: {
+                    target: 'selected',
+                    cond: ({ position }, { rectangle }) =>
+                      isPointWithinRectangle(rectangle, position),
+                    actions: [
+                      sendParent(({ id, position }: Context) => ({
+                        type: 'LARVA_SELECTED',
+                        position,
+                        larvaId: id,
+                      })),
+                    ],
                   },
                 },
               },
