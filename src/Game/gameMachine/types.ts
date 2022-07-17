@@ -136,4 +136,4 @@ export type Event =
   | SpawnBlobSelectedEvent
   | BlobHatchedEvent;
 
-export type GameService = Interpreter<Context, any, Event, State>;
+export type GameService = Interpreter<Context, any, Event, State, any>;
