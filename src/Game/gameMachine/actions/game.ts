@@ -1,4 +1,5 @@
 import { UpdateEvent, MultiSelectEvent } from 'game/types';
+import { isPointWithinRectangle } from 'game/lib/geometry';
 import { Context, ClickedEvent } from '../types';
 
 export function updateBlobs(
@@ -33,13 +34,16 @@ export function propagateMultiSelect(
   { bloblets, blobalongs, blobLarvae }: Context,
   event: MultiSelectEvent
 ) {
-  bloblets.forEach((blob) => {
-    blob.send(event);
+  const blobs = [...bloblets, ...blobLarvae, ...blobalongs];
+  const wasBlobSelected = blobs.some((blob) => {
+    const position = blob.getSnapshot()?.context.position;
+
+    return position && isPointWithinRectangle(event.rectangle, position);
   });
-  blobLarvae.forEach((larva) => {
-    larva.send(event);
-  });
-  blobalongs.forEach((blob) => {
-    blob.send(event);
-  });
+
+  if (wasBlobSelected) {
+    blobs.forEach((blob) => {
+      blob.send(event);
+    });
+  }
 }
