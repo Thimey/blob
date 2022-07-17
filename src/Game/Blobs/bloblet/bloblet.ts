@@ -230,6 +230,8 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                   SHRUB_CLICKED: {
                     target: ['#harvestingShrub', 'deselected'],
                     actions: [setHarvestingShrub],
+                    cond: (_, { shrubPosition }) =>
+                      network.isPointOnNode(shrubPosition),
                   },
                 },
               },
@@ -265,7 +267,7 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
               },
               harvestingShrub: {
                 id: 'harvestingShrub',
-                type: 'parallel',
+                initial: 'movingToShrub',
                 on: {
                   SHRUB_DEPLETED: {
                     target: 'mapMoving',
@@ -277,71 +279,59 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                   },
                 },
                 states: {
-                  // feedingQueen: {
-                  //   on: {
-                  //     UPDATE: {
-                  //       actions: [harvestShrub],
-                  //     },
-                  //   },
-                  // },
-                  harvestingMoving: {
-                    initial: 'movingToShrub',
-                    states: {
-                      movingToShrub: {
-                        on: {
-                          UPDATE: [
-                            {
-                              target: 'atShrub',
-                              cond: hasReachedDestination,
-                            },
-                            {
-                              actions: [stepToDestination],
-                            },
-                          ],
+                  movingToShrub: {
+                    on: {
+                      UPDATE: [
+                        {
+                          target: 'atShrub',
+                          cond: hasReachedDestination,
                         },
-                      },
-                      atShrub: {
-                        after: [
-                          {
-                            delay: SHRUB_HARVEST_DWELL_TIME_MS,
-                            target: 'movingToQueen',
-                            actions: [setDestinationAsQueen],
-                          },
-                        ],
-                      },
-                      movingToQueen: {
-                        on: {
-                          UPDATE: [
-                            {
-                              target: 'atQueen',
-                              cond: hasReachedDestination,
-                            },
-                            {
-                              actions: [stepToDestination],
-                            },
-                          ],
-                          DRAW_SHRUB: {
-                            actions: [drawCarryingShrub],
-                          },
+                        {
+                          actions: [stepToDestination],
                         },
+                      ],
+                    },
+                  },
+                  atShrub: {
+                    after: [
+                      {
+                        delay: SHRUB_HARVEST_DWELL_TIME_MS,
+                        target: 'movingToQueen',
+                        actions: [setDestinationAsQueen],
                       },
-                      atQueen: {
-                        after: [
-                          {
-                            delay: SHRUB_HARVEST_DROP_DWELL_TIME_MS,
-                            target: 'movingToShrub',
-                            actions: [
-                              setDestinationAsShrub,
-                              sendParent(({ harvestingShrub }) => ({
-                                type: 'HARVEST_SHRUB',
-                                shrubId: harvestingShrub?.shrubId,
-                                harvestCount: 1,
-                              })),
-                            ],
-                          },
-                        ],
+                    ],
+                  },
+                  movingToQueen: {
+                    on: {
+                      UPDATE: [
+                        {
+                          target: 'atQueen',
+                          cond: hasReachedDestination,
+                        },
+                        {
+                          actions: [stepToDestination],
+                        },
+                      ],
+                      DRAW_SHRUB: {
+                        actions: [drawCarryingShrub],
                       },
                     },
+                  },
+                  atQueen: {
+                    after: [
+                      {
+                        delay: SHRUB_HARVEST_DROP_DWELL_TIME_MS,
+                        target: 'movingToShrub',
+                        actions: [
+                          setDestinationAsShrub,
+                          sendParent(({ harvestingShrub }) => ({
+                            type: 'HARVEST_SHRUB',
+                            shrubId: harvestingShrub?.shrubId,
+                            harvestCount: 1,
+                          })),
+                        ],
+                      },
+                    ],
                   },
                 },
               },
