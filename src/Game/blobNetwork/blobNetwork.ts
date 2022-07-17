@@ -1,6 +1,7 @@
 import { Point } from 'game/types';
 import { QUEEN_POSITION, DEFAULT_SPEED } from 'game/paramaters';
-import { makeLinearPoints, makeClosestPointOnEllipse } from 'game/lib/geometry';
+import { makeLinearPoints } from 'game/lib/geometry';
+import { toMap } from 'game/lib/utils';
 import { makeNode } from './makeNode';
 
 import {
@@ -9,42 +10,15 @@ import {
   NodeMap,
   ConnectionMap,
   Network,
-  NodeId,
   PathStrategy,
 } from './types';
 import { drawNode, drawConnection } from './draw';
-import { makePath } from './makePath';
-import {
-  findNodeOfPoint,
-  findConnectionOfPoint,
-  findNearestNode,
-} from './checkPointOnNetwork';
+import { makeNetworkOnlyPath } from './makePath';
+import { findNodeOfPoint, findConnectionOfPoint } from './checkPointOnNetwork';
 
-function toMap<T extends { id: string }>(items: T[]) {
-  return items.reduce<Record<T['id'], T>>(
-    (acc, item) => ({ ...acc, [item.id]: item }),
-    {} as Record<T['id'], T>
-  );
-}
-
-function findEndPointConnectionNode(
-  nodes: Node[],
-  connections: Connection[],
-  startNodeId: NodeId,
-  end: Point
-) {
-  const connectionOfPoint = findConnectionOfPoint(connections, end);
-  if (!connectionOfPoint) return null;
-
-  const connectionEndNode = findNodeOfPoint(nodes, connectionOfPoint.end);
-  if (!connectionEndNode) return null;
-
-  if (connectionEndNode.id !== startNodeId) return connectionEndNode;
-
-  const connectionStartNode = findNodeOfPoint(nodes, connectionOfPoint.start);
-  if (!connectionStartNode) return null;
-
-  return connectionStartNode;
+interface PathOptions {
+  speed?: number;
+  pathStrategy?: PathStrategy;
 }
 
 export class BlobNetwork {
@@ -69,74 +43,20 @@ export class BlobNetwork {
     return [...Object.values(this.connectionMap)];
   }
 
-  /**
-   * Makes a path the minimises distance off blob network.
-   * Will move linearly if moving from outside -> outside.
-   */
   public makePath(
     start: Point,
     end: Point,
-    {
-      speed = DEFAULT_SPEED,
-      pathStrategy = PathStrategy.NETWORK_ONLY,
-    }: { speed?: number; pathStrategy?: PathStrategy } = {}
+    { speed = DEFAULT_SPEED, pathStrategy = 'networkOnly' }: PathOptions = {}
   ) {
-    if (pathStrategy === PathStrategy.LINEAR) {
+    if (pathStrategy === 'linear') {
       return makeLinearPoints(start, end, speed);
     }
 
-    // if (pathStrategy === PathStrategy.NETWORK_ONLY) {
-
-    // }
-    const startPointNode = findNodeOfPoint(this.nodes, start);
-    const endPointNode = findNodeOfPoint(this.nodes, end);
-
-    const startNode = startPointNode || findNearestNode(this.nodes, start);
-
-    if (!endPointNode) {
-      // Check if end point leads to a node via a connection
-      const connectionEndNode = findEndPointConnectionNode(
-        this.nodes,
-        this.connections,
-        startNode.id,
-        end
-      );
-
-      // If no connection end node, find the closest node to end position
-      if (!connectionEndNode) {
-        const nearestEndNode = findNearestNode(this.nodes, end);
-        const edgeOfNode = makeClosestPointOnEllipse(nearestEndNode, end);
-
-        return makePath(
-          this.network,
-          start,
-          edgeOfNode,
-          startNode.id,
-          nearestEndNode.id,
-          speed
-        );
-      }
-
-      // Otherwise, make path to center of connection end node
-      return makePath(
-        this.network,
-        start,
-        connectionEndNode.centre,
-        startNode.id,
-        connectionEndNode.id,
-        speed
-      );
+    if (pathStrategy === 'networkOnly') {
+      return makeNetworkOnlyPath(this.network, start, end, speed);
     }
 
-    // Happy path - started and ended in nodes
-    return makePath(
-      this.network,
-      start,
-      end,
-      startNode.id,
-      endPointNode.id,
-      speed
-    );
+    return [];
   }
 
   public nodeOfPoint(point: Point, nodePercent = 1) {
