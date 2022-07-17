@@ -1,9 +1,18 @@
 import { Point } from 'game/types';
-import { makeLinearPoints, makeDistance } from 'game/lib/geometry';
+import {
+  makeLinearPoints,
+  makeDistance,
+  makeClosestPointOnEllipse,
+} from 'game/lib/geometry';
 
 import { NodeMap, Network, NodeId, Connection, Node } from './types';
 
 import { makeShortestPath } from './shortestPath';
+import {
+  findNodeOfPoint,
+  findConnectionOfPoint,
+  findNearestNode,
+} from './checkPointOnNetwork';
 
 function getConnection(
   { nodes, connections }: Network,
@@ -104,7 +113,27 @@ export function makeWeightedGraph(nodes: NodeMap) {
   );
 }
 
-export function makePath(
+function findEndPointConnectionNode(
+  nodes: Node[],
+  connections: Connection[],
+  startNodeId: NodeId,
+  end: Point
+) {
+  const connectionOfPoint = findConnectionOfPoint(connections, end);
+  if (!connectionOfPoint) return null;
+
+  const connectionEndNode = findNodeOfPoint(nodes, connectionOfPoint.end);
+  if (!connectionEndNode) return null;
+
+  if (connectionEndNode.id !== startNodeId) return connectionEndNode;
+
+  const connectionStartNode = findNodeOfPoint(nodes, connectionOfPoint.start);
+  if (!connectionStartNode) return null;
+
+  return connectionStartNode;
+}
+
+function makePath(
   network: Network,
   start: Point,
   end: Point,
@@ -119,4 +148,57 @@ export function makePath(
   );
 
   return makePathPoints(network, shortestPath, start, end, speed);
+}
+
+export function makeNetworkOnlyPath(
+  network: Network,
+  start: Point,
+  end: Point,
+  speed: number
+) {
+  const nodes = [...Object.values(network.nodes)];
+  const connections = [...Object.values(network.connections)];
+
+  const startPointNode = findNodeOfPoint(nodes, start);
+  const endPointNode = findNodeOfPoint(nodes, end);
+
+  const startNode = startPointNode || findNearestNode(nodes, start);
+
+  if (!endPointNode) {
+    // Check if end point leads to a node via a connection
+    const connectionEndNode = findEndPointConnectionNode(
+      nodes,
+      connections,
+      startNode.id,
+      end
+    );
+
+    // If no connection end node, find the closest point on edge of node to end position
+    if (!connectionEndNode) {
+      const nearestEndNode = findNearestNode(nodes, end);
+      const edgeOfNode = makeClosestPointOnEllipse(nearestEndNode, end);
+
+      return makePath(
+        network,
+        start,
+        edgeOfNode,
+        startNode.id,
+        nearestEndNode.id,
+        speed
+      );
+    }
+
+    // Otherwise, make path to center of connection end node
+    return makePath(
+      network,
+      start,
+      connectionEndNode.centre,
+      startNode.id,
+      connectionEndNode.id,
+      speed
+    );
+  }
+
+  // Happy path - started and ended in nodes
+  return makePath(network, start, end, startNode.id, endPointNode.id, speed);
 }

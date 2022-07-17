@@ -32,3 +32,5 @@ export interface Network {
   nodes: NodeMap;
   connections: ConnectionMap;
 }
+
+export type PathStrategy = 'networkOnly' | 'linear';

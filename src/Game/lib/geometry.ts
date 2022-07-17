@@ -272,6 +272,13 @@ export function getAngleBetweenTwoPointsFromXHorizontal(
   return quadrantAngleMap[Math.sign(dx)][Math.sign(dy)];
 }
 
+export function makeClosestPointOnEllipse(ellipse: Ellipse, point: Point) {
+  return makePointOnEllipse(
+    ellipse,
+    getAngleBetweenTwoPointsFromXHorizontal(ellipse.centre, point)
+  );
+}
+
 export function capLinearLine(start: Point, end: Point, max: number) {
   if (makeDistance(start, end) <= max) return end;
 

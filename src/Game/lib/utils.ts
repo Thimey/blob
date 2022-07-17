@@ -53,6 +53,13 @@ export function hexToRGB(hex: string): RGB {
   return blackRGB;
 }
 
+export function toMap<T extends { id: string }>(items: T[]) {
+  return items.reduce<Record<T['id'], T>>(
+    (acc, item) => ({ ...acc, [item.id]: item }),
+    {} as Record<T['id'], T>
+  );
+}
+
 export function and<
   T extends any[],
   U extends ((...args: [...T]) => boolean)[]
