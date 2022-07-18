@@ -1,10 +1,13 @@
 import { createMachine } from 'xstate';
 
-import { QUEEN_POSITION } from 'game/paramaters';
+import {
+  QUEEN_POSITION,
+  QUEEN_RADIUS_X,
+  QUEEN_RADIUS_Y,
+} from 'game/paramaters';
 import { Context, State, Event } from './types';
 import {
-  drawBody,
-  drawEyes,
+  drawQueen,
   blinkClose,
   blinkOpen,
   EYE_RADIUS,
@@ -15,10 +18,18 @@ import {
 export function makeBlobQueen() {
   return createMachine<Context, Event, State>({
     initial: 'idle',
-    context: { position: QUEEN_POSITION, eyeRadiusY: EYE_RADIUS },
+    context: {
+      position: QUEEN_POSITION,
+      bodyRadiusX: QUEEN_RADIUS_X,
+      bodyRadiusY: QUEEN_RADIUS_Y,
+      eyeRadiusX: QUEEN_RADIUS_X * 0.015,
+      eyeRadiusY: EYE_RADIUS,
+      eyeOffsetX: QUEEN_RADIUS_X * 0.025,
+      eyeOffsetY: QUEEN_RADIUS_Y * 0.75,
+    },
     on: {
       DRAW: {
-        actions: [drawBody, drawEyes],
+        actions: [drawQueen],
       },
     },
     states: {

@@ -5,7 +5,12 @@ export type { DrawEvent, UpdateEvent };
 
 export interface Context {
   position: Point;
+  bodyRadiusX: number;
+  bodyRadiusY: number;
+  eyeRadiusX: number;
   eyeRadiusY: number;
+  eyeOffsetX: number;
+  eyeOffsetY: number;
 }
 
 type StateValues = 'idle' | 'blinkingClose' | 'blinkingOpen';
