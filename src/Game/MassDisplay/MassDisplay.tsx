@@ -7,7 +7,7 @@ import { drawQueen } from 'game/blobs/blobQueen';
 
 const MASS_TOKEN_CANVAS_HEIGHT = 50;
 const MASS_TOKEN_CANVAS_WIDTH = 50;
-const TOKEN_RADIUS_X = 20;
+const TOKEN_RADIUS_X = 18;
 const TOKEN_RADIUS_Y = 10;
 const TOKEN_EYE_RADIUS_SCALE = 0.05;
 const TOKEN_EYE_OFFSET_X_SCALE = 0.1;

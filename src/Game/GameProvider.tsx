@@ -1,12 +1,9 @@
 import React, { createContext, PropsWithChildren } from 'react';
-import { Interpreter } from 'xstate';
 import { useInterpret } from '@xstate/react';
 import {
   makeGameMachine,
   PersistedGameState,
   GameService,
-  Context,
-  Event,
 } from 'game/gameMachine';
 import { restoreGameState } from './persist';
 import { QUEEN_POSITION } from './paramaters';
@@ -21,10 +18,10 @@ export const INITIAL_GAME_STATE: PersistedGameState = {
     },
   },
   blobQueen: null,
-  tunnels: [],
   shrubs: [],
   bloblets: [],
   blobLarvae: [],
+  blobalongs: [],
 };
 
 function makeInitialGameState(): PersistedGameState {

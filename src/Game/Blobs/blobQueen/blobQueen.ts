@@ -15,6 +15,10 @@ import {
   BLINK_DURATION_MS,
 } from './draw';
 
+const QUEEN_EYE_RADIUS_SCALE = 0.015;
+const QUEEN_EYE_OFFSET_X_SCALE = 0.025;
+const QUEEN_EYE_OFFSET_Y_SCALE = 0.75;
+
 export function makeBlobQueen() {
   return createMachine<Context, Event, State>({
     initial: 'idle',
@@ -22,10 +26,10 @@ export function makeBlobQueen() {
       position: QUEEN_POSITION,
       bodyRadiusX: QUEEN_RADIUS_X,
       bodyRadiusY: QUEEN_RADIUS_Y,
-      eyeRadiusX: QUEEN_RADIUS_X * 0.015,
+      eyeRadiusX: QUEEN_RADIUS_X * QUEEN_EYE_RADIUS_SCALE,
       eyeRadiusY: EYE_RADIUS,
-      eyeOffsetX: QUEEN_RADIUS_X * 0.025,
-      eyeOffsetY: QUEEN_RADIUS_Y * 0.75,
+      eyeOffsetX: QUEEN_RADIUS_X * QUEEN_EYE_OFFSET_X_SCALE,
+      eyeOffsetY: QUEEN_RADIUS_Y * QUEEN_EYE_OFFSET_Y_SCALE,
     },
     on: {
       DRAW: {
