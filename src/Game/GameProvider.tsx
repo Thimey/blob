@@ -1,6 +1,10 @@
 import React, { createContext, PropsWithChildren } from 'react';
 import { useInterpret } from '@xstate/react';
-import { makeGameMachine, PersistedGameState } from 'game/gameMachine';
+import {
+  makeGameMachine,
+  PersistedGameState,
+  GameService,
+} from 'game/gameMachine';
 import { restoreGameState } from './persist';
 import { QUEEN_POSITION } from './paramaters';
 
@@ -14,10 +18,10 @@ export const INITIAL_GAME_STATE: PersistedGameState = {
     },
   },
   blobQueen: null,
-  tunnels: [],
   shrubs: [],
   bloblets: [],
   blobLarvae: [],
+  blobalongs: [],
 };
 
 function makeInitialGameState(): PersistedGameState {
@@ -26,10 +30,14 @@ function makeInitialGameState(): PersistedGameState {
   return retoredGameState || INITIAL_GAME_STATE;
 }
 
-export const GameContext = createContext<{ gameService: any }>({
-  gameService: null,
+export const GameContext = createContext<{
+  gameService: GameService;
+}>({
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  gameService: null!,
 });
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface Props {}
 
 export const GameProvider = ({ children }: PropsWithChildren<Props>) => {

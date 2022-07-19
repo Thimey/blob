@@ -125,7 +125,7 @@ export const LarvaDisplay = () => {
   };
 
   return (
-    <div className="fixed border border-black bottom-0 left-0 m-1 flex items-center rounded bg-emerald-500">
+    <div className="fixed border border-black bottom-0 left-0 m-1 flex items-center rounded bg-blue">
       <div className="flex flex-col items-center">
         <h3 className="mt-1">Blob Larva</h3>
         <Canvas

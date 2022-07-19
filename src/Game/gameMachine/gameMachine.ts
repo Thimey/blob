@@ -21,7 +21,7 @@ import {
   initialiseBloblets,
   initialiseShrubs,
   initialiseBlobalongs,
-  drawQueen,
+  drawTheQueen,
   drawBloblets,
   drawLarvae,
   drawBlobalongs,
@@ -71,7 +71,7 @@ export function makeGameMachine({
     on: {
       DRAW: {
         actions: [
-          drawQueen,
+          drawTheQueen,
           (_, e) => animationMachine.send(e),
           drawLarvae,
           drawShrubs,

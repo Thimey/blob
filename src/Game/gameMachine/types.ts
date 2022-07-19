@@ -77,12 +77,10 @@ export type BlobalongDeSelectionEvent = {
 
 export type BlobalongChooseConnectionEvent = {
   type: 'CHOOSING_CONNECTION';
-  bobalongId: string;
 };
 
 export type BlobalongCancelConnectionEvent = {
   type: 'CANCEL_CONNECTION';
-  bobalongId: string;
 };
 
 export type DrawChoosingConnectionEvent = {
@@ -136,4 +134,4 @@ export type Event =
   | SpawnBlobSelectedEvent
   | BlobHatchedEvent;
 
-export type GameService = Interpreter<Context, any, Event, State>;
+export type GameService = Interpreter<Context, any, Event, State, any>;

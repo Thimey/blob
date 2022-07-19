@@ -4,6 +4,7 @@ import { network } from './blobNetwork';
 import { GameContext } from './GameProvider';
 import { mapBackgroundColor } from './colors';
 import { WORLD_HEIGHT, WORLD_WIDTH } from './paramaters';
+import { MassDisplay } from './MassDisplay';
 import { SelectionDisplay } from './SelectionDisplay';
 
 const TICKS_PER_SECOND = 100;
@@ -81,6 +82,7 @@ export const Game = () => {
         onMouseDown={(e) => e.stopPropagation()}
         onMouseUp={(e) => e.stopPropagation()}
       >
+        <MassDisplay />
         <SelectionDisplay />
       </div>
     </>

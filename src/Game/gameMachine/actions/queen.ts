@@ -13,7 +13,7 @@ export const initialiseQueen = assign<Context>(() => ({
   blobQueen: spawn(makeBlobQueen()),
 }));
 
-export function drawQueen({ blobQueen }: Context, { ctx }: DrawEvent) {
+export function drawTheQueen({ blobQueen }: Context, { ctx }: DrawEvent) {
   blobQueen?.send({ type: 'DRAW', ctx });
 }
 
