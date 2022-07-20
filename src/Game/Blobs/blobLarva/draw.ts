@@ -13,6 +13,7 @@ type LarvaDrawContext = Pick<
   | 'larvaHeadRadius'
   | 'larvaBodyRadiusX'
   | 'larvaBodyRadiusY'
+  | 'pupa'
 >;
 
 const PROGRESS_BAR_HEIGHT = 8;
@@ -168,9 +169,12 @@ export function drawPupa(
     larvaHeadRadius,
     larvaBodyRadiusX,
     larvaBodyRadiusY,
+    pupa,
   }: LarvaDrawContext,
   { ctx }: DrawEventCtx
 ) {
+  if (!pupa) return;
+
   // Base
   ctx.beginPath();
   ctx.ellipse(x, y, larvaBodyRadiusX, larvaBodyRadiusY, 0, 0, Math.PI * 2);
@@ -182,7 +186,9 @@ export function drawPupa(
 
   // Top
   ctx.beginPath();
-  drawCircle(ctx, x, y - 7, larvaHeadRadius, blobPupaColor);
+  ctx.ellipse(x, y - 7, pupa.topRadiusX, pupa.topRadiusY, 0, 0, 2 * Math.PI);
+  ctx.fillStyle = blobPupaColor;
+  ctx.fill();
   ctx.strokeStyle = 'black';
   ctx.stroke();
   ctx.closePath();

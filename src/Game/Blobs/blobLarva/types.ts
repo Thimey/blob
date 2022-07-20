@@ -6,6 +6,7 @@ import {
   DrawEvent,
   UpdateEvent,
   MultiSelectEvent,
+  Direction,
 } from 'game/types';
 
 export type { DrawEvent };
@@ -21,6 +22,9 @@ export interface Context {
     spawnTo: BlobType;
     spawnTime: number;
     hatchAt: number;
+    pulsateDir: Direction;
+    topRadiusY: number;
+    topRadiusX: number;
   };
 }
 

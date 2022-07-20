@@ -23,6 +23,8 @@ export type Diamond = {
   height: number;
 };
 
+export type Direction = 1 | -1;
+
 export type PersistedActor<T, U> = {
   context: T;
   value: U;

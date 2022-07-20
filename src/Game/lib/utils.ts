@@ -1,4 +1,5 @@
 import { v4 } from 'uuid';
+import { Direction } from 'game/types';
 
 export function generateId() {
   return v4();
@@ -69,4 +70,19 @@ export function and<
 
 export function not<T extends any[]>(fn: (...args: [...T]) => boolean) {
   return (...args: [...T]) => !fn(...args);
+}
+
+function oppositeDirection(dir: Direction) {
+  return dir === 1 ? -1 : 1;
+}
+
+export function switchDirection(
+  dir: Direction,
+  current: number,
+  min: number,
+  max: number
+) {
+  const changeDirection = dir === 1 ? current >= max : current <= min;
+
+  return changeDirection ? oppositeDirection(dir) : dir;
 }

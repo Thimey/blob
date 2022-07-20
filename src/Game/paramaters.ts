@@ -32,7 +32,7 @@ export const BLOBLET_DRIFT_DISTANCE = 10;
 
 // Blobalong
 export const BLOBALONG_MASS_COST = 1;
-export const BLOBALONG_SPAWN_TIME_MS = 20_00;
+export const BLOBALONG_SPAWN_TIME_MS = 20_000;
 
 export const BLOBALONG_HEAD_RADIUS = 14;
 export const BLOBALONG_HEAD_OFFSET = 25;
