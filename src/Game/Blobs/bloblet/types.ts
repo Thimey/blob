@@ -6,6 +6,8 @@ import {
   UpdateEvent,
   MapClickEvent,
   Movement,
+  SelectEvent,
+  DeselectEvent,
   MultiSelectEvent,
 } from 'game/types';
 
@@ -74,6 +76,8 @@ export type State = {
 export type Event =
   | BlobletClickEvent
   | MapClickEvent
+  | SelectEvent
+  | DeselectEvent
   | MultiSelectEvent
   | DrawEvent
   | UpdateEvent

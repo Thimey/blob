@@ -6,6 +6,8 @@ import {
   MapClickEvent,
   UpdateEvent,
   DrawEvent,
+  SelectEvent,
+  DeselectEvent,
   MultiSelectEvent,
 } from 'game/types';
 import { multipleOf } from 'game/lib/utils';
@@ -250,6 +252,15 @@ export function makeBlobalong(context: Context) {
                 states: {
                   deselected: {
                     on: {
+                      SELECT: {
+                        target: 'selected',
+                        actions: sendParent(
+                          ({ id }: Context, _: SelectEvent) => ({
+                            type: 'BLOBALONG_SELECTED',
+                            blobalongId: id,
+                          })
+                        ),
+                      },
                       BLOBALONG_CLICK: {
                         target: 'selected',
                         cond: ({ id }, { id: clickedId }) => id === clickedId,
@@ -279,6 +290,15 @@ export function makeBlobalong(context: Context) {
                     on: {
                       DRAW_SELECTED: {
                         actions: drawBlobalongSelectedOutline,
+                      },
+                      DESELECT: {
+                        target: 'deselected',
+                        actions: [
+                          sendParent(({ id }: Context, _: DeselectEvent) => ({
+                            type: 'BLOBALONG_DESELECTED',
+                            blobalongId: id,
+                          })),
+                        ],
                       },
                       BLOBALONG_CLICK: {
                         target: 'deselected',

@@ -4,7 +4,7 @@ import { sendParent, send } from 'xstate/lib/actions';
 import { makeRandomNumber } from 'game/lib/utils';
 import { isPointWithinRectangle } from 'game/lib/geometry';
 import { QUEEN_POSITION } from 'game/paramaters';
-import { UpdateEvent } from 'game/types';
+import { UpdateEvent, SelectEvent, DeselectEvent } from 'game/types';
 import {
   Context,
   Events,
@@ -91,8 +91,54 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
               ],
             },
             states: {
+              deselected: {
+                on: {
+                  SELECT: {
+                    target: 'selected',
+                    actions: sendParent(
+                      ({ id, position }: Context, _: SelectEvent) => ({
+                        type: 'LARVA_SELECTED',
+                        position,
+                        larvaId: id,
+                      })
+                    ),
+                  },
+                  LARVA_CLICKED: {
+                    target: 'selected',
+                    cond: didClickOnLarva,
+                    actions: [
+                      sendParent(({ id, position }: Context) => ({
+                        type: 'LARVA_SELECTED',
+                        position,
+                        larvaId: id,
+                      })),
+                    ],
+                  },
+                  MULTI_SELECT: {
+                    target: 'selected',
+                    cond: ({ position }, { rectangle }) =>
+                      isPointWithinRectangle(rectangle, position),
+                    actions: [
+                      sendParent(({ id, position }: Context) => ({
+                        type: 'LARVA_SELECTED',
+                        position,
+                        larvaId: id,
+                      })),
+                    ],
+                  },
+                },
+              },
               selected: {
                 on: {
+                  DESELECT: {
+                    target: 'deselected',
+                    actions: [
+                      sendParent(({ id }: Context, _: DeselectEvent) => ({
+                        type: 'LARVA_DESELECTED',
+                        larvaId: id,
+                      })),
+                    ],
+                  },
                   LARVA_CLICKED: {
                     actions: sendParent(({ id }: Context) => ({
                       type: 'LARVA_DESELECTED',
@@ -127,33 +173,6 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                         },
                       })
                     ),
-                  },
-                },
-              },
-              deselected: {
-                on: {
-                  LARVA_CLICKED: {
-                    target: 'selected',
-                    cond: didClickOnLarva,
-                    actions: [
-                      sendParent(({ id, position }: Context) => ({
-                        type: 'LARVA_SELECTED',
-                        position,
-                        larvaId: id,
-                      })),
-                    ],
-                  },
-                  MULTI_SELECT: {
-                    target: 'selected',
-                    cond: ({ position }, { rectangle }) =>
-                      isPointWithinRectangle(rectangle, position),
-                    actions: [
-                      sendParent(({ id, position }: Context) => ({
-                        type: 'LARVA_SELECTED',
-                        position,
-                        larvaId: id,
-                      })),
-                    ],
                   },
                 },
               },

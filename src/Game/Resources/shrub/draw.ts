@@ -1,4 +1,4 @@
-import { Point, DrawEvent } from 'game/types';
+import { Point, DrawEvent, ClickedEvent } from 'game/types';
 import {
   LEAF_HEIGHT,
   LEAF_WIDTH,
@@ -12,11 +12,12 @@ import {
   makePointsOnEllipse,
   makePerimeterOfEllipse,
   shiftRandomPosition,
+  isPointWithinDiamond,
 } from 'game/lib/geometry';
 import { drawDiamond } from 'game/lib/draw';
 
 import { shrubColor } from 'game/colors';
-import { Context } from './types';
+import { Context, ShrubActor } from './types';
 
 export function makePosition(distance: number): Point {
   const angle = makeRandomAngle();
@@ -113,5 +114,19 @@ export function drawGrowingShrub(
   );
   makeRemainingLeafPositions(leafPositions, amount).forEach((p) =>
     drawLeaf(ctx, p, 'grey')
+  );
+}
+
+export function shrubClicked(shrub: ShrubActor, { point }: ClickedEvent) {
+  const shrubContext = shrub.getSnapshot()?.context;
+
+  return (
+    shrubContext &&
+    shrubContext.leafPositions.some((position) =>
+      isPointWithinDiamond(
+        { position, width: LEAF_WIDTH, height: LEAF_HEIGHT },
+        point
+      )
+    )
   );
 }

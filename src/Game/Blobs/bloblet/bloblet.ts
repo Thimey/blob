@@ -11,7 +11,7 @@ import {
   SHRUB_HARVEST_DWELL_TIME_MS,
   SHRUB_HARVEST_DROP_DWELL_TIME_MS,
 } from 'game/paramaters';
-import { Point } from 'game/types';
+import { Point, SelectEvent, DeselectEvent } from 'game/types';
 
 import { network } from 'game/blobNetwork';
 import { drawSelectedOutline } from 'game/lib/draw';
@@ -188,6 +188,9 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
             states: {
               deselected: {
                 on: {
+                  SELECT: {
+                    target: 'selected',
+                  },
                   BLOBLET_CLICKED: {
                     target: 'selected',
                     cond: ({ id }, { id: clickedId }) => id === clickedId,
@@ -210,6 +213,9 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                 on: {
                   DRAW_SELECTED: {
                     actions: [drawSelectedOutline],
+                  },
+                  DESELECT: {
+                    target: 'deselected',
                   },
                   BLOBLET_CLICKED: [
                     {

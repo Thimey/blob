@@ -5,6 +5,8 @@ import {
   DrawEvent,
   UpdateEvent,
   MapClickEvent,
+  SelectEvent,
+  DeselectEvent,
   MultiSelectEvent,
 } from 'game/types';
 import { Connection } from 'game/blobNetwork';
@@ -51,6 +53,8 @@ export type Event =
   | UpdateEvent
   | MapClickEvent
   | BlobalongClickEvent
+  | SelectEvent
+  | DeselectEvent
   | MultiSelectEvent
   | DrawSelectedEvent
   | MakeConnectionEvent;

@@ -52,6 +52,14 @@ export type MouseMoveEvent = {
   point: Point;
 };
 
+export type SelectEvent = {
+  type: 'SELECT';
+};
+
+export type DeselectEvent = {
+  type: 'DESELECT';
+};
+
 export type MultiSelectEvent = {
   type: 'MULTI_SELECT';
   rectangle: Rectangle;
