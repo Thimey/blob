@@ -5,13 +5,7 @@ import { makeRandomNumber } from 'game/lib/utils';
 import { isPointWithinRectangle } from 'game/lib/geometry';
 import { QUEEN_POSITION } from 'game/paramaters';
 import { UpdateEvent, SelectEvent, DeselectEvent } from 'game/types';
-import {
-  Context,
-  Events,
-  State,
-  PersistedLarvaActor,
-  LarvaClickEvent,
-} from './types';
+import { Context, Events, State, PersistedLarvaActor } from './types';
 import {
   drawLarva,
   drawPupa,
@@ -48,13 +42,6 @@ function hasReachedDestination(
     Math.abs(position.x - destination.x) <= 1 &&
     Math.abs(position.y - destination.y) <= 1
   );
-}
-
-function didClickOnLarva(
-  { id }: Context,
-  { id: clickedLarvaId }: LarvaClickEvent
-) {
-  return id === clickedLarvaId;
 }
 
 export function makeBlobLarva({ context }: PersistedLarvaActor) {
@@ -103,17 +90,6 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                       })
                     ),
                   },
-                  LARVA_CLICKED: {
-                    target: 'selected',
-                    cond: didClickOnLarva,
-                    actions: [
-                      sendParent(({ id, position }: Context) => ({
-                        type: 'LARVA_SELECTED',
-                        position,
-                        larvaId: id,
-                      })),
-                    ],
-                  },
                   MULTI_SELECT: {
                     target: 'selected',
                     cond: ({ position }, { rectangle }) =>
@@ -138,14 +114,6 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                         larvaId: id,
                       })),
                     ],
-                  },
-                  LARVA_CLICKED: {
-                    actions: sendParent(({ id }: Context) => ({
-                      type: 'LARVA_DESELECTED',
-                      larvaId: id,
-                    })),
-                    target: 'deselected',
-                    cond: didClickOnLarva,
                   },
                   MULTI_SELECT: {
                     target: 'deselected',

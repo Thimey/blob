@@ -31,11 +31,6 @@ export type DrawLarvaSelectedEvent = {
   ctx: CanvasRenderingContext2D;
 };
 
-export type LarvaClickEvent = {
-  type: 'LARVA_CLICKED';
-  id: string;
-};
-
 export type LarvaSpawnSelected = {
   type: 'LARVA_SPAWN_SELECTED';
   blobToSpawn: BlobType;
@@ -61,7 +56,6 @@ export type Events =
   | SelectEvent
   | DeselectEvent
   | MultiSelectEvent
-  | LarvaClickEvent
   | LarvaSpawnSelected
   | DrawLarvaSelectedEvent
   | PupaHatch;

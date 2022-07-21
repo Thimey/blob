@@ -16,12 +16,7 @@ import {
   isPointWithinRectangle,
 } from 'game/lib/geometry';
 import { network } from 'game/blobNetwork';
-import {
-  BlobalongClickEvent,
-  Context,
-  Event,
-  MakeConnectionEvent,
-} from './types';
+import { Context, Event, MakeConnectionEvent } from './types';
 import {
   drawBlobalong,
   drawBlobalongSelectedOutline,
@@ -261,16 +256,6 @@ export function makeBlobalong(context: Context) {
                           })
                         ),
                       },
-                      BLOBALONG_CLICK: {
-                        target: 'selected',
-                        cond: ({ id }, { id: clickedId }) => id === clickedId,
-                        actions: sendParent(
-                          ({ id }: Context, _: BlobalongClickEvent) => ({
-                            type: 'BLOBALONG_SELECTED',
-                            blobalongId: id,
-                          })
-                        ),
-                      },
                       MULTI_SELECT: {
                         target: 'selected',
                         cond: ({ position }, { rectangle }) =>
@@ -298,17 +283,6 @@ export function makeBlobalong(context: Context) {
                             type: 'BLOBALONG_DESELECTED',
                             blobalongId: id,
                           })),
-                        ],
-                      },
-                      BLOBALONG_CLICK: {
-                        target: 'deselected',
-                        actions: [
-                          sendParent(
-                            ({ id }: Context, _: BlobalongClickEvent) => ({
-                              type: 'BLOBALONG_DESELECTED',
-                              blobalongId: id,
-                            })
-                          ),
                         ],
                       },
                       MULTI_SELECT: {

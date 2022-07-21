@@ -28,11 +28,6 @@ export type Context = {
   };
 };
 
-export type BlobletClickEvent = {
-  type: 'BLOBLET_CLICKED';
-  id: string;
-};
-
 export type ShrubClickEvent = {
   type: 'SHRUB_CLICKED';
   clickCoordinates: Point;
@@ -74,7 +69,6 @@ export type State = {
 };
 
 export type Event =
-  | BlobletClickEvent
   | MapClickEvent
   | SelectEvent
   | DeselectEvent
