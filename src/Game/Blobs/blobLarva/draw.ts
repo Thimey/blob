@@ -1,8 +1,14 @@
 import memoize from 'fast-memoize';
-import { Point, DrawEventCtx } from 'game/types';
+import { Point, DrawEventCtx, BlobType } from 'game/types';
 import { isPointWithinCircle, isPointWithinEllipse } from 'game/lib/geometry';
 import { drawCircle, drawSelectedOutline } from 'game/lib/draw';
-import { blobLarvaColor, blobPupaColor, progressBarColor } from 'game/colors';
+import {
+  blobLarvaColor,
+  blobPupaColor,
+  progressBarColor,
+  blobletColor,
+  blobalongBodyColor,
+} from 'game/colors';
 import { Context, BlobLarvaActor } from './types';
 
 type Direction = 'right' | 'left';
@@ -163,10 +169,14 @@ export function drawLarvaSelectedOutline(
   );
 }
 
+const pupaColor: Record<BlobType, string> = {
+  bloblet: blobletColor,
+  blobalong: blobalongBodyColor,
+};
+
 export function drawPupa(
   {
     position: { x, y },
-    larvaHeadRadius,
     larvaBodyRadiusX,
     larvaBodyRadiusY,
     pupa,
@@ -174,11 +184,32 @@ export function drawPupa(
   { ctx }: DrawEventCtx
 ) {
   if (!pupa) return;
+  const spawnBlobColor = pupaColor[pupa.spawnTo];
+  const baseGradient = ctx.createLinearGradient(
+    x,
+    y - larvaBodyRadiusX,
+    x,
+    y + larvaBodyRadiusX
+  );
+  const topGradient = ctx.createRadialGradient(
+    x,
+    y - 7,
+    0,
+    x,
+    y - 7,
+    pupa.topRadiusY
+  );
+
+  baseGradient.addColorStop(0, blobPupaColor);
+  baseGradient.addColorStop(1, spawnBlobColor);
+
+  topGradient.addColorStop(0, spawnBlobColor);
+  topGradient.addColorStop(1, blobPupaColor);
 
   // Base
   ctx.beginPath();
   ctx.ellipse(x, y, larvaBodyRadiusX, larvaBodyRadiusY, 0, 0, Math.PI * 2);
-  ctx.fillStyle = blobPupaColor;
+  ctx.fillStyle = baseGradient;
   ctx.fill();
   ctx.strokeStyle = 'black';
   ctx.stroke();
@@ -187,7 +218,7 @@ export function drawPupa(
   // Top
   ctx.beginPath();
   ctx.ellipse(x, y - 7, pupa.topRadiusX, pupa.topRadiusY, 0, 0, 2 * Math.PI);
-  ctx.fillStyle = blobPupaColor;
+  ctx.fillStyle = topGradient;
   ctx.fill();
   ctx.strokeStyle = 'black';
   ctx.stroke();
