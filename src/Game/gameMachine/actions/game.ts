@@ -24,7 +24,7 @@ export function updateBlobs(
 }
 
 export function propergateClick(
-  { shrubs, blobLarvae, bloblets, blobalongs }: Context,
+  { blobLarvae, bloblets, blobalongs }: Context,
   event: ClickedEvent
 ) {
   const clickedLarvae = blobLarvae.find((larvae) =>
@@ -40,13 +40,13 @@ export function propergateClick(
   const selectedBlob = clickedLarvae || clickedBloblet || clickedBlobalong;
 
   if (selectedBlob) {
-    selectedBlob.send({ type: 'SELECT' });
-
     [...bloblets, ...blobLarvae, ...blobalongs].forEach((blob) => {
       if (blob.id !== selectedBlob.id) {
         blob.send({ type: 'DESELECT' });
       }
     });
+
+    selectedBlob.send({ type: 'SELECT' });
   } else {
     bloblets.forEach((blob) => {
       blob.send({ type: 'MAP_CLICKED', point: event.point });
