@@ -174,6 +174,8 @@ const pupaColor: Record<BlobType, string> = {
   blobalong: blobalongBodyColor,
 };
 
+const TOP_Y_OFFSET = 7;
+
 export function drawPupa(
   {
     position: { x, y },
@@ -193,10 +195,10 @@ export function drawPupa(
   );
   const topGradient = ctx.createRadialGradient(
     x,
-    y - 7,
+    y - TOP_Y_OFFSET,
     0,
     x,
-    y - 7,
+    y - TOP_Y_OFFSET,
     pupa.topRadiusY
   );
 
@@ -217,7 +219,15 @@ export function drawPupa(
 
   // Top
   ctx.beginPath();
-  ctx.ellipse(x, y - 7, pupa.topRadiusX, pupa.topRadiusY, 0, 0, 2 * Math.PI);
+  ctx.ellipse(
+    x,
+    y - TOP_Y_OFFSET,
+    pupa.topRadiusX,
+    pupa.topRadiusY,
+    0,
+    0,
+    2 * Math.PI
+  );
   ctx.fillStyle = topGradient;
   ctx.fill();
   ctx.strokeStyle = 'black';
