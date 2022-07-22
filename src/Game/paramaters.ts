@@ -26,13 +26,13 @@ export const LARVA_SPAWN_TIME_MS = 5_000;
 // Bloblet
 export const BLOBLET_RADIUS = 10;
 export const BLOBLET_MASS_COST = 10;
-export const BLOBLET_SPAWN_TIME_MS = 10_00;
+export const BLOBLET_SPAWN_TIME_MS = 10_000;
 export const BLOBLET_HARVEST_INTERVAL = 5_000;
 export const BLOBLET_DRIFT_DISTANCE = 10;
 
 // Blobalong
 export const BLOBALONG_MASS_COST = 1;
-export const BLOBALONG_SPAWN_TIME_MS = 20_00;
+export const BLOBALONG_SPAWN_TIME_MS = 20_000;
 
 export const BLOBALONG_HEAD_RADIUS = 14;
 export const BLOBALONG_HEAD_OFFSET = 25;

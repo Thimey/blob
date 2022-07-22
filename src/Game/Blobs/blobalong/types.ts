@@ -6,6 +6,7 @@ import {
   UpdateEvent,
   MapClickEvent,
   MultiSelectEvent,
+  Direction,
 } from 'game/types';
 import { Connection } from 'game/blobNetwork';
 
@@ -14,7 +15,7 @@ export interface Context {
   position: Point;
   rotation: number;
   finRotation: number;
-  finRotationDir: 1 | -1;
+  finRotationDir: Direction;
   movement?: Movement;
   makingConnection?: {
     connection: Connection;

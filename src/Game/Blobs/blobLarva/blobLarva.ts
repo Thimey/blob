@@ -1,7 +1,7 @@
 import { assign, createMachine } from 'xstate';
 import { sendParent, send } from 'xstate/lib/actions';
 
-import { makeRandomNumber } from 'game/lib/utils';
+import { makeRandomNumber, multipleOf, switchDirection } from 'game/lib/utils';
 import { isPointWithinRectangle } from 'game/lib/geometry';
 import { QUEEN_POSITION } from 'game/paramaters';
 import { UpdateEvent } from 'game/types';
@@ -39,6 +39,40 @@ const setNewDestination = assign<Context, UpdateEvent>(() => ({
     y: QUEEN_POSITION.y + makeRandomNumber(-100, 100),
   },
 }));
+
+const MAX_PULSATE_Y = 0.6;
+const PULSATE_MOVE = 0.05;
+
+const pulsate = assign<Context, UpdateEvent>(
+  ({ pupa, larvaHeadRadius }, { currentUpdateAt }) => {
+    if (!pupa) return {};
+    if (!multipleOf(8, currentUpdateAt)) return {};
+
+    const newTopRaduisY =
+      pupa.pulsateDir === 1
+        ? pupa.topRadiusY + PULSATE_MOVE
+        : pupa.topRadiusY - PULSATE_MOVE;
+
+    const newTopRaduisX =
+      pupa.pulsateDir === 1
+        ? pupa.topRadiusX - 1.5 * PULSATE_MOVE
+        : pupa.topRadiusX + 1.5 * PULSATE_MOVE;
+
+    return {
+      pupa: {
+        ...pupa,
+        topRadiusX: newTopRaduisX,
+        topRadiusY: newTopRaduisY,
+        pulsateDir: switchDirection(
+          pupa.pulsateDir,
+          newTopRaduisY,
+          larvaHeadRadius - MAX_PULSATE_Y,
+          larvaHeadRadius
+        ),
+      },
+    };
+  }
+);
 
 function hasReachedDestination(
   { position, destination }: Context,
@@ -119,11 +153,17 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                   LARVA_SPAWN_SELECTED: {
                     target: '#pupa',
                     actions: assign(
-                      (_, { blobToSpawn, hatchAt, spawnTime }) => ({
+                      (
+                        { larvaHeadRadius },
+                        { blobToSpawn, hatchAt, spawnTime }
+                      ) => ({
                         pupa: {
                           spawnTo: blobToSpawn,
                           spawnTime,
                           hatchAt,
+                          topRadiusX: larvaHeadRadius,
+                          topRadiusY: larvaHeadRadius,
+                          pulsateDir: 1,
                         },
                       })
                     ),
@@ -165,6 +205,9 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
               DRAW: {
                 actions: [drawPupa, drawProgressBar],
               },
+              UPDATE: {
+                actions: [pulsate],
+              },
               PUPA_HATCH: {
                 target: 'hatched',
                 actions: [
@@ -173,6 +216,7 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                     blob: pupa?.spawnTo,
                     position,
                     larvaId: id,
+                    pulsateYoffset: 0,
                   })),
                 ],
               },

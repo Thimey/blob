@@ -8,7 +8,7 @@ import {
   DrawEvent,
   MultiSelectEvent,
 } from 'game/types';
-import { multipleOf } from 'game/lib/utils';
+import { multipleOf, switchDirection } from 'game/lib/utils';
 import {
   getAngleBetweenTwoPointsFromXHorizontal,
   isPointWithinRectangle,
@@ -78,10 +78,6 @@ const rotateBody = assign<Context, UpdateEvent>(({ position, movement }) => {
   };
 });
 
-function switchDirection(dir: 1 | -1) {
-  return dir === 1 ? -1 : 1;
-}
-
 const rotateMovingFin = assign<Context, UpdateEvent>(
   ({ finRotation, finRotationDir, movement }) => {
     if (!movement) return {};
@@ -92,16 +88,14 @@ const rotateMovingFin = assign<Context, UpdateEvent>(
     );
     if (!shouldRotate) return {};
 
-    const changeDirection =
-      finRotationDir === 1
-        ? finRotation >= BLOBALONG_FIN_ROTATION
-        : finRotation <= -BLOBALONG_FIN_ROTATION;
-
     return {
       finRotation: finRotation + (finRotationDir * Math.PI) / 80,
-      finRotationDir: changeDirection
-        ? switchDirection(finRotationDir)
-        : finRotationDir,
+      finRotationDir: switchDirection(
+        finRotationDir,
+        finRotation,
+        -BLOBALONG_FIN_ROTATION,
+        BLOBALONG_FIN_ROTATION
+      ),
     };
   }
 );
