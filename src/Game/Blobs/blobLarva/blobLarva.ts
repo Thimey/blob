@@ -106,6 +106,15 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
               },
               selected: {
                 on: {
+                  SELECT: {
+                    actions: sendParent(
+                      ({ id, position }: Context, _: SelectEvent) => ({
+                        type: 'LARVA_SELECTED',
+                        position,
+                        larvaId: id,
+                      })
+                    ),
+                  },
                   DESELECT: {
                     target: 'deselected',
                     actions: [

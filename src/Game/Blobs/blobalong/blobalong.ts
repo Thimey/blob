@@ -276,6 +276,14 @@ export function makeBlobalong(context: Context) {
                       DRAW_SELECTED: {
                         actions: drawBlobalongSelectedOutline,
                       },
+                      SELECT: {
+                        actions: sendParent(
+                          ({ id }: Context, _: SelectEvent) => ({
+                            type: 'BLOBALONG_SELECTED',
+                            blobalongId: id,
+                          })
+                        ),
+                      },
                       DESELECT: {
                         target: 'deselected',
                         actions: [
