@@ -1,8 +1,8 @@
 import { assign, spawn } from 'xstate';
 
 import { QUEEN_POSITION } from 'game/paramaters';
-import { DrawEvent, ClickedEvent } from 'game/types';
-import { blobalongClicked, makeBlobalong } from 'game/blobs/blobalong';
+import { DrawEvent } from 'game/types';
+import { makeBlobalong } from 'game/blobs/blobalong';
 
 import { generateId } from 'game/lib/utils';
 import { Context } from '../types';

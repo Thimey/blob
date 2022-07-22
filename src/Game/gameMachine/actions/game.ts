@@ -1,9 +1,8 @@
 import { UpdateEvent, MultiSelectEvent } from 'game/types';
 import { isPointWithinRectangle } from 'game/lib/geometry';
-import { blobLarvaClicked } from 'game/blobs/blobLarva';
-import { blobletClicked } from 'game/blobs/bloblet';
-import { blobalongClicked } from 'game/blobs/blobalong';
-import { shrubClicked } from 'game/resources/shrub';
+import { blobLarvaClicked, BlobLarvaActor } from 'game/blobs/blobLarva';
+import { blobletClicked, BlobletActor } from 'game/blobs/bloblet';
+import { blobalongClicked, BlobalongActor } from 'game/blobs/blobalong';
 
 import { Context, ClickedEvent } from '../types';
 
@@ -23,21 +22,29 @@ export function updateBlobs(
   });
 }
 
+function findClickedLarvae(blobLarvae: BlobLarvaActor[], event: ClickedEvent) {
+  return blobLarvae.find((larvae) => blobLarvaClicked(larvae, event));
+}
+
+function findClickedBloblet(bloblets: BlobletActor[], event: ClickedEvent) {
+  return bloblets.find((bloblet) => blobletClicked(bloblet, event));
+}
+
+function findClickedBlobalong(
+  blobalongs: BlobalongActor[],
+  event: ClickedEvent
+) {
+  return blobalongs.find((blobalong) => blobalongClicked(blobalong, event));
+}
+
 export function propergateClick(
   { blobLarvae, bloblets, blobalongs }: Context,
   event: ClickedEvent
 ) {
-  const clickedLarvae = blobLarvae.find((larvae) =>
-    blobLarvaClicked(larvae, event)
-  );
-  const clickedBloblet = bloblets.find((bloblet) =>
-    blobletClicked(bloblet, event)
-  );
-  const clickedBlobalong = blobalongs.find((blobalong) =>
-    blobalongClicked(blobalong, event)
-  );
-
-  const selectedBlob = clickedLarvae || clickedBloblet || clickedBlobalong;
+  const selectedBlob =
+    findClickedLarvae(blobLarvae, event) ||
+    findClickedBloblet(bloblets, event) ||
+    findClickedBlobalong(blobalongs, event);
 
   if (selectedBlob) {
     [...bloblets, ...blobLarvae, ...blobalongs].forEach((blob) => {
@@ -81,6 +88,7 @@ export function propagateMultiSelect(
   });
 
   if (wasBlobSelected) {
+    blobs.forEach((blob) => blob.send({ type: 'DESELECT' }));
     blobs.forEach((blob) => {
       blob.send(event);
     });
