@@ -35,16 +35,10 @@ import {
   harvestShrub,
   feedOnShrub,
   shrubDepleted,
-  propagateBlobletClicked,
-  propagateMapClicked,
+  propergateClick,
   propagateMultiSelect,
   propagateShrubClicked,
-  propagateLarvaClicked,
-  propagateBlobalongClicked,
-  didClickOnBloblet,
   didClickOnShrub,
-  didClickOnBlobLarva,
-  didClickOnBlobalong,
 } from './actions';
 
 export function makeGameMachine({
@@ -115,23 +109,11 @@ export function makeGameMachine({
         on: {
           CLICKED: [
             {
-              actions: [propagateLarvaClicked],
-              cond: didClickOnBlobLarva,
-            },
-            {
-              actions: [propagateBlobletClicked],
-              cond: didClickOnBloblet,
-            },
-            {
-              actions: [propagateBlobalongClicked],
-              cond: didClickOnBlobalong,
-            },
-            {
               actions: [propagateShrubClicked],
               cond: didClickOnShrub,
             },
             {
-              actions: [propagateMapClicked],
+              actions: [propergateClick],
             },
           ],
           SPAWN_LARVA: {

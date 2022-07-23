@@ -4,14 +4,8 @@ import { sendParent, send } from 'xstate/lib/actions';
 import { makeRandomNumber, multipleOf, switchDirection } from 'game/lib/utils';
 import { isPointWithinRectangle } from 'game/lib/geometry';
 import { QUEEN_POSITION } from 'game/paramaters';
-import { UpdateEvent } from 'game/types';
-import {
-  Context,
-  Events,
-  State,
-  PersistedLarvaActor,
-  LarvaClickEvent,
-} from './types';
+import { UpdateEvent, SelectEvent, DeselectEvent } from 'game/types';
+import { Context, Events, State, PersistedLarvaActor } from './types';
 import {
   drawLarva,
   drawPupa,
@@ -84,13 +78,6 @@ function hasReachedDestination(
   );
 }
 
-function didClickOnLarva(
-  { id }: Context,
-  { id: clickedLarvaId }: LarvaClickEvent
-) {
-  return id === clickedLarvaId;
-}
-
 export function makeBlobLarva({ context }: PersistedLarvaActor) {
   return createMachine<Context, Events, State>({
     initial: 'initialising',
@@ -125,15 +112,51 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
               ],
             },
             states: {
+              deselected: {
+                on: {
+                  SELECT: {
+                    target: 'selected',
+                    actions: sendParent(
+                      ({ id, position }: Context, _: SelectEvent) => ({
+                        type: 'LARVA_SELECTED',
+                        position,
+                        larvaId: id,
+                      })
+                    ),
+                  },
+                  MULTI_SELECT: {
+                    target: 'selected',
+                    cond: ({ position }, { rectangle }) =>
+                      isPointWithinRectangle(rectangle, position),
+                    actions: [
+                      sendParent(({ id, position }: Context) => ({
+                        type: 'LARVA_SELECTED',
+                        position,
+                        larvaId: id,
+                      })),
+                    ],
+                  },
+                },
+              },
               selected: {
                 on: {
-                  LARVA_CLICKED: {
-                    actions: sendParent(({ id }: Context) => ({
-                      type: 'LARVA_DESELECTED',
-                      larvaId: id,
-                    })),
+                  SELECT: {
+                    actions: sendParent(
+                      ({ id, position }: Context, _: SelectEvent) => ({
+                        type: 'LARVA_SELECTED',
+                        position,
+                        larvaId: id,
+                      })
+                    ),
+                  },
+                  DESELECT: {
                     target: 'deselected',
-                    cond: didClickOnLarva,
+                    actions: [
+                      sendParent(({ id }: Context, _: DeselectEvent) => ({
+                        type: 'LARVA_DESELECTED',
+                        larvaId: id,
+                      })),
+                    ],
                   },
                   MULTI_SELECT: {
                     target: 'deselected',
@@ -167,33 +190,6 @@ export function makeBlobLarva({ context }: PersistedLarvaActor) {
                         },
                       })
                     ),
-                  },
-                },
-              },
-              deselected: {
-                on: {
-                  LARVA_CLICKED: {
-                    target: 'selected',
-                    cond: didClickOnLarva,
-                    actions: [
-                      sendParent(({ id, position }: Context) => ({
-                        type: 'LARVA_SELECTED',
-                        position,
-                        larvaId: id,
-                      })),
-                    ],
-                  },
-                  MULTI_SELECT: {
-                    target: 'selected',
-                    cond: ({ position }, { rectangle }) =>
-                      isPointWithinRectangle(rectangle, position),
-                    actions: [
-                      sendParent(({ id, position }: Context) => ({
-                        type: 'LARVA_SELECTED',
-                        position,
-                        larvaId: id,
-                      })),
-                    ],
                   },
                 },
               },

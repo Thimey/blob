@@ -5,6 +5,8 @@ import {
   BlobType,
   DrawEvent,
   UpdateEvent,
+  SelectEvent,
+  DeselectEvent,
   MultiSelectEvent,
   Direction,
 } from 'game/types';
@@ -33,11 +35,6 @@ export type DrawLarvaSelectedEvent = {
   ctx: CanvasRenderingContext2D;
 };
 
-export type LarvaClickEvent = {
-  type: 'LARVA_CLICKED';
-  id: string;
-};
-
 export type LarvaSpawnSelected = {
   type: 'LARVA_SPAWN_SELECTED';
   blobToSpawn: BlobType;
@@ -60,8 +57,9 @@ export type State = {
 export type Events =
   | DrawEvent
   | UpdateEvent
+  | SelectEvent
+  | DeselectEvent
   | MultiSelectEvent
-  | LarvaClickEvent
   | LarvaSpawnSelected
   | DrawLarvaSelectedEvent
   | PupaHatch;

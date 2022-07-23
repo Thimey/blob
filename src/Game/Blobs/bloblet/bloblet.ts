@@ -188,9 +188,8 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
             states: {
               deselected: {
                 on: {
-                  BLOBLET_CLICKED: {
+                  SELECT: {
                     target: 'selected',
-                    cond: ({ id }, { id: clickedId }) => id === clickedId,
                   },
                   MULTI_SELECT: {
                     target: 'selected',
@@ -211,11 +210,9 @@ export function makeBloblet({ context, value }: PersistedBlobletActor) {
                   DRAW_SELECTED: {
                     actions: [drawSelectedOutline],
                   },
-                  BLOBLET_CLICKED: [
-                    {
-                      target: 'deselected',
-                    },
-                  ],
+                  DESELECT: {
+                    target: 'deselected',
+                  },
                   MULTI_SELECT: {
                     target: 'deselected',
                     cond: ({ position }, { rectangle }) =>

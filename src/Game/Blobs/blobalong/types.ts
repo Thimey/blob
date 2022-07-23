@@ -5,6 +5,8 @@ import {
   DrawEvent,
   UpdateEvent,
   MapClickEvent,
+  SelectEvent,
+  DeselectEvent,
   MultiSelectEvent,
   Direction,
 } from 'game/types';
@@ -30,11 +32,6 @@ export interface Context {
   };
 }
 
-export type BlobalongClickEvent = {
-  type: 'BLOBALONG_CLICK';
-  id: string;
-};
-
 export type DrawSelectedEvent = {
   type: 'DRAW_SELECTED';
   ctx: CanvasRenderingContext2D;
@@ -51,7 +48,8 @@ export type Event =
   | DrawEvent
   | UpdateEvent
   | MapClickEvent
-  | BlobalongClickEvent
+  | SelectEvent
+  | DeselectEvent
   | MultiSelectEvent
   | DrawSelectedEvent
   | MakeConnectionEvent;

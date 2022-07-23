@@ -6,6 +6,8 @@ import {
   UpdateEvent,
   MapClickEvent,
   Movement,
+  SelectEvent,
+  DeselectEvent,
   MultiSelectEvent,
 } from 'game/types';
 
@@ -24,11 +26,6 @@ export type Context = {
     leafPositions: Point[];
     amount: number;
   };
-};
-
-export type BlobletClickEvent = {
-  type: 'BLOBLET_CLICKED';
-  id: string;
 };
 
 export type ShrubClickEvent = {
@@ -72,8 +69,9 @@ export type State = {
 };
 
 export type Event =
-  | BlobletClickEvent
   | MapClickEvent
+  | SelectEvent
+  | DeselectEvent
   | MultiSelectEvent
   | DrawEvent
   | UpdateEvent

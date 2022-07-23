@@ -6,6 +6,8 @@ import {
   MapClickEvent,
   UpdateEvent,
   DrawEvent,
+  SelectEvent,
+  DeselectEvent,
   MultiSelectEvent,
 } from 'game/types';
 import { multipleOf, switchDirection } from 'game/lib/utils';
@@ -14,12 +16,7 @@ import {
   isPointWithinRectangle,
 } from 'game/lib/geometry';
 import { network } from 'game/blobNetwork';
-import {
-  BlobalongClickEvent,
-  Context,
-  Event,
-  MakeConnectionEvent,
-} from './types';
+import { Context, Event, MakeConnectionEvent } from './types';
 import {
   drawBlobalong,
   drawBlobalongSelectedOutline,
@@ -244,11 +241,10 @@ export function makeBlobalong(context: Context) {
                 states: {
                   deselected: {
                     on: {
-                      BLOBALONG_CLICK: {
+                      SELECT: {
                         target: 'selected',
-                        cond: ({ id }, { id: clickedId }) => id === clickedId,
                         actions: sendParent(
-                          ({ id }: Context, _: BlobalongClickEvent) => ({
+                          ({ id }: Context, _: SelectEvent) => ({
                             type: 'BLOBALONG_SELECTED',
                             blobalongId: id,
                           })
@@ -274,15 +270,21 @@ export function makeBlobalong(context: Context) {
                       DRAW_SELECTED: {
                         actions: drawBlobalongSelectedOutline,
                       },
-                      BLOBALONG_CLICK: {
+                      SELECT: {
+                        actions: sendParent(
+                          ({ id }: Context, _: SelectEvent) => ({
+                            type: 'BLOBALONG_SELECTED',
+                            blobalongId: id,
+                          })
+                        ),
+                      },
+                      DESELECT: {
                         target: 'deselected',
                         actions: [
-                          sendParent(
-                            ({ id }: Context, _: BlobalongClickEvent) => ({
-                              type: 'BLOBALONG_DESELECTED',
-                              blobalongId: id,
-                            })
-                          ),
+                          sendParent(({ id }: Context, _: DeselectEvent) => ({
+                            type: 'BLOBALONG_DESELECTED',
+                            blobalongId: id,
+                          })),
                         ],
                       },
                       MULTI_SELECT: {

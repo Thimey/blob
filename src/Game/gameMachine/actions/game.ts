@@ -1,5 +1,9 @@
 import { UpdateEvent, MultiSelectEvent } from 'game/types';
 import { isPointWithinRectangle } from 'game/lib/geometry';
+import { blobLarvaClicked, BlobLarvaActor } from 'game/blobs/blobLarva';
+import { blobletClicked, BlobletActor } from 'game/blobs/bloblet';
+import { blobalongClicked, BlobalongActor } from 'game/blobs/blobalong';
+
 import { Context, ClickedEvent } from '../types';
 
 export function updateBlobs(
@@ -16,6 +20,48 @@ export function updateBlobs(
   blobalongs.forEach((blob) => {
     blob.send(event);
   });
+}
+
+function findClickedLarvae(blobLarvae: BlobLarvaActor[], event: ClickedEvent) {
+  return blobLarvae.find((larvae) => blobLarvaClicked(larvae, event));
+}
+
+function findClickedBloblet(bloblets: BlobletActor[], event: ClickedEvent) {
+  return bloblets.find((bloblet) => blobletClicked(bloblet, event));
+}
+
+function findClickedBlobalong(
+  blobalongs: BlobalongActor[],
+  event: ClickedEvent
+) {
+  return blobalongs.find((blobalong) => blobalongClicked(blobalong, event));
+}
+
+export function propergateClick(
+  { blobLarvae, bloblets, blobalongs }: Context,
+  event: ClickedEvent
+) {
+  const selectedBlob =
+    findClickedLarvae(blobLarvae, event) ||
+    findClickedBloblet(bloblets, event) ||
+    findClickedBlobalong(blobalongs, event);
+
+  if (selectedBlob) {
+    [...bloblets, ...blobLarvae, ...blobalongs].forEach((blob) => {
+      if (blob.id !== selectedBlob.id) {
+        blob.send({ type: 'DESELECT' });
+      }
+    });
+
+    selectedBlob.send({ type: 'SELECT' });
+  } else {
+    bloblets.forEach((blob) => {
+      blob.send({ type: 'MAP_CLICKED', point: event.point });
+    });
+    blobalongs.forEach((blob) => {
+      blob.send({ type: 'MAP_CLICKED', point: event.point });
+    });
+  }
 }
 
 export function propagateMapClicked(
@@ -42,6 +88,7 @@ export function propagateMultiSelect(
   });
 
   if (wasBlobSelected) {
+    blobs.forEach((blob) => blob.send({ type: 'DESELECT' }));
     blobs.forEach((blob) => {
       blob.send(event);
     });

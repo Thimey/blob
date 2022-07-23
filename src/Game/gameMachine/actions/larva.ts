@@ -58,20 +58,6 @@ export const spawnBlobLarva = assign<Context, SpawnLarvaEvent>(
   }
 );
 
-export function propagateLarvaClicked(
-  { blobLarvae }: Context,
-  event: ClickedEvent
-) {
-  const clickedLarva = blobLarvae.find((larva) =>
-    blobLarvaClicked(larva, event)
-  );
-  const context = clickedLarva?.getSnapshot()?.context;
-
-  if (context) {
-    clickedLarva.send({ type: 'LARVA_CLICKED', id: context.id });
-  }
-}
-
 export const spawnBlob = assign(
   (context: Context, { blob, position, larvaId }: BlobHatchedEvent) => {
     const blobLarvae = context.blobLarvae.filter(
@@ -147,13 +133,6 @@ export const transformLarvae = pure<Context, SpawnBlobSelectedEvent>(
     ];
   }
 );
-
-export function didClickOnBlobLarva(
-  { blobLarvae }: Context,
-  event: ClickedEvent
-) {
-  return blobLarvae.some((larva) => blobLarvaClicked(larva, event));
-}
 
 export function shouldSpawnLarva({ blobLarvae }: Context, _: SpawnLarvaEvent) {
   return blobLarvae.length < MAX_LARVAE;

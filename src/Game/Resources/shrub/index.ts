@@ -4,4 +4,5 @@ export {
   makePosition,
   makeLeafPositions,
   makeRemainingLeafPositions,
+  shrubClicked,
 } from './draw';
