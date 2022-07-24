@@ -19,6 +19,22 @@ import { drawDiamond } from 'game/lib/draw';
 import { shrubColor } from 'game/colors';
 import { Context, ShrubActor } from './types';
 
+const SHROOMA_STALK_WIDTH = 7;
+const SHROOMA_TOP_RADIUS_X = 15;
+const SHROOMA_TOP_RADIUS_Y = 7;
+const SHROOMA_ONE_STALK_HEIGHT = 25;
+const SHROOMA_TWO_STALK_HEIGHT = 35;
+const SHROOMA_THREE_STALK_HEIGHT = 30;
+
+const SHROOMA_ONE_STALK_OFFSET: Point = { x: -15, y: 5 };
+const SHROOMA_TWO_STALK_OFFSET: Point = { x: 0, y: 15 };
+const SHROOMA_THREE_STALK_OFFSET: Point = { x: 15, y: 10 };
+const SHROOMAS = [
+  { height: SHROOMA_ONE_STALK_HEIGHT, offset: SHROOMA_ONE_STALK_OFFSET },
+  { height: SHROOMA_TWO_STALK_HEIGHT, offset: SHROOMA_TWO_STALK_OFFSET },
+  { height: SHROOMA_THREE_STALK_HEIGHT, offset: SHROOMA_THREE_STALK_OFFSET },
+];
+
 export function makePosition(distance: number): Point {
   const angle = makeRandomAngle();
 
@@ -96,9 +112,36 @@ export function drawShrub(
     amount,
     initialAmount
   );
-  makeRemainingLeafPositions(leafPositions, amount).forEach((p) =>
-    drawLeaf(ctx, p, shrubColor)
-  );
+
+  ctx.beginPath();
+  ctx.fillStyle = shrubColor;
+  SHROOMAS.forEach(({ offset: { x, y }, height }) => {
+    ctx.rect(
+      position.x + x - SHROOMA_STALK_WIDTH / 2,
+      position.y + y,
+      SHROOMA_STALK_WIDTH,
+      height
+    );
+  });
+  ctx.fill();
+  ctx.closePath();
+
+  ctx.beginPath();
+  SHROOMAS.forEach(({ offset: { x, y }, height }) => {
+    ctx.ellipse(
+      position.x + x,
+      position.y + y,
+      SHROOMA_TOP_RADIUS_X,
+      SHROOMA_TOP_RADIUS_Y,
+      0,
+      0,
+      Math.PI * 2
+    );
+  });
+
+  ctx.fill();
+  ctx.stroke();
+  ctx.closePath();
 }
 
 export function drawGrowingShrub(
