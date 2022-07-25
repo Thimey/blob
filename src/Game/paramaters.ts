@@ -50,10 +50,6 @@ export const BLOBALONG_EYE_OFFSET = 7;
 export const BLOBALONG_EYE_RADIUS = 1.5;
 
 // Shrubs
-export const LEAF_HEIGHT = 12;
-export const LEAF_WIDTH = 8;
-export const RADIUS_INCREMENT_X = 5;
-export const RADIUS_INCREMENT_Y = 3;
 export const SHRUB_HARVEST_DWELL_TIME_MS = 1_000;
 export const SHRUB_HARVEST_DROP_DWELL_TIME_MS = 300;
 

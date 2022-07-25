@@ -6,8 +6,6 @@ export type { DrawEvent };
 export type Context = {
   id: string;
   position: Point;
-  leafPositions: Point[];
-  topLeafY: number;
   harvestRate: number;
   initialAmount: number;
   amount: number;

@@ -1,22 +1,14 @@
 import { assign, spawn } from 'xstate';
 
-import { Point } from 'game/types';
 import { blobQueenColor } from 'game/colors';
-import {
-  QUEEN_POSITION,
-  QUEEN_RADIUS_Y,
-  LEAF_HEIGHT,
-  LEAF_WIDTH,
-} from 'game/paramaters';
-import { isPointWithinDiamond } from 'game/lib/geometry';
+import { QUEEN_POSITION, QUEEN_RADIUS_Y } from 'game/paramaters';
 import { animationMachine } from 'game/animations';
 import {
   makeShrub,
   makePosition,
-  makeLeafPositions,
-  ShrubActor,
   PersistedShrubActor,
   DrawEvent,
+  shrubClicked,
 } from 'game/resources/shrub';
 import {
   Context,
@@ -25,10 +17,6 @@ import {
   FeedOnShrubEvent,
   ShrubDepletedEvent,
 } from '../types';
-
-function makeTopY(positions: Point[]) {
-  return positions.reduce((acc, { y }) => (y < acc ? y : acc), positions[0].y);
-}
 
 export function initialiseShrubs(persistedShrub: PersistedShrubActor[]) {
   const newShrubPositions = [
@@ -43,15 +31,10 @@ export function initialiseShrubs(persistedShrub: PersistedShrubActor[]) {
     shrubs: persistedShrub.length
       ? persistedShrub.map((sc) => spawn(makeShrub(sc.context)))
       : newShrubPositions.map(({ position }, index) => {
-          const leafPositions = makeLeafPositions(position, 100);
-          const topLeafY = makeTopY(leafPositions);
-
           return spawn(
             makeShrub({
               id: `${index + 1}`,
               position,
-              leafPositions: makeLeafPositions(position, 100),
-              topLeafY,
               harvestRate: 1,
               initialAmount: 100,
               amount: 0,
@@ -65,20 +48,6 @@ export function drawShrubs({ shrubs }: Context, { ctx }: DrawEvent) {
   shrubs.forEach((shrub) => shrub.send({ type: 'DRAW', ctx }));
 }
 
-function shrubClicked(shrub: ShrubActor, { point }: ClickedEvent) {
-  const shrubContext = shrub.getSnapshot()?.context;
-
-  return (
-    shrubContext &&
-    shrubContext.leafPositions.some((position) =>
-      isPointWithinDiamond(
-        { position, width: LEAF_WIDTH, height: LEAF_HEIGHT },
-        point
-      )
-    )
-  );
-}
-
 export function propagateShrubClicked(
   { bloblets, shrubs }: Context,
   event: ClickedEvent
@@ -87,8 +56,7 @@ export function propagateShrubClicked(
   const clickedShrubState = clickedShrub?.getSnapshot();
 
   if (clickedShrubState && clickedShrubState.matches('ready')) {
-    const { id, harvestRate, position, leafPositions, amount } =
-      clickedShrubState.context;
+    const { id, harvestRate, position, amount } = clickedShrubState.context;
 
     bloblets.forEach((blob) => {
       blob.send({
@@ -97,7 +65,6 @@ export function propagateShrubClicked(
         harvestRate,
         clickCoordinates: event.point,
         shrubPosition: position,
-        leafPositions,
         amount,
       });
     });

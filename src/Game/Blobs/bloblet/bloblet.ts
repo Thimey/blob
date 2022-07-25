@@ -2,8 +2,7 @@ import { createMachine, assign, sendParent, actions } from 'xstate';
 import { send } from 'xstate/lib/actions';
 
 import { elapsedIntervals } from 'game/lib/time';
-import { selectRandomElementFromArray } from 'game/lib/utils';
-import { isPointWithinRectangle } from 'game/lib/geometry';
+import { isPointWithinRectangle, shiftRandomPosition } from 'game/lib/geometry';
 import {
   QUEEN_POSITION,
   BLOBLET_HARVEST_INTERVAL,
@@ -15,7 +14,6 @@ import { Point } from 'game/types';
 
 import { network } from 'game/blobNetwork';
 import { drawSelectedOutline } from 'game/lib/draw';
-import { makeRemainingLeafPositions } from 'game/resources/shrub';
 import { drawBloblet, drawCarryingShrub } from './draw';
 import {
   Context,
@@ -60,7 +58,6 @@ const setHarvestingShrub = assign(
       harvestRate,
       clickCoordinates,
       shrubPosition,
-      leafPositions,
       amount,
     }: ShrubClickEvent
   ) => ({
@@ -70,7 +67,6 @@ const setHarvestingShrub = assign(
       shrubId,
       harvestRate,
       position: shrubPosition,
-      leafPositions,
       amount,
     },
   })
@@ -84,16 +80,13 @@ const setDestinationAsShrub = pure<Context, Event>(
   ({ position, harvestingShrub }) => {
     if (!harvestingShrub) return undefined;
 
-    const { leafPositions, amount } = harvestingShrub;
-    const targetLeaf = selectRandomElementFromArray(
-      makeRemainingLeafPositions(leafPositions, amount)
-    );
+    const { position: shrubPosition } = harvestingShrub;
 
     return [
       assign({
         movement: makeMovement({
           position,
-          destination: targetLeaf,
+          destination: shiftRandomPosition(shrubPosition, 5),
         }),
       }),
     ];

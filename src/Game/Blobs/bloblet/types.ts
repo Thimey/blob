@@ -23,7 +23,6 @@ export type Context = {
     shrubId: string;
     harvestRate: number;
     position: Point;
-    leafPositions: Point[];
     amount: number;
   };
 };
@@ -34,7 +33,6 @@ export type ShrubClickEvent = {
   shrubPosition: Point;
   shrubId: string;
   harvestRate: number;
-  leafPositions: Point[];
   amount: number;
 };
 
