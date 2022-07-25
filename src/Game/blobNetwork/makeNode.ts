@@ -10,5 +10,6 @@ export function makeNode(centre: Point): Node {
     radiusX: NODE_RADIUS_X,
     radiusY: NODE_RADIUS_Y,
     connections: {},
+    overlappingNodes: [],
   };
 }

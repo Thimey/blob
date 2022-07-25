@@ -1,6 +1,6 @@
 import { Point } from 'game/types';
 import { QUEEN_POSITION, DEFAULT_SPEED } from 'game/paramaters';
-import { makeLinearPoints } from 'game/lib/geometry';
+import { makeLinearPoints, doEllipseOverlap } from 'game/lib/geometry';
 import { toMap } from 'game/lib/utils';
 import { makeNode } from './makeNode';
 
@@ -109,6 +109,25 @@ export class BlobNetwork {
         },
       },
     };
+
+    const didMakeEndNode = !!newEndNodeCentre;
+    if (didMakeEndNode) {
+      this.nodes.forEach((node) => {
+        if (node.id !== endNode.id && doEllipseOverlap(node, endNode)) {
+          this.nodeMap[node.id] = {
+            ...node,
+            overlappingNodes: [...node.overlappingNodes, endNode.id],
+          };
+          this.nodeMap[endNode.id] = {
+            ...this.nodeMap[endNode.id],
+            overlappingNodes: [
+              ...this.nodeMap[endNode.id].overlappingNodes,
+              node.id,
+            ],
+          };
+        }
+      });
+    }
   }
 
   public draw(ctx: CanvasRenderingContext2D) {

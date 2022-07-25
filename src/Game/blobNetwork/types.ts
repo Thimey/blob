@@ -11,6 +11,7 @@ export interface Node {
       direction: 'startToEnd' | 'endToStart';
     };
   };
+  overlappingNodes: NodeId[];
 }
 
 export interface Connection {

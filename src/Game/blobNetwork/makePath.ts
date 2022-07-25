@@ -3,6 +3,8 @@ import {
   makeLinearPoints,
   makeDistance,
   makeClosestPointOnEllipse,
+  isPointWithinEllipse,
+  findEllipseIntersectionPoints,
 } from 'game/lib/geometry';
 
 import { NodeMap, Network, NodeId, Connection, Node } from './types';
@@ -33,33 +35,55 @@ function getConnection(
   };
 }
 
-function makeConnectionPoints(network: Network, path: NodeId[], speed: number) {
-  const connections = path.reduce<Connection[]>((acc, nodeId, index) => {
-    const isLast = index === path.length - 1;
-    if (isLast) return acc;
+function makeOverlappingNodePath(
+  start: { position: Point; node: Node },
+  end: { position: Point; node: Node },
+  speed: number
+) {
+  const pointOnStartNodeCircumference = makeClosestPointOnEllipse(
+    start.node,
+    end.position
+  );
 
-    const nextNodeId = path[index + 1];
-
-    return [...acc, getConnection(network, nodeId, nextNodeId)];
-  }, []);
-
-  return connections.reduce<Point[]>((acc, connection, index) => {
-    const isLast = index === connections.length - 1;
-    if (isLast) return [...acc, ...connection.points];
-
-    const nextConnection = connections[index + 1];
-
-    const pointsToNextConnection = makeLinearPoints(
-      connection.end,
-      nextConnection.start,
+  if (isPointWithinEllipse(end.node, pointOnStartNodeCircumference)) {
+    return makeLinearPoints(
+      start.position,
+      pointOnStartNodeCircumference,
       speed
     );
+  }
 
-    return [...acc, ...connection.points, ...pointsToNextConnection];
-  }, []);
+  const [p1, p2] = findEllipseIntersectionPoints(start.node, end.node);
+  const closestIntersectionPoint =
+    makeDistance(start.position, p1) < makeDistance(start.position, p2)
+      ? p1
+      : p2;
+
+  return makeLinearPoints(start.position, closestIntersectionPoint, speed);
 }
 
-export function makePathPoints(
+function getNextKnownEnd(
+  network: Network,
+  currentNodeId: NodeId,
+  path: NodeId[],
+  end: Point
+) {
+  // Check path until reach a connection or the end
+  const nextNodeWithConnection = path.find((nodeId, index) => {
+    const prevNodeId = index === 0 ? currentNodeId : path[index - 1];
+
+    const isOverlapping =
+      network.nodes[prevNodeId].overlappingNodes.includes(nodeId);
+
+    return !isOverlapping;
+  });
+
+  return nextNodeWithConnection
+    ? getConnection(network, path[0], nextNodeWithConnection).start
+    : end;
+}
+
+function makePathPoints(
   network: Network,
   path: NodeId[],
   start: Point,
@@ -72,28 +96,50 @@ export function makePathPoints(
     return makeLinearPoints(start, end, speed);
   }
 
-  const pointsWithinFirstNode = makeLinearPoints(
-    start,
-    getConnection(network, path[0], path[1]).start,
-    speed
-  );
+  return path.reduce<Point[]>((acc, nodeId, index) => {
+    const previousPoint = acc.length ? acc[acc.length - 1] : start;
 
-  const pointsWithinLastNode = makeLinearPoints(
-    getConnection(network, path[path.length - 2], path[path.length - 1]).end,
-    end,
-    speed
-  );
+    const isLast = index === path.length - 1;
+    if (isLast) return [...acc, ...makeLinearPoints(previousPoint, end, speed)];
 
-  const pointsBetweenNodes = makeConnectionPoints(network, path, speed);
+    const nextNodeId = path[index + 1];
 
-  return [
-    ...pointsWithinFirstNode,
-    ...pointsBetweenNodes,
-    ...pointsWithinLastNode,
-  ];
+    const isOverlappingWithNextNode =
+      network.nodes[nodeId].overlappingNodes.includes(nextNodeId);
+
+    if (isOverlappingWithNextNode) {
+      const destinationPoint = getNextKnownEnd(
+        network,
+        nodeId,
+        path.slice(index + 1),
+        end
+      );
+
+      return [
+        ...acc,
+        ...makeOverlappingNodePath(
+          { position: previousPoint, node: network.nodes[nodeId] },
+          { position: destinationPoint, node: network.nodes[nextNodeId] },
+          speed
+        ),
+      ];
+    }
+
+    const connection = getConnection(network, nodeId, nextNodeId);
+    const pointsToStartOfConnection = previousPoint
+      ? makeLinearPoints(previousPoint, connection.start, speed)
+      : [];
+
+    return [...acc, ...pointsToStartOfConnection, ...connection.points];
+  }, []);
 }
 
 function makeWeight(node1: Node, node2: Node) {
+  // Overlapping nodes are considered to have no weight
+  if (node1.overlappingNodes.includes(node2.id)) {
+    return 1;
+  }
+
   return makeDistance(node1.centre, node2.centre);
 }
 
@@ -101,9 +147,12 @@ export function makeWeightedGraph(nodes: NodeMap) {
   return Object.values(nodes).reduce(
     (graph, node) => ({
       ...graph,
-      [node.id]: Object.keys(node.connections).reduce(
-        (neighbours, toNodeId) => ({
-          ...neighbours,
+      [node.id]: [
+        ...Object.keys(node.connections),
+        ...node.overlappingNodes,
+      ].reduce(
+        (neighbors, toNodeId) => ({
+          ...neighbors,
           [toNodeId]: makeWeight(node, nodes[toNodeId]),
         }),
         {}
@@ -141,11 +190,8 @@ function makePath(
   endNodeId: NodeId,
   speed: number
 ) {
-  const shortestPath = makeShortestPath(
-    makeWeightedGraph(network.nodes),
-    startNodeId,
-    endNodeId
-  );
+  const weightedGraph = makeWeightedGraph(network.nodes);
+  const shortestPath = makeShortestPath(weightedGraph, startNodeId, endNodeId);
 
   return makePathPoints(network, shortestPath, start, end, speed);
 }

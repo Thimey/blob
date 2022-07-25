@@ -291,3 +291,36 @@ export function capLinearLine(start: Point, end: Point, max: number) {
     y: start.y + max * Math.sign(dy) * Math.sin(angle),
   };
 }
+
+export function findEllipseIntersectionPoints(
+  ellipse1: Ellipse,
+  ellipse2: Ellipse
+): Point[] {
+  const points = [];
+
+  let angle = 0;
+  let prevPointResult: { point: Point; overlap: boolean } | undefined;
+
+  while (angle <= 2 * Math.PI || points.length === 2) {
+    const pointOnEllipse1 = makePointOnEllipse(ellipse1, angle);
+    const doesOverlap = isPointWithinEllipse(ellipse2, pointOnEllipse1);
+
+    if (prevPointResult) {
+      const intersection = doesOverlap !== prevPointResult.overlap;
+      if (intersection) {
+        points.push(pointOnEllipse1);
+      }
+    }
+    prevPointResult = { point: pointOnEllipse1, overlap: doesOverlap };
+    angle += Math.PI / 64;
+  }
+
+  return points;
+}
+
+export function doEllipseOverlap(ellipse1: Ellipse, ellipse2: Ellipse) {
+  return isPointWithinEllipse(
+    ellipse2,
+    makeClosestPointOnEllipse(ellipse1, ellipse2.centre)
+  );
+}

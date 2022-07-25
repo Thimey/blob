@@ -19,6 +19,15 @@ export function initialiseBlobalongs() {
           rotation: 0,
         })
       ),
+      spawn(
+        makeBlobalong({
+          id: generateId(),
+          finRotation: 0,
+          position: QUEEN_POSITION,
+          finRotationDir: 1,
+          rotation: 0,
+        })
+      ),
     ],
   }));
 }

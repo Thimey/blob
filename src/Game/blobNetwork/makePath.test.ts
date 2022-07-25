@@ -10,6 +10,7 @@ function makeNode(id: NodeId, x: Point['x'], y: Point['y']): Node {
     radiusX: 2,
     radiusY: 1,
     connections: {},
+    overlappingNodes: [],
   };
 }
 
