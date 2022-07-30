@@ -1,14 +1,18 @@
 import { Point } from 'game/types';
 import { generateId, makeRandomNumber } from 'game/lib/utils';
 import { makeCubicBezierPoints } from 'game/lib/geometry';
+import {
+  DEFAULT_CONNECTION_POINTS,
+  DEFAULT_GROW_CONNECTION_POINTS,
+} from 'game/paramaters';
 
 import { Connection } from './types';
 
 export function makeConnection(
   start: Point,
   end: Point,
-  travelPoints = 200,
-  growPoints = 800
+  travelPoints = DEFAULT_CONNECTION_POINTS,
+  growPoints = DEFAULT_GROW_CONNECTION_POINTS
 ): { connection: Connection; growPoints: Point[] } {
   const bezierP1 = {
     x: makeRandomNumber(Math.min(start.x, end.x), Math.max(start.x, end.x)),

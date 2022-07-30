@@ -1,5 +1,5 @@
 import { matchState } from 'xstate';
-import { Point, Ellipse, Rectangle } from '../types';
+import { Point, Ellipse, Rectangle, Direction } from '../types';
 import { makeRandomNumber } from './utils';
 
 export function degToRad(deg: number) {
@@ -16,6 +16,10 @@ export function makeDistance({ x: x1, y: y1 }: Point, { x: x2, y: y2 }: Point) {
 
 export function makePerimeterOfEllipse(radiusX: number, radiusY: number) {
   return Math.PI * 2 * Math.sqrt((radiusX ** 2 + radiusY ** 2) / 2);
+}
+
+export function pointsEqual(point1: Point, point2: Point) {
+  return point1.x === point2.x && point1.y === point2.y;
 }
 
 export function shiftRandomPosition({ x, y }: Point, shiftDistance: number) {
@@ -103,21 +107,39 @@ export function makeCubicBezierPoints(
   return points;
 }
 
-export function makeLinearPoints(start: Point, end: Point, step = 2) {
-  const totalDistance = makeDistance(start, end);
+export function getAngleAndDirBetweenPoints(start: Point, end: Point) {
   const dx = end.x - start.x;
   const dy = end.y - start.y;
   const xDir = Math.sign(dx);
   const yDir = Math.sign(dy);
   const angle = Math.atan(Math.abs(dy / dx));
 
+  return { angle, xDir, yDir };
+}
+
+export function movePoint(
+  { x, y }: Point,
+  {
+    angle,
+    xDir,
+    yDir,
+    distance,
+  }: { angle: number; xDir: number; yDir: number; distance: number }
+) {
+  return {
+    x: x + xDir * distance * Math.cos(angle),
+    y: y + yDir * distance * Math.sin(angle),
+  };
+}
+
+export function makeLinearPoints(start: Point, end: Point, step = 2) {
+  const totalDistance = makeDistance(start, end);
+  const { angle, xDir, yDir } = getAngleAndDirBetweenPoints(start, end);
+
   let distance = 0;
   const points = [];
   while (distance < totalDistance) {
-    const x = start.x + xDir * distance * Math.cos(angle);
-    const y = start.y + yDir * distance * Math.sin(angle);
-
-    points.push({ x, y });
+    points.push(movePoint(start, { angle, xDir, yDir, distance }));
     distance += Math.min(step, totalDistance - distance);
   }
   points.push(end);

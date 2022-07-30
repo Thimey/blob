@@ -51,6 +51,10 @@ export function findNodeOfPoint(nodes: Node[], point: Point, nodePercent = 1) {
   );
 }
 
+export function isPointOnNode(nodes: Node[], point: Point) {
+  return Boolean(findNodeOfPoint(nodes, point));
+}
+
 export function findNearestNode(nodes: Node[], point: Point) {
   return nodes.reduce(
     (acc, node) => {
